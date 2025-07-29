@@ -1,0 +1,156 @@
+{{/*
+	Trigger Type: Message Component
+	Component Custom ID Regex: spidapida\-
+	Notes: Restrict this CC only to the collab ad channel.
+
+	Created by: Spidapida
+*/}}
+
+{{/* Configurable values start */}}
+{{$dbTimer := 4838400}} {{/* database expiration in seconds, default is 2 months = 4838400 */}}
+{{$collabCD :=  604800}} {{/* collab cooldown in seconds, default is 1 week = 604800 */}}
+{{$logSuccess := 1398708222868586536}}
+{{$regularCH := 1354527351874257169}}
+{{$priorityCH := 1354527201663647915}}
+{{/* Configurable values end */}}
+
+{{$id := "spidapida-"}}
+{{$abc := or (dbGet .User.ID "collab-ads").Value (cslice (toInt64 0) (toInt64 0) (toInt64 0) (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") false (toInt 0) (cslice ) (toString "strand") (toInt64 0) (toInt64 0) (toInt64 0) (toInt64 0) (toInt64 0)) }}
+{{$tok := .Interaction.Token}}
+{{$neon := (dbGet 0 "collabstuff").Value }}
+
+{{$ign := cslice 856869462569254912 1343014642309529620 643101579016273941 859731598706475010}} {{/* administrator / head staff / staff / trial staff // bypassed roles */}}
+{{$blk := cslice 643105838483111936 1235737941800910858 1169182700536598608 893879950589952050}} {{/* muted / automuted / collab network suppression / collab restriction // nuh uh roles*/}}
+
+{{$stb := 0}}
+{{range $ign}}
+	{{if hasRoleID . }}
+		{{$stb = 1 }}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{$alt := 0}}
+{{if ne $stb 1}}
+	{{range $blk}}
+		{{if hasRoleID . }}
+			{{$alt = . }}
+			{{break}}
+		{{end}}
+	{{end}}
+{{end}}
+
+{{$mbed2 := print `- **Collab type: **` (or (index $abc 7) `❗❗`) `
+- **Deco style: **` (or (index $abc 8) `❗❗`) `
+- **What work is needed: **` (or (index $abc 9) `❗❗`) `
+- **Collab difficulty: **` (or (index $abc 10) `❗❗`) `
+- **Level type: **` (or (index $abc 11) `❗❗`) `
+- **Standard: **` (or (index $abc 12) `❗❗`) `
+- **Discord invite link: **` (or (index $abc 5) "*empty*") `
+- **My contribution to the collab: **` (or (index $abc 6) "*empty*")}}
+{{$mbed0 :=  print `### ` (or (index $abc 3) "❗❗ <Level Name and Host/Collab Team Name>") `
+` $mbed2}}
+{{$mbed1 := print `### Description of the collab:
+` (or (index $abc 4) "❗❗ *description is empty*") }}
+
+{{$mailto1 := componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" $mbed0 "separator" true "container" (sdict "color" (index $neon 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true }}
+{{$mailto2 := componentBuilder "container" (sdict "color" (index $neon 14) "components" (componentBuilder "text" $mbed1))}}
+{{if gt (len (index $abc 15)) 0}}
+	{{range (index $abc 15)}}
+		{{$mailto1.Add "gallery" (sdict "media" .) }}
+		{{$mailto2.Add "gallery" (sdict "media" .) }}
+	{{end}}
+	{{$mailto1.Add "separator" true }}
+{{end}}
+{{$mailto3 := $mailto1}}
+{{$mailto1.Add "menus" (cslice (cmenu (index $neon 10) ) (cmenu (index $neon 11) ) (cmenu (index $neon 12) ) (cmenu (index $neon 13) ) ) }}
+{{$mailto1.Add "separator" false }}
+{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 14)) (cbutton (index $neon 15)) (cbutton (index $neon 18))) }}
+{{$mailto1.Add "separator" false }}
+{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 32)) (cbutton (index $neon 34)) (cbutton (index $neon 20))) }}
+
+{{if eq $alt 0}}
+	{{if eq .Channel.ID (index $abc 0)}}
+		{{if .IsButton}}
+			{{if eq .CustomID (print $id "tent-send") }}
+				{{$i := 0}}
+				{{$j := 0}}
+				{{/* templateChannelID0 templateMessageID1 userID2 collabName3 collabDescription4 discordInviteLink5 contribution6 collabLength7 decoStyle8 collabNeeds9 difficulty10 levelType11 standards12 isBoosted13 color14 images15 postFlag16 announceMessage17 postedForumThread18 postedForumMessage19 postedForumTimestamp20 forwardedAttachments21 */}}
+				{{range $abc}}
+					{{if eq $j 13}}
+						{{$j = 8}}
+						{{break}}
+					{{end}}
+					{{if eq $j 0 1 2 5 6 }} {{/* templateChannelID0 templateMessageID1 userID2 discordInviteLink5 contribution6 // details that are optional */}}
+					{{else}}
+						{{if ne . ""}}
+							{{$i = add $i 1}}
+						{{end}}
+					{{end}}
+					{{$j = add $j 1}}
+				{{end}}
+				{{if ge $i $j}}
+					{{if eq (index $abc 13) true}}
+						{{$regularCH = $priorityCH}}
+					{{end}}
+					
+					{{$forumCH := createForumPost $regularCH (index $abc 3) (complexMessage "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link"))) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
+					{{$messTM := getMessage $forumCH.ID $forumCH.ID}}
+					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Your collab ad is now posted at https://discord.com/channels/" .Guild.ID "/" $forumCH.ID "." ) "ephemeral" false)}}
+
+					{{$id2 := sendComponentMessageRetID $forumCH.ID $mailto2 }}
+					{{$abc.Set 16 "posted"}}
+					{{$abc.Set 18 $forumCH.ID }}
+					{{$abc.Set 19 $id2 }}
+					{{$abc.Set 20 $messTM.Timestamp.Parse.Unix }}
+					{{editComponentMessage (index $abc 0) (index $abc 1) $mailto1}}
+
+					{{sendMessage $logSuccess (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print .User.Mention "(`" .User.ID "`) posted the following:" ))}}
+					{{sendComponentMessage $logSuccess $mailto3 }}
+					{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
+				{{else}}
+					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "From the collaboration template, " (sub $j $i) " fields have missing details. Please note that the fields marked with \"❗❗\" are required to have details in them.") "ephemeral" "true")}}
+					{{ deleteInteractionResponse $tok $id1 10 }}
+				{{end}}
+			{{else if eq .CustomID (print $id "editpost")}}
+				{{editMessage (index $abc 18) (index $abc 18) (complexMessageEdit "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link")) )}}
+				{{editThread (index $abc 18) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
+				{{editComponentMessage (index $abc 18) (index $abc 19) $mailto2}}
+				{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Posted collab has been edited.") "ephemeral" "true")}}
+				{{ deleteInteractionResponse $tok $id1 10 }}
+			
+			{{else if eq .CustomID (print $id "bump")}}
+
+				{{if le currentTime.Unix (add (index $abc 20) (toInt64 $collabCD)) }}
+					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "You can bump up your collaboration ad at <t:" (add (index $abc 20) (toInt64 $collabCD)) ">." ) "ephemeral" "true")}}
+					{{ deleteInteractionResponse $tok $id1 10 }}
+				{{else}}
+					{{if eq (index $abc 13) true}}
+						{{$regularCH = 1354527201663647915}}
+					{{end}}
+					{{deleteForumPost (index $abc 18)}}
+					{{$forumCH := createForumPost $regularCH (index $abc 3) (complexMessage "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link"))) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
+					{{$messTM := getMessage $forumCH.ID $forumCH.ID}}
+					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Your collab ad is bumped up. You can see at https://discord.com/channels/" .Guild.ID "/" $forumCH.ID "." ) "ephemeral" false)}}
+					{{$id2 := sendComponentMessageRetID $forumCH.ID $mailto2 }}
+					{{$abc.Set 18 $forumCH.ID }}
+					{{$abc.Set 19 $id2 }}
+					{{$abc.Set 20 $messTM.Timestamp.Parse.Unix }}
+					{{sendMessage $logSuccess (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print .User.Mention "(`" .User.ID "`) bumped up the following collab:" ))}}
+					{{sendComponentMessage $logSuccess $mailto3 }}
+					{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
+				{{end}}
+			{{end}}
+		{{end}}
+	{{else}}
+		{{if ne .CustomID (print $id "print-collab")}}
+			{{$id1 := sendResponseRetID $tok (complexMessage "content" "You are not the original poster for this collab template, and therefore not allowed to modify the template." "ephemeral" "true")}}
+			{{ deleteInteractionResponse $tok $id1 10 }}
+		{{end}}
+	{{end}}
+{{else}}
+	{{if ne .CustomID (print $id "print-collab")}}
+		{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "You are not allowed to create nor post a collab ad because you have a <@&" $alt "> role.") "ephemeral" "true")}}
+		{{ deleteInteractionResponse $tok $id1 10 }}
+	{{end}}
+{{end}}
