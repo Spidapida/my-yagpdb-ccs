@@ -1,0 +1,131 @@
+{{/*
+	Trigger Type: Command (mention/cmd prefix)
+	Trigger: collabimage
+	Notes: Restrict this CC only to the collab ad channel.
+
+	Created by: Spidapida
+*/}}
+
+{{/* Configurable values start */}}
+{{$dbTimer := 4838400}} {{/* database expiration in seconds, default is 2 months = 4838400 */}}
+{{$attachForward := 1398719118676594741}} {{/* dumping channel for attachments */}}
+{{/* Configurable values end */}}
+
+{{$abc := or (dbGet .User.ID "collab-ads").Value (cslice (toInt64 0) (toInt64 0) (toInt64 0) (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") false (toInt 0) (cslice ) (toString "strand") (toInt64 0) (toInt64 0) (toInt64 0) (toInt64 0) (toInt64 0)) }}
+{{$neon := (dbGet 0 "collabstuff").Value }}
+
+{{$mbed0 := print `### ` (or (index $abc 3) "❗❗ <Level Name and Host/Collab Team Name>") `
+- **Collab type: **` (or (index $abc 7) `❗❗`) `
+- **Deco style: **` (or (index $abc 8) `❗❗`) `
+- **What work is needed: **` (or (index $abc 9) `❗❗`) `
+- **Collab difficulty: **` (or (index $abc 10) `❗❗`) `
+- **Level type: **` (or (index $abc 11) `❗❗`) `
+- **Standard: **` (or (index $abc 12) `❗❗`) `
+- **Discord invite link: **` (or (index $abc 5) "*empty*") `
+- **My contribution to the collab: **` (or (index $abc 6) "*empty*")}}
+{{$mbed1 := print `### Description of the collab:
+` (or (index $abc 4) "❗❗ *description is empty*") }}
+
+{{$omnom := cslice }}
+{{if eq (index $abc 16) "block" }}
+	{{$omnom = cslice (cbutton (index $neon 30)) (cbutton (index $neon 20)) }}
+{{else if eq (index $abc 16) "postedblocked"}}
+	{{$omnom = cslice (cbutton (index $neon 33)) (cbutton (index $neon 35)) (cbutton (index $neon 20)) }}
+{{else if or (eq (index $abc 16) "posted") (eq (index $abc 16) "postedoverride")}}
+	{{$omnom = cslice (cbutton (index $neon 32)) (cbutton (index $neon 34)) (cbutton (index $neon 20)) }}
+{{else if or (eq (index $abc 16) "strand") (eq (index $abc 16) "strandoverride")}}
+	{{$omnom = cslice (cbutton (index $neon 19)) (cbutton (index $neon 20))  }}
+{{else}}
+	{{$omnom = cslice (cbutton (index $neon 36)) }}
+{{end}}
+
+{{$y := inFold .StrippedMsg "-urlfirst"}}
+{{$i := 0}} {{/* image count success */}}
+{{$j := 0}} {{/* embed count success */}}
+{{$c := add (len (reFindAll .LinkRegex .StrippedMsg)) (len (.Message.Attachments)) }}
+
+{{$img := cslice}}
+{{$emb := cslice}}
+
+{{if eq .Channel.ID (index $abc 0)}}
+	{{if eq $c 0}}
+		{{$mailto1 := componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true "menus" (cslice (cmenu (index $neon 10) ) (cmenu (index $neon 11) ) (cmenu (index $neon 12) ) (cmenu (index $neon 13) ) ) "separator" false "buttons" (cslice (cbutton (index $neon 14)) (cbutton (index $neon 15)) (cbutton (index $neon 18))) "separator" false "buttons" $omnom }}
+		{{$abc.Set 15 (cslice )}}
+		{{editComponentMessage (index $abc 0) (index $abc 1) $mailto1}}
+		{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
+		{{sendMessage nil "Media cleared."}}
+		{{deleteResponse 10}}
+		{{deleteTrigger 10}}
+	{{else if gt $c 10}}
+		{{sendMessage nil "Total number of media exceeded (must be at most 10). Please limit the number of image attachments and image links to a total of ten."}}
+		{{deleteResponse 10}}
+		{{deleteTrigger 10}}
+	{{else}}
+		{{$msg := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" "Please allow up to ten seconds before attaching the media... <a:loadig:594954688751861762>")}}
+		{{sleep 10}}
+		{{$warn := ""}}
+		{{if .Message.Attachments}}
+			{{$attX := sendMessageRetID $attachForward (complexMessage "forward" (sdict "channel" (index $abc 0) "message" .Message.ID ) )}}
+			{{if gt (len (toString $attX)) 2}}
+				{{$abc.Set 21 $attX}}
+				{{range (index (getMessage $attachForward $attX).MessageSnapshots 0).Message.Attachments}}
+					{{if gt .Width 0 }}
+						{{$img = $img.Append (print .URL )}}
+						{{$i = add $i 1}}
+					{{end}}
+				{{end}}
+			{{else}}
+				{{$warn = " Please do not delete the message you just sent. This ensures that the media plays correctly to the other members of the server."}}
+				{{range .Message.Attachments}}
+					{{if gt .Width 0 }}
+						{{$img = $img.Append (print .URL )}}
+						{{$i = add $i 1}}
+					{{end}}
+				{{end}}
+			{{end}}
+		{{end}}
+		{{$sd := sdict}}
+		{{$fv := getMessage (index $abc 0) .Message.ID }}
+		{{range $fv.Embeds}}
+			{{try}}
+				{{$sd = structToSdict .Thumbnail}} 
+				{{if gt $sd.Width 0}}
+					{{$emb = $emb.Append .URL }} 
+					{{$j = add $j 1}}
+				{{end}}
+			{{catch}}
+			{{end}}
+		{{end}}
+		{{$fin := cslice }}
+		{{if eq $y true}}
+			{{$fin = $fin.AppendSlice $emb}}
+			{{$fin = $fin.AppendSlice $img}}
+		{{else}}
+			{{$fin = $fin.AppendSlice $img}}
+			{{$fin = $fin.AppendSlice $emb}}
+		{{end}}
+
+		{{$mailto1 := componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true }}
+		{{range $fin}}
+			{{$mailto1.Add "gallery" (sdict "media" .) }}
+		{{end}}
+		{{$mailto1.Add "separator" true }}
+		{{$mailto1.Add "menus" (cslice (cmenu (index $neon 10) ) (cmenu (index $neon 11) ) (cmenu (index $neon 12) ) (cmenu (index $neon 13) ) ) }}
+		{{$mailto1.Add "separator" false }}
+		{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 14)) (cbutton (index $neon 15)) (cbutton (index $neon 18))) }}
+		{{$mailto1.Add "separator" false }}
+		{{$mailto1.Add "buttons" $omnom}}
+		{{$abc.Set 15 $fin}}
+		{{editComponentMessage (index $abc 0) (index $abc 1) $mailto1}}
+		{{if eq (add $i $j) $c}}
+			{{editMessage nil $msg (print "Media successfully added." $warn)}}
+		{{else}}
+			{{editMessage nil $msg (print "Warning: " (add $i $j) " media added, " (sub $c (add $i $j)) " media failed to be added.")}}
+		{{end}}
+		{{deleteMessage nil $msg 20}}
+		{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
+	{{end}}
+{{else}}
+	{{$msg := sendMessageRetID nil "You are not the original poster for this collab template, and therefore not allowed to modify the template."}}
+	{{deleteMessage nil $msg 10}}
+{{end}}

@@ -1,0 +1,94 @@
+{{/*
+	Trigger Type: Message Component
+	Component Custom ID Regex: spidapida\-
+	Notes: Restrict this CC only to the collab ad channel.
+
+	Created by: Spidapida
+*/}}
+
+{{/* Configurable values start */}}
+{{$logChannel := 1005538878523973712 }}
+{{$dbTimer := 4838400}} {{/* database expiration in seconds, default is 2 months = 4838400 */}}
+{{/* Configurable values end */}}
+
+{{$id := "spidapida-"}}
+{{$list := (dbGet 0 "blacklist").Value}}
+{{$abc := or (dbGet .User.ID "collab-ads").Value (cslice (toInt64 0) (toInt64 0) (toInt64 0) (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") false (toInt 0) (cslice ) (toString "strand") (toInt64 0) (toInt64 0) (toInt64 0) (toInt64 0) (toInt64 0)) }}
+{{$tok := .Interaction.Token}}
+
+{{if eq .Channel.ID (index $abc 0)}}
+	{{if eq .CustomID (print $id "modalcontent")}}
+		{{$o := index .Values 0}} {{$p := index .Values 1}} {{$q := index .Values 2}} {{$r := index .Values 3}}
+		{{$zzz := sanitizeText ( joinStr " " (cslice $o $p $q $r ) )}}
+		{{$t := false}}
+		{{$iy := ""}}
+		{{range $list}}
+			{{- $t = inFold $zzz . -}}
+			{{if eq $t true }}
+				{{$iy = . }}
+				{{break}}
+			{{end}}
+		{{end}}
+		{{$abc.Set 3 $o}}
+		{{$abc.Set 4 $p}}
+		{{$abc.Set 5 $q}}
+		{{$abc.Set 6 $r}}
+		{{$mbed0 := print `### ` (or (index $abc 3) "❗❗ <Level Name and Host/Collab Team Name>") `
+- **Collab type: **` (or (index $abc 7) `❗❗`) `
+- **Deco style: **` (or (index $abc 8) `❗❗`) `
+- **What work is needed: **` (or (index $abc 9) `❗❗`) `
+- **Collab difficulty: **` (or (index $abc 10) `❗❗`) `
+- **Level type: **` (or (index $abc 11) `❗❗`) `
+- **Standard: **` (or (index $abc 12) `❗❗`) `
+- **Discord invite link: **` (or (index $abc 5) "*empty*") `
+- **My contribution to the collab: **` (or (index $abc 6) "*empty*")}}
+		{{$mbed1 := print `### Description of the collab:
+` (or (index $abc 4) "❗❗ *description is empty*") }}
+		
+		{{$neon := (dbGet 0 "collabstuff").Value }}
+		{{$mailto1 := componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true }}
+		{{if gt (len (index $abc 15)) 0}}
+			{{range (index $abc 15)}}
+				{{$mailto1.Add "gallery" (sdict "media" .) }}
+			{{end}}
+			{{$mailto1.Add "separator" true }}
+		{{end}}
+		{{$mailto1.Add "menus" (cslice (cmenu (index $neon 10) ) (cmenu (index $neon 11) ) (cmenu (index $neon 12) ) (cmenu (index $neon 13) ) ) }}
+		{{$mailto1.Add "separator" false }}
+		{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 14)) (cbutton (index $neon 15)) (cbutton (index $neon 18))) }}
+		{{$mailto1.Add "separator" false }}
+
+		{{if eq $t true}}
+			{{/* states: strand strandoverride block posted postedoverride postedblocked */}}
+			{{if or (eq (index $abc 16) "strand") (eq (index $abc 16) "strandoverride") (eq (index $abc 16) "block")}}
+				{{ $abc.Set 16 "block" }}
+				{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 30)) (cbutton (index $neon 20)) ) }}
+			{{else}}
+				{{ $abc.Set 16 "postedblocked" }}
+				{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 33)) (cbutton (index $neon 35)) (cbutton (index $neon 20)) ) }}
+			{{end}}
+			{{ sendComponentMessage $logChannel (componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" (print .User.Mention " attempted to post the following:") "separator" true "container" (sdict "components" (componentBuilder "text" (print "- **Triggered keyword**: " $iy `
+- Title: ` $o `
+- Discord invite link: ` (or $q "*empty*") `
+- My contribution to the collab: ` $r) ) ) "container" (sdict "components" (componentBuilder "text" $mbed1 ) ) ) }}
+			{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "You are trying to input something that violates our <#988796169142558760>, so for now your ability to post your collaboration ad has been disabled. You can edit the content before posting to fix it. If you, however, believe that the post is not offending, create a ticket in <#1198065126780186665>, and explain your reasoning.") )}}
+		{{else}}
+			
+			{{if or (eq (index $abc 16) "strand") (eq (index $abc 16) "strandoverride") (eq (index $abc 16) "block")}}
+				{{ $abc.Set 16 "strand" }}
+				{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 19)) (cbutton (index $neon 20)) ) }}
+			{{else}}
+				{{ $abc.Set 16 "postedblocked" }}
+				{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 32)) (cbutton (index $neon 34)) (cbutton (index $neon 20)) ) }}
+			{{end}}
+			{{$ida := sendResponseRetID $tok (complexMessage "content" "Collab details has been modified." "ephemeral" "true")}}
+			{{ deleteInteractionResponse $tok $ida 5 }}
+		{{end}}
+		{{editComponentMessage (index $abc 0) (index $abc 1) $mailto1}}
+		{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
+	{{end}}
+
+{{else}}
+	{{$id1 := sendResponseRetID $tok (complexMessage "content" "You are not the original poster for this collab template, and therefore not allowed to modify the template." "ephemeral" "true")}}
+	{{ deleteInteractionResponse $tok $id1 5 }}
+{{end}}
