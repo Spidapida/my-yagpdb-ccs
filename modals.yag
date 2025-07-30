@@ -19,7 +19,7 @@
 {{if eq .Channel.ID (index $abc 0)}}
 	{{if eq .CustomID (print $id "modalcontent")}}
 		{{$o := index .Values 0}} {{$p := index .Values 1}} {{$q := index .Values 2}} {{$r := index .Values 3}}
-		{{$zzz := sanitizeText ( joinStr " " (cslice $o $p $q $r ) )}}
+		{{$zzz := joinStr " " (cslice $o $p $q $r )}} {{/* I will do something about this because function sanitize kinda makes filtering less effective */}}
 		{{$t := false}}
 		{{$iy := ""}}
 		{{range $list}}
@@ -78,7 +78,7 @@
 				{{ $abc.Set 16 "strand" }}
 				{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 19)) (cbutton (index $neon 20)) ) }}
 			{{else}}
-				{{ $abc.Set 16 "postedblocked" }}
+				{{ $abc.Set 16 "posted" }}
 				{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 32)) (cbutton (index $neon 34)) (cbutton (index $neon 20)) ) }}
 			{{end}}
 			{{$ida := sendResponseRetID $tok (complexMessage "content" "Collab details has been modified." "ephemeral" "true")}}

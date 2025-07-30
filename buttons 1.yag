@@ -135,8 +135,10 @@
 				{{sendResponse nil (complexMessage "content" "Deleting your collab ad..." "ephemeral" "true")}}
 				{{sendMessage $logDelete (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print .User.Mention "(`" .User.ID "`) deleted the following template:" ))}}
 				{{sendMessage $logDelete (complexMessage "forward" (sdict "channel" (index $abc 0) "message" (index $abc 1) ) ) }}
-				{{deleteForumPost (index $abc 18)}}
 				{{deleteThread (index $abc 0)}}
+				{{if gt (index $abc 18) (toInt64 0)}}
+					{{deleteForumPost (index $abc 18)}}
+				{{end}}
 				{{dbSetExpire .User.ID "collab-ads" (cslice (toInt64 0) (toInt64 0) (toInt64 0) (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") false (toInt 0) (cslice ) (toString "") (toInt64 0)	(toInt64 0)	(toInt64 0) (index $abc 20) (toInt64 0)) $collabCD}}
 			{{end}}
 		{{else if .IsMenu}}
