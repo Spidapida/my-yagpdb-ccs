@@ -67,7 +67,7 @@
 				{{ $abc.Set 16 "postedblocked" }}
 				{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 33)) (cbutton (index $neon 35)) (cbutton (index $neon 20)) ) }}
 			{{end}}
-			{{ sendComponentMessage $logChannel (componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" (print .User.Mention " attempted to post the following:") "separator" true "container" (sdict "components" (componentBuilder "text" (print "- **Triggered keyword**: " $iy `
+			{{ sendMessage $logChannel (componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" (print .User.Mention " attempted to post the following:") "separator" true "container" (sdict "components" (componentBuilder "text" (print "- **Triggered keyword**: " $iy `
 - Title: ` $o `
 - Discord invite link: ` (or $q "*empty*") `
 - My contribution to the collab: ` $r) ) ) "container" (sdict "components" (componentBuilder "text" $mbed1 ) ) ) }}
@@ -84,7 +84,7 @@
 			{{$ida := sendResponseRetID $tok (complexMessage "content" "Collab details has been modified." "ephemeral" "true")}}
 			{{ deleteInteractionResponse $tok $ida 5 }}
 		{{end}}
-		{{editComponentMessage (index $abc 0) (index $abc 1) $mailto1}}
+		{{editMessage (index $abc 0) (index $abc 1) $mailto1}}
 		{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
 	{{end}}
 

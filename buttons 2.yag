@@ -98,15 +98,15 @@
 					{{$messTM := getMessage $forumCH.ID $forumCH.ID}}
 					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Your collab ad is now posted at https://discord.com/channels/" .Guild.ID "/" $forumCH.ID "." ) "ephemeral" false)}}
 
-					{{$id2 := sendComponentMessageRetID $forumCH.ID $mailto2 }}
+					{{$id2 := sendMessageRetID $forumCH.ID $mailto2 }}
 					{{$abc.Set 16 "posted"}}
 					{{$abc.Set 18 $forumCH.ID }}
 					{{$abc.Set 19 $id2 }}
 					{{$abc.Set 20 $messTM.Timestamp.Parse.Unix }}
-					{{editComponentMessage (index $abc 0) (index $abc 1) $mailto1}}
+					{{editMessage (index $abc 0) (index $abc 1) $mailto1}}
 
 					{{sendMessage $logSuccess (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print .User.Mention "(`" .User.ID "`) posted the following:" ))}}
-					{{sendComponentMessage $logSuccess $mailto3 }}
+					{{sendMessage $logSuccess $mailto3 }}
 					{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
 				{{else}}
 					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "From the collaboration template, " (sub $j $i) " fields have missing details. Please note that the fields marked with \"❗❗\" are required to have details in them.") "ephemeral" "true")}}
@@ -115,7 +115,7 @@
 			{{else if eq .CustomID (print $id "editpost")}}
 				{{editMessage (index $abc 18) (index $abc 18) (complexMessageEdit "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link")) )}}
 				{{editThread (index $abc 18) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
-				{{editComponentMessage (index $abc 18) (index $abc 19) $mailto2}}
+				{{editMessage (index $abc 18) (index $abc 19) $mailto2}}
 				{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Posted collab has been edited.") "ephemeral" "true")}}
 				{{ deleteInteractionResponse $tok $id1 10 }}
 			
@@ -132,12 +132,12 @@
 					{{$forumCH := createForumPost $regularCH (index $abc 3) (complexMessage "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link"))) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
 					{{$messTM := getMessage $forumCH.ID $forumCH.ID}}
 					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Your collab ad is bumped up. You can see at https://discord.com/channels/" .Guild.ID "/" $forumCH.ID "." ) "ephemeral" false)}}
-					{{$id2 := sendComponentMessageRetID $forumCH.ID $mailto2 }}
+					{{$id2 := sendMessageRetID $forumCH.ID $mailto2 }}
 					{{$abc.Set 18 $forumCH.ID }}
 					{{$abc.Set 19 $id2 }}
 					{{$abc.Set 20 $messTM.Timestamp.Parse.Unix }}
 					{{sendMessage $logSuccess (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print .User.Mention "(`" .User.ID "`) bumped up the following collab:" ))}}
-					{{sendComponentMessage $logSuccess $mailto3 }}
+					{{sendMessage $logSuccess $mailto3 }}
 					{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
 				{{end}}
 			{{end}}

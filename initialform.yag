@@ -54,7 +54,7 @@
 					{{$cof = sendMessageNoEscapeRetID $tread.ID (print "Hey " .User.Mention (index $neon 0) "\n" "- **This collab ad will be posted in <#1354527351874257169>.**")}}
 				{{end}}
 				{{sendResponse nil (complexMessage "content" (print "Please head to https://discord.com/channels/" $tread.GuildID "/" $tread.ID " to make your collab ad.") "ephemeral" "true")}}
-				{{$mailto1 := sendComponentMessageRetID $tread.ID (componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" `### <Level Name and Host/Collab Team Name> ❗❗
+				{{$mailto1 := sendMessageRetID $tread.ID (componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" `### <Level Name and Host/Collab Team Name> ❗❗
 - **Collab type:** ❗❗
 - **Deco style:** ❗❗
 - **What work is needed:** ❗❗
