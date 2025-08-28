@@ -13,6 +13,7 @@
 {{$collabCD :=  604800}} {{/* collab cooldown in seconds, default is 1 week = 604800 */}}
 {{$ign := cslice 856869462569254912 1343014642309529620 643101579016273941 859731598706475010}} {{/* administrator / head staff / staff / trial staff // bypassed roles */}}
 {{$blk := cslice 643105838483111936 1235737941800910858 1169182700536598608 893879950589952050}} {{/* muted / automuted / collab network suppression / collab restriction // nuh uh roles*/}}
+{{$CCnum := 101 }} {{/* CCID of -collabimage/<submitmedia.yag>*/}}
 {{/* Configurable values end */}}
 
 {{$id := "spidapida-"}}
@@ -133,12 +134,16 @@
 				{{ deleteInteractionResponse $tok $id1 10 }}
 			{{else if eq .CustomID (print $id "del-yes")}}
 				{{sendResponse nil (complexMessage "content" "Deleting your collab ad..." "ephemeral" "true")}}
+				{{try}}
+					{{openThread $logDelete}}
+				{{catch}}
+				{{end}}
 				{{sendMessage $logDelete (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print .User.Mention "(`" .User.ID "`) deleted the following template:" ))}}
 				{{sendMessage $logDelete (complexMessage "forward" (sdict "channel" (index $abc 0) "message" (index $abc 1) ) ) }}
-				{{deleteThread (index $abc 0)}}
 				{{if gt (index $abc 18) (toInt64 0)}}
-					{{deleteForumPost (index $abc 18)}}
+					{{execCC $CCnum nil 0 "deleteForumPostCC"}}
 				{{end}}
+				{{deleteThread (index $abc 0)}}
 				{{dbSetExpire .User.ID "collab-ads" (cslice (toInt64 0) (toInt64 0) (toInt64 0) (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") false (toInt 0) (cslice ) (toString "strand") (toInt64 0)	(toInt64 0)	(toInt64 0) (index $abc 20) (toInt64 0)) $collabCD}}
 			{{end}}
 		{{else if .IsMenu}}
