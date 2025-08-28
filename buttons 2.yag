@@ -9,9 +9,9 @@
 {{/* Configurable values start */}}
 {{$dbTimer := 4838400}} {{/* database expiration in seconds, default is 2 months = 4838400 */}}
 {{$collabCD :=  604800}} {{/* collab cooldown in seconds, default is 1 week = 604800 */}}
-{{$logSuccess := 1398708222868586536}}
-{{$regularCH := 1354527351874257169}}
-{{$priorityCH := 1354527201663647915}}
+{{$logSuccess := 1398708222868586536}} {{/* channel log */}}
+{{$regularCH := 1354527351874257169}} {{/* forum channel, where this usually goes */}}
+{{$priorityCH := 1354527201663647915}} {{/* forum channel, priority channel */}}
 {{/* Configurable values end */}}
 
 {{$id := "spidapida-"}}
@@ -104,7 +104,10 @@
 					{{$abc.Set 19 $id2 }}
 					{{$abc.Set 20 $messTM.Timestamp.Parse.Unix }}
 					{{editMessage (index $abc 0) (index $abc 1) $mailto1}}
-
+					{{try}}
+						{{openThread $logSuccess}}
+					{{catch}}
+					{{end}}
 					{{sendMessage $logSuccess (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print .User.Mention "(`" .User.ID "`) posted the following:" ))}}
 					{{sendMessage $logSuccess $mailto3 }}
 					{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
@@ -136,6 +139,10 @@
 					{{$abc.Set 18 $forumCH.ID }}
 					{{$abc.Set 19 $id2 }}
 					{{$abc.Set 20 $messTM.Timestamp.Parse.Unix }}
+					{{try}}
+						{{openThread $logSuccess}}
+					{{catch}}
+					{{end}}
 					{{sendMessage $logSuccess (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print .User.Mention "(`" .User.ID "`) bumped up the following collab:" ))}}
 					{{sendMessage $logSuccess $mailto3 }}
 					{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
