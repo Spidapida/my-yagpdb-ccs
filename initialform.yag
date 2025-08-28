@@ -70,7 +70,7 @@
 				{{$abc.Set 17 $cof }}
 				{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
 			{{else if and (eq (index $abc 0) 0) (le currentTime.Unix (add (index $abc 20) (toInt64 $collabCD)))}}
-				{{sendResponse nil (complexMessage "content" (print "Hey there. As per the collab ad rules, you are not allowed to create a new collab ad if you posted one and then delete it before a week. You may create another one at <t:" (add (index $abc 20) (toInt64 $dbTimer)) ">." ) "ephemeral" "true" )}}
+				{{sendResponse nil (complexMessage "content" (print "Hey there. As per the collab ad rules, you are not allowed to create a new collab ad if you posted one and then delete it before a week. You may create another one at <t:" (add (index $abc 20) (toInt64 $collabCD)) ">." ) "ephemeral" "true" )}}
 			{{else}}
 				{{sendResponse nil (complexMessage "content" (print "You already have your collab ad template. Go to https://discord.com/channels/" .Guild.ID "/" (index $abc 0) " to manage it." ) "ephemeral" "true" )}}
 			{{end}}
