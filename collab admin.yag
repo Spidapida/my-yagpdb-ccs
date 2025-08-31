@@ -36,7 +36,7 @@
 		{{$omnom = cslice (cbutton (index $neon 36)) }}
 	{{end}}
 
-	{{$mailto1 := componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true }}
+	{{$mailto1 := componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true }}
 	{{if gt (len (index $abc 15)) 0}}
 		{{range (index $abc 15)}}
 			{{$mailto1.Add "gallery" (sdict "media" .) }}
@@ -85,7 +85,7 @@
 		{{if ($args.Get 1)}}
 			{{$b = reFind `\d{1,19}` ($args.Get 1)}}
 		{{end}}
-		{{$msg := complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print "Missing/invalid args, command should be `-ca modify <@user> <int> <input>`." ) "embed" $embs }}
+		{{$msg := complexMessage "content" (print "Missing/invalid args, command should be `-ca modify <@user> <int> <input>`." ) "embed" $embs }}
 		{{if eq $b ""}}
 			{{if eq $a "whitelist"}}
 				{{sendMessage nil "Please supply a user."}}
@@ -108,14 +108,14 @@
 							{{$abc.Set 16 "strandoverride"}}
 							{{dbSetExpire $k "collab-ads" $abc $dbTimer}}
 							{{$rah := execTemplate "e1mbed" $k}}
-							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print "Override applied successfully to <@" $k ">." ))}}
+							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "content" (print "Override applied successfully to <@" $k ">." ))}}
 						{{else if eq (index $abc 16) "postedblocked"}}
 							{{$abc.Set 16 "postedoverride"}}
 							{{dbSetExpire $k "collab-ads" $abc $dbTimer}}
 							{{$rah := execTemplate "e1mbed" $k}}
-							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print "Override applied successfully to <@" $k ">." ))}}
+							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "content" (print "Override applied successfully to <@" $k ">." ))}}
 						{{else}}
-							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print "Override was not applied, <@" $k "> can still post just fine." ))}}
+							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "content" (print "Override was not applied, <@" $k "> can still post just fine." ))}}
 						{{end}}
 					{{else}}
 						{{$c := ""}}
@@ -163,7 +163,7 @@
 						{{end}}
 					{{end}}
 				{{else}}
-					{{sendMessage nil (complexMessage "allowed_mentions" (sdict "parse" (cslice ) ) "content" (print "Invalid user or collab data for user does not exist." ))}}
+					{{sendMessage nil (complexMessage "content" (print "Invalid user or collab data for user does not exist." ))}}
 				{{end}}
 			{{else if eq $a "automodreplace"}}
 				{{sendMessage nil "Coming soon <:ErioTouwa:1223214088000114750>"}}
