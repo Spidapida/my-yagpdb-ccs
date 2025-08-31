@@ -42,19 +42,19 @@
 {{if .IsButton}}
 	{{if eq .CustomID (print $id "print-collab")}}
 		{{if eq $bl 0}}
-			{{if and (eq (index $abc 0) 0) (eq (index $abc 20) 0)}}
+			{{if and (eq (index $abc 0) 0) (gt currentTime.Unix (add (index $abc 20) (toInt64 $collabCD)))}}
 				{{$tread := createThread nil nil (print .User.Username "'s collab ad") true 1440 false }}
 				{{$neon := (dbGet 0 "collabstuff").Value }}
 				{{$cof := 0}}
 				{{if ne $stab 0}}
 					{{$abc.Set 14 16777215 }}
 					{{$abc.Set 13 true }}
-					{{$cof = sendMessageNoEscapeRetID $tread.ID (print "Hey " .User.Mention (index $neon 0) "\n" "- **This collab ad will be posted in <#1354527201663647915>.**")}}
+					{{$cof = sendMessageNoEscapeRetID $tread.ID (print "Important reminders " .User.Mention ":\n- This collab ad will be posted in <#1354527201663647915>\n- You can use the command `-collabimage` to add images to your collab ad.\n\n** **")}}
 				{{else}}
-					{{$cof = sendMessageNoEscapeRetID $tread.ID (print "Hey " .User.Mention (index $neon 0) "\n" "- **This collab ad will be posted in <#1354527351874257169>.**")}}
+					{{$cof = sendMessageNoEscapeRetID $tread.ID (print "Important reminders " .User.Mention ":\n- This collab ad will be posted in <#1354527351874257169>\n- You can use the command `-collabimage` to add images to your collab ad.\n\n** **")}}
 				{{end}}
 				{{sendResponse nil (complexMessage "content" (print "Please head to https://discord.com/channels/" $tread.GuildID "/" $tread.ID " to make your collab ad.") "ephemeral" "true")}}
-				{{$mailto1 := sendMessageRetID $tread.ID (componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" `### <Level Name and Host/Collab Team Name> ❗❗
+				{{$mailto1 := sendMessageRetID $tread.ID (componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" `### <Level Name and Host/Collab Team Name> ❗❗
 - **Collab type:** ❗❗
 - **Deco style:** ❗❗
 - **What work is needed:** ❗❗
