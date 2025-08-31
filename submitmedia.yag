@@ -57,7 +57,7 @@
 
 	{{if eq .Channel.ID (index $abc 0)}}
 		{{if eq $c 0}}
-			{{$mailto1 := componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true "menus" (cslice (cmenu (index $neon 10) ) (cmenu (index $neon 11) ) (cmenu (index $neon 12) ) (cmenu (index $neon 13) ) ) "separator" false "buttons" (cslice (cbutton (index $neon 14)) (cbutton (index $neon 15)) (cbutton (index $neon 18))) "separator" false "buttons" $omnom }}
+			{{$mailto1 := componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true "menus" (cslice (cmenu (index $neon 10) ) (cmenu (index $neon 11) ) (cmenu (index $neon 12) ) (cmenu (index $neon 13) ) ) "separator" false "buttons" (cslice (cbutton (index $neon 14)) (cbutton (index $neon 15)) (cbutton (index $neon 18))) "separator" false "buttons" $omnom }}
 			{{$abc.Set 15 (cslice )}}
 			{{editMessage (index $abc 0) (index $abc 1) $mailto1}}
 			{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
@@ -117,7 +117,7 @@
 				{{$fin = $fin.AppendSlice $emb}}
 			{{end}}
 
-			{{$mailto1 := componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true }}
+			{{$mailto1 := componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true }}
 			{{range $fin}}
 				{{$mailto1.Add "gallery" (sdict "media" .) }}
 			{{end}}
