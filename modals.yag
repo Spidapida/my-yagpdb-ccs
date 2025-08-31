@@ -12,21 +12,32 @@
 {{/* Configurable values end */}}
 
 {{$id := "spidapida-"}}
-{{$list := (dbGet 0 "blacklist").Value}}
+{{$listNonLatin := index (dbGet 0 "blacklist").Value 0 }}
+{{$listLatin := index (dbGet 0 "blacklist").Value 1 }}
 {{$abc := or (dbGet .User.ID "collab-ads").Value (cslice (toInt64 0) (toInt64 0) (toInt64 0) (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") (toString "") false (toInt 0) (cslice ) (toString "strand") (toInt64 0) (toInt64 0) (toInt64 0) (toInt64 0) (toInt64 0)) }}
 {{$tok := .Interaction.Token}}
 
 {{if eq .Channel.ID (index $abc 0)}}
 	{{if eq .CustomID (print $id "modalcontent")}}
 		{{$o := index .Values 0}} {{$p := index .Values 1}} {{$q := index .Values 2}} {{$r := index .Values 3}}
-		{{$zzz := joinStr " " (cslice $o $p $q $r )}} {{/* I will do something about this because function sanitize kinda makes filtering less effective */}}
+		{{$zzz := joinStr " " (cslice $o $p $q $r )}}
 		{{$t := false}}
 		{{$iy := ""}}
-		{{range $list}}
+		{{range $listNonLatin}}
 			{{- $t = inFold $zzz . -}}
 			{{if eq $t true }}
 				{{$iy = . }}
 				{{break}}
+			{{end}}
+		{{end}}
+		{{if eq $t false}}
+			{{$yyy := sanitizeText $zzz}}
+			{{range $listLatin}}
+				{{- $t = inFold $yyy . -}}
+				{{if eq $t true }}
+					{{$iy = . }}
+					{{break}}
+				{{end}}
 			{{end}}
 		{{end}}
 		{{$abc.Set 3 $o}}
@@ -46,7 +57,7 @@
 ` (or (index $abc 4) "❗❗ *description is empty*") }}
 		
 		{{$neon := (dbGet 0 "collabstuff").Value }}
-		{{$mailto1 := componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true }}
+		{{$mailto1 := componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" $mbed0 "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" $mbed1 ) ) "separator" true }}
 		{{if gt (len (index $abc 15)) 0}}
 			{{range (index $abc 15)}}
 				{{$mailto1.Add "gallery" (sdict "media" .) }}
@@ -67,7 +78,11 @@
 				{{ $abc.Set 16 "postedblocked" }}
 				{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 33)) (cbutton (index $neon 35)) (cbutton (index $neon 20)) ) }}
 			{{end}}
-			{{ sendMessage $logChannel (componentBuilder "allowed_mentions" (sdict "parse" (cslice ) ) "text" (print .User.Mention " attempted to post the following:") "separator" true "container" (sdict "components" (componentBuilder "text" (print "- **Triggered keyword**: " $iy `
+			{{try}}
+				{{openThread $logChannel}}
+			{{catch}}
+			{{end}}
+			{{ sendMessage $logChannel (componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" (print .User.Mention " attempted to post the following:") "separator" true "container" (sdict "components" (componentBuilder "text" (print "- **Triggered keyword**: " $iy `
 - Title: ` $o `
 - Discord invite link: ` (or $q "*empty*") `
 - My contribution to the collab: ` $r) ) ) "container" (sdict "components" (componentBuilder "text" $mbed1 ) ) ) }}
