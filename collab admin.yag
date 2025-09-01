@@ -48,7 +48,10 @@
 	{{$mailto1.Add "buttons" (cslice (cbutton (index $neon 14)) (cbutton (index $neon 15)) (cbutton (index $neon 18))) }}
 	{{$mailto1.Add "separator" false }}
 	{{$mailto1.Add "buttons" $omnom}}
-	{{editMessage (index $abc 0) (index $abc 1) $mailto1 }}
+	{{try}}
+		{{editMessage (index $abc 0) (index $abc 1) $mailto1 }}
+	{{catch}}
+	{{end}}
 
 {{end}}
 
