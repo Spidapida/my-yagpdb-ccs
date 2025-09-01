@@ -141,7 +141,7 @@
 					{{ deleteInteractionResponse $tok $id1 10 }}
 				{{else}}
 					{{if eq (index $abc 13) true}}
-						{{$regularCH = 1354527201663647915}}
+						{{$regularCH = $priorityCH}}
 					{{end}}
 					{{deleteForumPost (index $abc 18)}}
 					{{$forumCH := createForumPost $regularCH (index $abc 3) (complexMessage "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link"))) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
