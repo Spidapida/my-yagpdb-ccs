@@ -120,8 +120,19 @@
 				{{editMessage (index $abc 18) (index $abc 18) (complexMessageEdit "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link")) )}}
 				{{editThread (index $abc 18) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
 				{{editMessage (index $abc 18) (index $abc 19) $mailto2}}
-				{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Posted collab has been edited.") "ephemeral" "true")}}
-				{{ deleteInteractionResponse $tok $id1 10 }}
+				{{try}}
+					{{$qwerty := (getThread (index $abc 18)).Name}}
+					{{if ne $qwerty (index $abc 3)}}
+						{{editChannelName (index $abc 18) (index $abc 3)}}
+					{{end}}
+					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Posted collab has been edited.") "ephemeral" "true")}}
+					{{ deleteInteractionResponse $tok $id1 10 }}
+				{{catch}}
+					{{if .Error}}
+						{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Posted collab has been edited. Cannot edit the thread name due to YAGPDB's enforced limits. Please try editing it later.") "ephemeral" "true")}}
+						{{ deleteInteractionResponse $tok $id1 10 }}
+					{{end}}
+				{{end}}
 			
 			{{else if eq .CustomID (print $id "bump")}}
 
