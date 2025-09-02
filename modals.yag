@@ -20,7 +20,7 @@
 {{if eq .Channel.ID (index $abc 0)}}
 	{{if eq .CustomID (print $id "modalcontent")}}
 		{{$o := index .Values 0}} {{$p := index .Values 1}} {{$q := index .Values 2}} {{$r := index .Values 3}}
-		{{$zzz := joinStr " " (cslice $o $p $q $r )}}
+		{{$zzz := joinStr " " (cslice $o $p $r )}}
 		{{$t := false}}
 		{{$iy := ""}}
 		{{range $listNonLatin}}
@@ -86,7 +86,7 @@
 - Title: ` $o `
 - Discord invite link: ` (or $q "*empty*") `
 - My contribution to the collab: ` $r) ) ) "container" (sdict "components" (componentBuilder "text" $mbed1 ) ) ) }}
-			{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "You are trying to input something that violates our <#988796169142558760>, so for now your ability to post your collaboration ad has been disabled. You can edit the content before posting to fix it. If you, however, believe that the post is not offending, create a ticket in <#1198065126780186665>, and explain your reasoning.\n\nKeyword found: `" $iy "`") )}}
+			{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "You are trying to input something that violates our <#988796169142558760>, so for now your ability to post your collaboration ad has been disabled. You can edit the content before posting to fix it. If you, however, believe that the post is not offending, create a ticket in <#1198065126780186665>, and explain your reasoning.") )}}
 		{{else}}
 			
 			{{if or (eq (index $abc 16) "strand") (eq (index $abc 16) "strandoverride") (eq (index $abc 16) "block")}}
@@ -104,6 +104,6 @@
 	{{end}}
 
 {{else}}
-	{{$id1 := sendResponseRetID $tok (complexMessage "content" "You are not the original poster for this collab template, and therefore not allowed to modify the template." "ephemeral" "true")}}
+	{{$id1 := sendResponseRetID $tok (complexMessage "content" "This is awkward... either:\n- You landed on a private thread not yours, of which you should not be editing here.\n- The data about your collab has been deleted due to potential database constraints, of which you need to create a new collab ad entry." "ephemeral" "true")}}
 	{{ deleteInteractionResponse $tok $id1 5 }}
 {{end}}

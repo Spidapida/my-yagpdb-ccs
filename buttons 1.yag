@@ -1,4 +1,4 @@
-{{/* IMPORTANT: Minify this first using https://yag-cc-minifie	r.netlify.app/ if you don't have premium */}}
+{{/* IMPORTANT: Minify this first using https://yag-cc-minifier.netlify.app/ if you don't have premium */}}
 
 {{/*
 	Trigger Type: Message Component
@@ -202,8 +202,7 @@
 		{{end}}
 	{{else}}
 		{{if ne .CustomID (print $id "print-collab")}}
-			{{$id1 := sendResponseRetID $tok (complexMessage "content" "You are not the original poster for this collab template, and therefore not allowed to modify the template." "ephemeral" "true")}}
-			{{ deleteInteractionResponse $tok $id1 10 }}
+			{{$id1 := sendResponseRetID $tok (complexMessage "content" "This is awkward... either:\n- You landed on a private thread not yours, of which you should not be editing here.\n- The data about your collab has been deleted due to potential database constraints, of which you need to create a new collab ad entry." "ephemeral" "true")}}
 		{{end}}
 	{{end}}
 {{else}}

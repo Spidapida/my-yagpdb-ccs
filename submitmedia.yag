@@ -138,7 +138,7 @@
 			{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
 		{{end}}
 	{{else}}
-		{{$msg := sendMessageRetID nil "You are not the original poster for this collab template, and therefore not allowed to modify the template."}}
+		{{$msg := sendMessageRetID nil "This is awkward... either:\n- You landed on a private thread not yours, of which you should not be editing here.\n- The data about your collab has been deleted due to potential database constraints, of which you need to create a new collab ad entry."}}
 		{{deleteMessage nil $msg 10}}
 	{{end}}
 {{end}}

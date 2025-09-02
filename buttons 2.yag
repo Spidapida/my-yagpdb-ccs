@@ -76,7 +76,6 @@
 			{{if eq .CustomID (print $id "tent-send") }}
 				{{$i := 0}}
 				{{$j := 0}}
-				{{/* templateChannelID0 templateMessageID1 userID2 collabName3 collabDescription4 discordInviteLink5 contribution6 collabLength7 decoStyle8 collabNeeds9 difficulty10 levelType11 standards12 isBoosted13 color14 images15 postFlag16 announceMessage17 postedForumThread18 postedForumMessage19 postedForumTimestamp20 forwardedAttachments21 */}}
 				{{range $abc}}
 					{{if eq $j 13}}
 						{{$j = 8}}
@@ -109,7 +108,7 @@
 						{{openThread $logSuccess}}
 					{{catch}}
 					{{end}}
-					{{sendMessage $logSuccess (complexMessage "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "content" (print .User.Mention "(`" .User.ID "`) posted the following:" ))}}
+					{{sendMessage $logSuccess (complexMessage "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "content" (print .User.Mention "(`" .User.ID "`) posted the following collab in <#" $regularCH ">:" ))}}
 					{{sendMessage $logSuccess $mailto3 }}
 					{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
 				{{else}}
@@ -155,7 +154,7 @@
 						{{openThread $logSuccess}}
 					{{catch}}
 					{{end}}
-					{{sendMessage $logSuccess (complexMessage "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "content" (print .User.Mention "(`" .User.ID "`) bumped up the following collab:" ))}}
+					{{sendMessage $logSuccess (complexMessage "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "content" (print .User.Mention "(`" .User.ID "`) bumped up the following collab in <#" $regularCH ">:" ))}}
 					{{sendMessage $logSuccess $mailto3 }}
 					{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
 				{{end}}
@@ -163,7 +162,7 @@
 		{{end}}
 	{{else}}
 		{{if ne .CustomID (print $id "print-collab")}}
-			{{$id1 := sendResponseRetID $tok (complexMessage "content" "You are not the original poster for this collab template, and therefore not allowed to modify the template." "ephemeral" "true")}}
+			{{$id1 := sendResponseRetID $tok (complexMessage "content" "This is awkward... either:\n- You landed on a private thread not yours, of which you should not be editing here.\n- The data about your collab has been deleted due to potential database constraints, of which you need to create a new collab ad entry." "ephemeral" "true")}}
 			{{ deleteInteractionResponse $tok $id1 10 }}
 		{{end}}
 	{{end}}
