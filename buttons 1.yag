@@ -1,4 +1,4 @@
-{{/* IMPORTANT: Minify this first using https://yag-cc-minifier.netlify.app/ if you don't have premium */}}
+{{/* IMPORTANT: Minify this first using https://yag-cc-minifie	r.netlify.app/ if you don't have premium */}}
 
 {{/*
 	Trigger Type: Message Component
@@ -100,7 +100,15 @@
 						(sdict "label" "Discord invite link (can be empty)" "placeholder" "https://discord.gg/gdcreators" "min_length" 13 "max_length" 255 "value" (or (index $abc 5) ""))
 						(sdict "label" "Your contribution to collab? (can be empty)" "max_length" 300 "style" 2 "value" (or (index $abc 6) "Uploader of the collab"))
 						) }}
-				{{ sendModal $modal }}
+				{{try}}
+					{{ sendModal $modal }}
+				{{catch}}
+					{{if in .Error "HTTP 404 Not Found"}}
+						{{sendMessage nil "Oops, seems like YAGPDB could not send the modal in time, please try again. Sorry for this."}}
+					{{else}}
+						{{sendMessage 1272760764293185617 (print "<@661882006719954953>: " .Error)}}
+					{{end}}
+				{{end}}
 			{{else if eq .CustomID (print $id "standard")}}
 				{{if (index $abc 12)}}
 					{{if eq (index $abc 12) "Low Standards"}}
