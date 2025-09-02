@@ -1,0 +1,124 @@
+{{/* If you don't have premium, split up this CC, commented below "dbSet 0 "collabstuff" $y" */}}
+
+{{$id := "spidapida-" }}
+
+{{$a :=  ", this is how your collaboration advertisement would look like, without the menus and buttons when you submit your collaboration ad later.\n- Browse around the buttons and menus below to edit the details of your collab. You can use this thread to send the details of your collaboration ad before copying it when you click \u003c\u003aGDCreators\u003a959953320812879922\u003e`Modify contents of collab`.\n- To attach media to the template, you can use the command `-collabimage`. You can do link or media attachments (separated the links with a space). Up to a total of ten attachments and links can be submitted.\n- - This command can also be used to replace the media in your template. Doing the command without submitting any media erases the submitted media in the form.\n- - \u003c@204255221017214977\u003e can do a simple check if the media embeds successfully, but it is not foolproof. Please check it first by sending a message here, and see if the image link embeds correctly. **Please note that only direct media (image or video) attachments and/or links are supported, so you cannot embed YouTube videos, Twitter/X posts, Tenor GIFs, etc**.\n- - By default, media attachments will be embedded first to your collab ad, then the media links after that. If you want the media links to be embedded first, include `-urlfirst` when using the command.\n- If you are finished, press ⤴️` Post your collab` to post your collaboration ad.\n- You can edit your collaboration ad after you submitted it. Simply change the details through menus and buttons, then press ✏️` Edit posted collab`.\n- You are allowed to bump up your collaboration ad once per week. Note that deleting your post and reposting it does not bypass the cooldown." }}
+
+{{ $collabLength := sdict
+"type" "text"
+"placeholder" "What kind of collab you're going?"
+"custom_id" (print $id "length")
+"options" (cslice
+(sdict "label" "Small Scale Collab" "value" (print $id "length-collab") "description" "Less than or equal to five people.")
+(sdict "label" "Megacollab" "value" (print $id "length-mega") "description" "Typically needed more than five people.")
+(sdict "label" "Ultracollab" "value" (print $id "length-ultra") "description" "Often greater than 20 people, for mass organization of parts for your level.")
+)}}
+
+{{ $decoStyle := sdict
+"type" "text"
+"placeholder" "What style of decoration you're going for?"
+"custom_id" (print $id "deco")
+"options" (cslice
+(sdict "label" "Modern" "value" (print $id "deco-modern") "description" "Optical, Split72, neigefeu")
+(sdict "label" "Glow Design" "value" (print $id "deco-glow") "description" "ChaSe, F3lixsram, Namtar")
+(sdict "label" "Effect" "value" (print $id "deco-effect") "description" "G4lvatron, Echonox, ILRELL")
+(sdict "label" "Core" "value" (print $id "deco-core") "description" "MaJacko, Platnuu, Nahuel2998")
+(sdict "label" "Art" "value" (print $id "deco-art") "description" "Reunomi, Subwoofer, Zylenox")
+(sdict "label" "Minigame" "value" (print $id "deco-minigame") "description" "Serponge, Incidius, SimilarAMZ")
+(sdict "label" "Neodesign" "value" (print $id "deco-neodesign") "description" "cometface, Lyriaki, Presta")
+(sdict "label" "Layouts" "value" (print $id "deco-layout") "description" "GaidenHertuny, Quitora, Zhander")
+(sdict "label" "Other" "value" (print $id "deco-other") "description" "If deco is not needed or other style is used")
+)}}
+
+{{ $collabNeeds := sdict
+"type" "text"
+"placeholder" "Does your collab require deco and/or gameplay?"
+"custom_id" (print $id "type")
+"options" (cslice
+    (sdict "label" "Decoration Only" "value" (print $id "type-deco"))
+    (sdict "label" "Gameplay Only" "value" (print $id "type-gp"))
+    (sdict "label" "Decoration & Gameplay" "value" (print $id "type-both"))
+    (sdict "label" "Other" "value" (print $id "type-other") "description" "Like when you need someone who can optimize the level. Specify details when writing.")
+)}}
+
+{{ $difficulty := sdict
+"type" "text"
+"placeholder" "What is the planned difficulty of your collab?"
+"custom_id" (print $id "difficulty")
+"options" (cslice
+    (sdict "emoji" (sdict "id" "1173796642168770610") "label" "Non-Demon" "value" (print $id "difficulty-nondemon") )
+    (sdict "emoji" (sdict "id" "1146327594342559795") "label" "Easy-Medium Demon" "value" (print $id "difficulty-easymedium") )
+    (sdict "emoji" (sdict "id" "1146327635937480785") "label" "Hard-Insane Demon" "value" (print $id "difficulty-hardinsane") )
+    (sdict "emoji" (sdict "id" "1146327674965467266") "label" "Extreme Demon" "value" (print $id "difficulty-extreme") )
+)}}
+
+{{$levelType := sdict "label" "Switch level type" "custom_id" (print $id "level") "style" "grey" }}
+{{$standards := sdict "label" "Switch standards" "custom_id" (print $id "standard") "style" "grey"}}
+{{$boosterUnused := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" (print $id "boosters") "style" "blurple"}}
+{{$clearImageUnused := sdict "emoji" (sdict "id" "870823962093969449") "label" "Clear images from embed" "custom_id" (print $id "imgclear") "style" "grey"}}
+{{$modifyContents := sdict "emoji" (sdict "id" "959953320812879922") "label" "Modify contents of collab" "custom_id" (print $id "content") "style" "blurple"}}
+{{$postCollab := sdict "emoji" (sdict "name" "⤴") "label" "Post your collab" "custom_id" (print $id "tent-send") "style" "success"}}
+{{$deleteCollab := sdict "emoji" (sdict "id" "278318370808659969") "label" "Delete collab ads" "custom_id" (print $id "delete") "style" "danger"}}
+
+{{ $collabLengthDisabled := sdict
+"type" "text"
+"placeholder" "What kind of collab you're going?"
+"custom_id" "kek1"
+"disabled" true
+"options" (cslice
+(sdict "label" "a" "value" "kek")
+)}}
+
+{{ $decoStyleDisabled := sdict
+"type" "text"
+"placeholder" "What style of decoration you're going for?"
+"custom_id" "kek2"
+"disabled" true
+"options" (cslice
+(sdict "label" "a" "value" "kek")
+)}}
+
+{{ $collabNeedsDisabled := sdict
+"type" "text"
+"placeholder" "Does your collab require deco and/or gameplay?"
+"custom_id" "kek3"
+"disabled" true
+"options" (cslice
+(sdict "label" "a" "value" "kek")
+)}}
+
+{{ $difficultyDisabled := sdict
+"type" "text"
+"placeholder" "What is the planned difficulty of your collab?"
+"custom_id" "kek4"
+"disabled" true
+"options" (cslice
+(sdict "label" "a" "value" "kek")
+)}}
+
+{{$levelTypeDisabled := sdict "label" "Switch level type" "custom_id" "kek5" "disabled" true "style" "grey" }}
+{{$standardsDisabled := sdict "label" "Switch standards" "custom_id" "kek6" "disabled" true "style" "grey"}}
+{{$boosterUnusedDisabled := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" "kek7" "disabled" true "style" "blurple"}}
+{{$clearImageUnusedDisabled := sdict "emoji" (sdict "id" "870823962093969449") "label" "Clear images from embed" "custom_id" "kek8" "disabled" true "style" "grey"}}
+{{$modifyContentsDisabled := sdict "emoji" (sdict "id" "959953320812879922") "label" "Modify contents of collab" "custom_id" "kek9" "disabled" true "style" "blurple"}}
+{{$postCollabDisabled := sdict "emoji" (sdict "name" "⤴") "label" "Post your collab" "custom_id" "kek10" "disabled" true "style" "success"}}
+{{$deleteCollabDisabled := sdict "emoji" (sdict "id" "278318370808659969") "label" "Delete collab ads" "custom_id" "kek11" "disabled" true "style" "danger"}}
+
+{{$editCollab := sdict "emoji" (sdict "name" "✏") "label" "Edit posted collab" "custom_id" (print $id "editpost") "style" "blurple"}} 
+{{$editCollabDisabled := sdict "emoji" (sdict "name" "✏") "label" "Edit posted collab" "custom_id" "kek12" "disabled" true "style" "blurple"}} 
+{{$bumpUp := sdict "emoji" (sdict "name" "⬆") "label" "Bump up post" "custom_id" (print $id "bump") "style" "success"}} 
+{{$bumpUpDisabled := sdict "emoji" (sdict "name" "⬆") "label" "Bump up post" "custom_id" "kek13" "disabled" true "style" "success"}} 
+
+{{ $y := cslice $a "Collab type: " "Deco style: " "What work is needed: " "Collab difficulty: " "Level type: " "Standard: " "Discord invite link: " "My contribution to the collab: " "Description of the collab: " $collabLength $decoStyle $collabNeeds $difficulty $levelType $standards $boosterUnused $clearImageUnused $modifyContents $postCollab $deleteCollab $collabLengthDisabled $decoStyleDisabled $collabNeedsDisabled $difficultyDisabled $levelTypeDisabled $standardsDisabled $boosterUnusedDisabled $clearImageUnusedDisabled $modifyContentsDisabled $postCollabDisabled $deleteCollabDisabled $editCollab $editCollabDisabled $bumpUp $bumpUpDisabled "- To get started on posting your collab ad, click the button below. After that, <@204255221017214977> will create a private thread of which you can browse around the buttons and menus to edit the details of your collab. You can use the newly created thread to send the details of your collaboration ad before copying it when you click <:GDCreators:959953320812879922> `Modify contents of collab`.\n- To attach media to the template, you can use the command `-collabimage`. You can do link or media attachments (separated the links with a space). Up to a total of ten attachments and links can be submitted.\n- - This command can also be used to replace the media in your template. Doing the command without submitting any media erases the submitted media in the form.\n- - <@204255221017214977> can do a simple check if the media embeds successfully, but it is not foolproof. Please check it first by sending a message here, and see if the image link embeds correctly. **Please note that only direct media (image or video) attachments and/or links are supported, so you cannot embed YouTube videos, Twitter/X posts, Tenor GIFs, etc**.\n- - By default, media attachments will be embedded first to your collab ad, then the media links after that. If you want the media links to be embedded first, include `-urlfirst` when using the command.\n- If you are finished, press ⤴️` Post your collab` to post your collaboration ad.\n- You can edit your collaboration ad after you submitted it. Simply change the details through menus and buttons, then press ✏️` Edit posted collab`.\n- <@204255221017214977> would sometimes return with \"Interaction error\", which sometimes causes commands to fail. If that happens, simply retry again. If it is still not working, please check if <@204255221017214977> is responding, or ping <@661882006719954953>[.](https://cdn.discordapp.com/attachments/643123949517013002/1412044321653522503/2025-09-01_13-12-43.mp4)"}}
+
+{{ dbSet 0 "collabstuff" $y }}
+
+{{/* Split your CC here */}}
+
+{{$wordFilter := cslice (cslice "🇳 🇮 🇬 🇬 🇪 🇷" "maricón" "pənis" "sab 2 ja'kalem" "vergón" "абоб" "анус" "бебр" "кам" "камшот" "москал" "ниггер" "педик" "педо" "педофил" "пендос" "пенис" "пидар" "пидор" "пидр" "пиндос" "порн" "прон" "ретард" "сперм" "хент" "хохл" "хохол" "черножопый" "чурк" "шлюх" "قادیانی" "क़ादियानी" "개새끼" "느금마" "병신" "새끼" "섹스" "시발" "썅년" "씨발" "씹창" "아가리" "일베" "좆" "한남" "한녀" "卍" "卐" "2no.co/*" "discörd.com/" "disçordapp.com/" "minecräft.com/" "särahah.eu/" "särahah.pl/" "yoütu.be/") (cslice "adolf" "ahegao" "anal" "analphagia" "anus" "b0cchin0" "ball caressing" "ball sucking" "balljob" "ballsack" "ballsucking" "bdsm" "bestiality" "blow job" "blowjob" "bocchin" "bocchino" "boner" "boob" "booba" "boobies" "boobs" "bukkake" "bust a nut" "butt plug" "buttplug" "c0ck" "canedio" "cbt" "chikan" "ching cheng" "chong" "clit" "clitoris" "cock" "cock ring" "cockphagia" "cockslapping" "cocksucker" "coem" "coemm" "conchetumare" "coom" "coon" "coprophagia" "crackschlampe" "cum" "cumeado" "cumflation" "cumm" "cums" "cumshot" "cumwad" "cunny" "cunt" "cvm" "deepthroat" "defloration" "dickgirl" "dicknipples" "did you know that in terms of male human and female pokmon" "dildo" "dildo" "dilf" "dio gan" "dio merda" "dio porco" "diogan" "diomerda" "dioporco" "dry humping" "dyke" "ear fuck" "erectus" "escroto" "exhibitionism" "fag" "faggot" "faggots" "fagot" "faschist" "feck" "felacion" "fellate" "fellatio" "fetish" "ficker" "fingering" "forniphilia" "fotze" "fr0c" "froc" "frot" "frottage" "fucktard" "futa" "futanari" "gangbang" "gangrap" "gaping" "garchado" "garchar" "glory hole" "gokken" "gokkun" "gook" "gooner" "gooning" "guro" "handicappat" "heil hitler" "henta" "hentai" "hitler" "homo erectus" "horni" "horny" "igga" "incel" "incels" "incest" "inseki" "jerk it" "jerk off" "jerking it" "jerking off" "jerkoff" "jizz" "kike" "kill myself" "kill ur self" "kill urself" "kill your self" "kill yourself" "killing myself" "kms" "kys" "labia" "loli" "mannaggia alla madonna" "marica" "marico" "masturba" "merda dio" "merdadio" "mesugaki" "mesuiki" "midget" "milf" "missgeburt" "mogolica" "mongolica" "mongolico" "mongoloid" "muschi" "my balls" "n n n" "n1993r" "n3gr0" "nakadashi" "necrophilia" "neger" "netorare" "netorase" "ngentod" "nibba" "nibber" "nickgur" "niga" "niger" "nigers" "nigg" "nigga" "niggas" "nigger" "nigger" "nigger" "nnn" "no nut november" "non stop nut november" "non-stop nut november" "nonstop nut november" "november challenge" "omorashi" "onahole" "onanieren" "onlyfans" "orgasm" "osugaki" "otokofutanari" "p0mp1no" "paizuri" "pajazo" "pajea" "pajerazo" "pajin" "pallaringa" "panocha" "pantyjob" "pedo" "pedofilo" "pedophile" "pedophilia" "pegging" "pene" "penis" "phimosis" "pompin" "pompino" "porca madonna" "porcamadonna" "porco dio" "porcod" "porn" "porno" "porno" "pornography" "pornstar" "pube" "pussi" "pussies" "pussy" "qadiani" "qadiyani" "r1cchion3" "r34" "rape" "raper" "raping" "rapist" "retard" "ricchio" "rimjob" "ritarda" "rle 34" "rpe" "rule 34" "rule34" "rvle 34" "rvle34" "ryona" "ryonani" "sb0rra" "sbora" "sborr" "scat" "schlampe" "schlong" "schwanzlutscher" "schwuchtel" "scrotum" "secso" "selfcest" "semen" "shemale" "shimaidon" "shotacon" "slong" "slut" "smegma" "snuff" "sockjob" "soplapolla" "speculum" "sperm" "sperma" "sperms" "spunk" "ssbbm" "ssbbw" "stupr" "sucking on dick" "sumata" "swastika" "testicle" "tetta" "tette" "threesome" "tit" "tits" "titte" "titty" "tranny" "tribadism" "twat" "vagina" "vergon" "vore" "votze" "vulva" "wank" "waska" "whore" "whores" "wichs" "yiff" "02ip.ru" "2no.co" "blasze.com" "blasze.tk" "bmwforum.co/" "catsnthing.com/" "catsnthings.fun/" "crabrave.pw/" "curiouscat.club/" "datasig.io/" "datauth.io/" "dateing.club/" "ezstat.ru" "fortnight.space/" "fortnitechat.site/" "freebooter.pro" "freegiftcards.co/" "gamer.hair/" "gamergirl.pro/" "gaming-at-my.best/" "gamingfun.me/" "grabify.link/" "gyazo.nl" "headshot.monster/" "i.gyazos.com" "imageshare.best/" "ipgrab.org" "iplis.ru" "iplo.ru" "iplogger.com" "iplogger.org" "iplogger.ru" "joinmy.site/" "leancoding.co/" "locations.quest/" "lovebird.guru/" "maper.info/" "mypic.icu/" "otherhalf.life/" "partpicker.shop/" "progaming.monster/" "pronosparadise.com" "quickmessage.us/" "screenshare.host/" "screenshare.pics/" "screenshot.best/" "sharevault.cloud/" "shrekis.life/" "sportshub.bar/" "spottyfly.com/" "stonks.boats/" "stopify.co/" "temu.com/s/" "trulove.guru/" "www.bvog.com" "www.hondachat.com" "www.whatstheirip.com" "www.youramonkey.com" "xda-developers.us/" "xn--yutube-iqc.com" "yip.su" "yourmy.monster/" "youshouldclick.us/") }}
+
+{{dbSet 0 "blacklist" $wordFilter}}
+
+{{$id := "spidapida-"}}
+{{$row2 := cbutton "emoji" (sdict "id" "989294715130236938") "label" "Click to create collab ad" "custom_id" (print $id "print-collab") "style" "blurple"}}
+{{sendMessage nil (complexMessage "buttons" (cslice $row2) )}}
