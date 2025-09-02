@@ -82,11 +82,11 @@
 				{{openThread $logChannel}}
 			{{catch}}
 			{{end}}
-			{{ sendMessage $logChannel (componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" (print .User.Mention " attempted to post the following:") "separator" true "container" (sdict "components" (componentBuilder "text" (print "- **Triggered keyword**: " $iy `
+			{{ sendMessage $logChannel (componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" (print .User.Mention " attempted (to post)[https://discord.com/channels/" .Guild.ID "/" (index $abc 0) "] the following:") "separator" true "container" (sdict "components" (componentBuilder "text" (print "- **Triggered keyword**: " $iy `
 - Title: ` $o `
 - Discord invite link: ` (or $q "*empty*") `
 - My contribution to the collab: ` $r) ) ) "container" (sdict "components" (componentBuilder "text" $mbed1 ) ) ) }}
-			{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "You are trying to input something that violates our <#988796169142558760>, so for now your ability to post your collaboration ad has been disabled. You can edit the content before posting to fix it. If you, however, believe that the post is not offending, create a ticket in <#1198065126780186665>, and explain your reasoning.") )}}
+			{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "You are trying to input something that violates our <#988796169142558760>, so for now your ability to post your collaboration ad has been disabled. You can edit the content before posting to fix it. If you, however, believe that the post is not offending, create a ticket in <#1198065126780186665>, and explain your reasoning.\n\nKeyword found: `" $iy "`") )}}
 		{{else}}
 			
 			{{if or (eq (index $abc 16) "strand") (eq (index $abc 16) "strandoverride") (eq (index $abc 16) "block")}}
