@@ -1,3 +1,5 @@
+{{/* IMPORTANT: Minify this first using https://yag-cc-minifier.netlify.app/ if you don't have premium */}}
+
 {{/*
 	Trigger Type: Message Component
 	Component Custom ID Regex: spidapida\-
@@ -12,6 +14,7 @@
 {{$logSuccess := 1398708222868586536}} {{/* channel log */}}
 {{$regularCH := 1354527351874257169}} {{/* forum channel, where the collab ad usually goes */}}
 {{$priorityCH := 1354527201663647915}} {{/* forum channel, priority channel */}}
+{{$boost := cslice 856869462569254912 1343014642309529620 643101579016273941 859731598706475010 977673155730628648 869636088430465105 869636093501403167 1331845571291648041 1151191185155698752 674754528381239330 1006306435480702976 1006306411317309460 972856883792736266 972856106760146974 972856089316053025 856872456806596638 972856066809401396}} {{/* roles for #priority-collab-ads */}}
 {{/* Configurable values end */}}
 
 {{$id := "spidapida-"}}
@@ -38,6 +41,23 @@
 			{{break}}
 		{{end}}
 	{{end}}
+{{end}}
+
+{{$flag0 := index $abc 13}}
+{{range $boost}}
+	{{if hasRoleID . }}
+		{{$abc.Set 13 true}}
+		{{break}}
+	{{else}}
+		{{$abc.Set 13 false}}
+	{{end}}
+{{end}}
+
+{{$flagMsg := ""}}
+{{if and (eq $flag0 false) (eq (index $abc 13) true)}}
+	{{$flagMsg = " Since you reached the requirements to post in <#1354527201663647915>, your collab ad has been posted there."}}
+{{else if and (eq $flag0 true) (eq (index $abc 13) false)}}
+	{{$flagMsg = " Note that as of now, you don't have the requirements to be able to post in <#1354527201663647915>, so your collab ad has been posted in <#1354527351874257169> instead."}}
 {{end}}
 
 {{$mbed2 := print `- **Collab type: **` (or (index $abc 7) `❗❗`) `
@@ -96,7 +116,7 @@
 					
 					{{$forumCH := createForumPost $regularCH (index $abc 3) (complexMessage "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link"))) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
 					{{$messTM := getMessage $forumCH.ID $forumCH.ID}}
-					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Your collab ad is now posted at https://discord.com/channels/" .Guild.ID "/" $forumCH.ID "." ) "ephemeral" false)}}
+					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Your collab ad is now posted at https://discord.com/channels/" .Guild.ID "/" $forumCH.ID "." $flagMsg ) "ephemeral" false)}}
 
 					{{$id2 := sendMessageRetID $forumCH.ID $mailto2 }}
 					{{$abc.Set 16 "posted"}}
@@ -145,7 +165,7 @@
 					{{deleteForumPost (index $abc 18)}}
 					{{$forumCH := createForumPost $regularCH (index $abc 3) (complexMessage "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link"))) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
 					{{$messTM := getMessage $forumCH.ID $forumCH.ID}}
-					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Your collab ad is bumped up. You can see it at https://discord.com/channels/" .Guild.ID "/" $forumCH.ID "." ) "ephemeral" false)}}
+					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Your collab ad is bumped up. You can see it at https://discord.com/channels/" .Guild.ID "/" $forumCH.ID "." $flagMsg ) "ephemeral" false)}}
 					{{$id2 := sendMessageRetID $forumCH.ID $mailto2 }}
 					{{$abc.Set 18 $forumCH.ID }}
 					{{$abc.Set 19 $id2 }}
