@@ -104,7 +104,7 @@
 					{{ sendModal $modal }}
 				{{catch}}
 					{{if in .Error "HTTP 404 Not Found"}}
-						{{sendMessage nil "Oops, seems like YAGPDB could not send the modal in time, please try again. Sorry for this."}}
+						{{sendMessage nil "Oops, seems like YAGPDB could not send the modal in time, please click the <:GDCreators:959953320812879922>` Modify contents of collab` button again."}}
 					{{else}}
 						{{sendMessage 1272760764293185617 (print "<@661882006719954953>: " .Error)}}
 					{{end}}
@@ -200,6 +200,8 @@
 			{{$id1 := sendResponseRetID $tok (complexMessage "content" "Collab details has been modified." "ephemeral" "true")}}
 			{{ deleteInteractionResponse $tok $id1 5 }}
 		{{end}}
+	{{else if eq .Channel.ID (index $abc 18)}}
+		{{$qw := 0}}
 	{{else}}
 		{{if ne .CustomID (print $id "print-collab")}}
 			{{$id1 := sendResponseRetID $tok (complexMessage "content" "This is awkward... either:\n- You landed on a private thread not yours, of which you should not be editing here.\n- The data about your collab has been deleted due to potential database constraints, of which you need to create a new collab ad entry." "ephemeral" "true")}}

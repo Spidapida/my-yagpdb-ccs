@@ -24,7 +24,7 @@
 		{{$t := false}}
 		{{$iy := ""}}
 		{{range $listNonLatin}}
-			{{- $t = inFold $zzz . -}}
+			{{- $t = inFold $zzz (print " " . " ") -}}
 			{{if eq $t true }}
 				{{$iy = . }}
 				{{break}}
@@ -33,7 +33,7 @@
 		{{if eq $t false}}
 			{{$yyy := sanitizeText $zzz}}
 			{{range $listLatin}}
-				{{- $t = inFold $yyy . -}}
+				{{- $t = inFold $yyy (print " " . " ") -}}
 				{{if eq $t true }}
 					{{$iy = . }}
 					{{break}}
@@ -82,7 +82,7 @@
 				{{openThread $logChannel}}
 			{{catch}}
 			{{end}}
-			{{ sendMessage $logChannel (componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" (print .User.Mention " attempted (to post)[https://discord.com/channels/" .Guild.ID "/" (index $abc 0) "] the following:") "separator" true "container" (sdict "components" (componentBuilder "text" (print "- **Triggered keyword**: " $iy `
+			{{ sendMessage $logChannel (componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" (print .User.Mention " attempted [to post](https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ") the following:") "separator" true "container" (sdict "components" (componentBuilder "text" (print "- **Triggered keyword**: " $iy `
 - Title: ` $o `
 - Discord invite link: ` (or $q "*empty*") `
 - My contribution to the collab: ` $r) ) ) "container" (sdict "components" (componentBuilder "text" $mbed1 ) ) ) }}

@@ -1,0 +1,102 @@
+{{$collabHardcodedData := (dbGet 0 "collabHardcodedData").Value}}
+{{$collabUserData := or (dbGet .User.ID "collabUserData").Value (sdict
+	"userID"						0
+	"templateThreadID"				0
+	"templateAnnouncementMessageID"	0
+	"templateThreadMessageID"		0
+	"userFlag"						"pending"
+	"userPrioritized"				false
+	"userBoosted"					false
+	"dataCollabName"				""
+	"dataCollabDescription"			""
+	"dataDiscordInviteLink"			""
+	"dataContribution"				""
+
+	"dataCollabSize"				""
+	"dataCollabDecoStyle"			""
+	"dataCollabNeeds"				""
+	"dataCollabDifficulty"			""
+	"dataCollabLevelType"			""
+	"dataCollabStandards"			""
+	"dataCollabImages"				(cslice)
+	"postedForumThreadID"			0
+	"postedForumMessage"			0
+	"postedForumTimestamp"			0
+
+	"postedNotificationMessageID"	0
+	"postedNotificationToken"		""
+	"postedNotificationTimestamp"	0
+) }}
+{{/* Data types:
+	"userID"						int64
+	"templateThreadID"				int64
+	"templateAnnouncementMessageID"	int64
+	"templateThreadMessageID"		int64
+	"userFlag"						string, <pending, pendingBlocked, pendingUnblocked, posted, postedBlocked, postedUnblocked, pendingEdit, postedEdit, frozen>
+	"userPrioritized"				boolean, [true = #priority-collab-ads, false = #collab-ads]
+	"userBoosted"					boolean
+	"dataCollabName"				string
+	"dataCollabDescription"			string
+	"dataDiscordInviteLink"			string
+	"dataContribution"				string
+
+	"dataCollabSize"				string, <Small Scale Collab, Megacollab, Ultracollab>
+	"dataCollabDecoStyle"			string, <Modern, Glow, Effect, Core, Art, Minigame, Neodesign, Layouts, Other>
+	"dataCollabNeeds"				string, <Decoration Only, Gameplay Only, Decoration & Gameplay, Other>
+	"dataCollabDifficulty"			string
+	"dataCollabLevelType"			string, <Non-Demon, Easy-Medium Demon, Hard-Insane Demon, Extreme Demon>
+	"dataCollabStandards"			string, <Low Standards, Medium Standards, High Standards>
+	"dataCollabImages"				cslice, string
+	"postedForumThreadID"			int64
+	"postedForumMessage"			int64
+	"postedForumTimestamp"			int64
+
+	"postedNotificationMessageID"	int64
+	"postedNotificationToken"		string
+	"postedNotificationTimestamp"	int64
+*/}}
+
+{{$a := "**❗ empty ❗**"}}
+{{$templateTitle := print "## " (or $collabUserData.dataCollabName $a)}}
+{{$templateDescription := sdict "components" (componentBuilder "text" `### Description of the collab:` "separator" true "text" (or $collabUserData.dataCollabDescription $a) ) }}
+{{$templateDetails := print `- **Collab type: **` (or $collabUserData.dataCollabSize $a) `
+- **Deco style: **` (or $collabUserData.dataCollabDecoStyle $a) `
+- **What work is needed: **` (or $collabUserData.dataCollabNeeds $a) `
+- **Estimated difficulty of the level: **` (or $collabUserData.dataCollabDifficulty $a) `
+- **Level type: **` (or $collabUserData.dataCollabLevelType $a) `
+- **Standards: **` (or $collabUserData.dataCollabStandards $a) `
+- **Discord invite link: **` (or $collabUserData.dataDiscordInviteLink $a) `
+- **My contribution to the collab:** ` (or $collabUserData.dataCollabStandards "*empty*") }}
+
+{{$templateMessage := componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" $templateTitle "separator" false
+"text" $templateDetails
+"container" $templateDescription}}
+{{range $collabUserData.dataCollabImages}}
+	{{$templateMessage.Add "gallery" (sdict "media" .)}}
+{{end}}
+{{$templateMessage.Add "separator" true}}
+{{if eq $collabUserData.userFlag "frozen"}}
+	{{$templateMessage.Add "menus" $collabHardcodedData.menusFreeze}}
+	{{$templateMessage.Add "buttons" $collabHardcodedData.propertyButtonsFreeze}}
+	{{if eq $collabUserData.userFlag "pending" "pendingBlocked" "pendingUnblocked"}}
+		{{$templateMessage.Add "buttons" $collabHardcodedData.uploadButtonsFreeze}}
+	{{else if eq $collabUserData.userFlag "posted" "postedBlocked" "postedUnblocked"}}
+		{{$templateMessage.Add "buttons" $collabHardcodedData.publishedButtonsFreeze}}
+	{{else}}
+		{{$templateMessage.Add "text" "Something went wrong, please ping <@661882006719954953>!\n-# Error: `userFlag` not set correctly"}}
+	{{end}}
+{{else}}
+	{{$templateMessage.Add "menus" $collabHardcodedData.menus}}
+	{{$templateMessage.Add "buttons" $collabHardcodedData.propertyButtons}}
+	{{if eq $collabUserData.userFlag "pending" "pendingUnblocked"}}
+		{{$templateMessage.Add "buttons" $collabHardcodedData.uploadButtons}}
+	{{else if $collabUserData.userFlag "posted" "postedUnblocked"}}
+		{{$templateMessage.Add "buttons" $collabHardcodedData.publishedButtons}}
+	{{else if $collabUserData.userFlag "pendingBlocked"}}
+		{{$templateMessage.Add "buttons" $collabHardcodedData.uploadButtonsDisabled}}
+	{{else if $collabUserData.userFlag "postedBlocked"}}
+		{{$templateMessage.Add "buttons" $collabHardcodedData.publishedButtonsDisabled}}
+	{{else}}
+		{{$templateMessage.Add "text" "Something went wrong, please ping <@661882006719954953>!\n-# Error: `userFlag` not set correctly"}}
+	{{end}}
+{{end}}

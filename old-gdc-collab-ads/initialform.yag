@@ -62,8 +62,16 @@
 - **Level type:** ❗❗
 - **Standard:** ❗❗
 - **Discord invite link:** *empty*
-- **My contribution to the collab:** *empty*` "separator" true "container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" `### Description of the collab:
-❗❗ *description is empty*`) ) "separator" true "menus" (cslice (cmenu (index $neon 10) ) (cmenu (index $neon 11) ) (cmenu (index $neon 12) ) (cmenu (index $neon 13) ) ) "separator" false "buttons" (cslice (cbutton (index $neon 14)) (cbutton (index $neon 15)) (cbutton (index $neon 18))) "separator" false "buttons" (cslice (cbutton (index $neon 19)) (cbutton (index $neon 20)) ) ) }}
+- **My contribution to the collab:** *empty*` 
+"separator" true 
+"container" (sdict "color" (index $abc 14) "components" (componentBuilder "text" `### Description of the collab:
+❗❗ *description is empty*`) ) 
+"separator" true 
+"menus" (cslice (cmenu (index $neon 10) ) (cmenu (index $neon 11) ) (cmenu (index $neon 12) ) (cmenu (index $neon 13) ) ) 
+"separator" false 
+"buttons" (cslice (cbutton (index $neon 14)) (cbutton (index $neon 15)) (cbutton (index $neon 18))) 
+"separator" false 
+"buttons" (cslice (cbutton (index $neon 19)) (cbutton (index $neon 20)) ) ) }}
 				{{$abc.Set 0 $tread.ID}}
 				{{$abc.Set 1 $mailto1 }}
 				{{$abc.Set 2 .User.ID }}
@@ -72,7 +80,10 @@
 			{{else if and (eq (index $abc 0) 0) (le currentTime.Unix (add (index $abc 20) (toInt64 $collabCD)))}}
 				{{sendResponse nil (complexMessage "content" (print "Hey there. As per the collab ad rules, you are not allowed to create a new collab ad if you posted one and then delete it before a week. You may create another one at <t:" (add (index $abc 20) (toInt64 $collabCD)) ">." ) "ephemeral" "true" )}}
 			{{else}}
+				{{openThread (index $abc 0)}}
+				{{$blurb := sendMessageRetID (index $abc 0) (print "<@" (index $abc 2) ">")}}
 				{{sendResponse nil (complexMessage "content" (print "You already have your collab ad template. Go to https://discord.com/channels/" .Guild.ID "/" (index $abc 0) " to manage it." ) "ephemeral" "true" )}}
+				{{deleteMessage (index $abc 0) $blurb 10}}
 			{{end}}
 		{{else}}
 			{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "You are not allowed to create nor post a collab ad because you have a <@&" $bl "> role.") "ephemeral" "true")}}

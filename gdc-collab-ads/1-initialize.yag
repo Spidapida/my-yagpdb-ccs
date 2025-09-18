@@ -1,0 +1,166 @@
+{{/* Configurable Values Start */}}
+
+{{$dbTimer := 4838400}} {{/* Database expiration in seconds, default is 2 months = 4838400 */}}
+{{$collabCD :=  604800}} {{/* Collab ad cooldown in seconds, default is 1 week = 604800 */}}
+
+{{/* These channel IDs must be either regular text channels or threads */}}
+{{$logChannel := 1005538878523973712 }} {{/* Channel for flagged collab ads */}}
+{{$logSuccess := 1398708222868586536}} {{/* Channel for successful posts */}}
+{{$logDelete := 1383994591346430135}} {{/* Log channel for deleted entries */}}
+{{$attachForward := 1398719118676594741}} {{/* Dumping channel for attachments */}}
+
+{{/* These channel IDs must be forum channels */}}
+{{$regularCH := 1354527351874257169}} {{/* Forum channel, where the collab ad usually goes */}}
+{{$priorityCH := 1354527201663647915}} {{/* Forum channel, priority channel */}}
+
+{{/* Staff roles, so they can interact with the system with an elevation. */}}
+{{$staffRoles := cslice 856869462569254912 1343014642309529620 643101579016273941 859731598706475010 }}
+{{/*						administrator		head staff			staff				trial staff */}}
+
+{{/* Roles for priority channel */}}
+{{$priorityRoles := cslice 977673155730628648 869636088430465105 869636093501403167 1331845571291648041 1151191185155698752 674754528381239330 1006306435480702976 1006306411317309460 972856883792736266 972856106760146974 972856089316053025 856872456806596638 972856066809401396}}
+{{/*						quality control		gd elder mod			gd mod		gd leaderboard mod		event winner		booster				level max					level 75				level 50			level 40			level 30			legacy			level 20 */}}
+
+{{/* Restricted roles */}}
+{{$blacklistRoles := cslice 643105838483111936 1235737941800910858 1169182700536598608 893879950589952050}}
+{{/*						muted			automuted		collab network suppression	collab restriction*/}}
+
+{{/* Configurable Values End */}}
+
+{{$idprint := "collabs-"}}
+
+{{ $collabLength := cmenu
+"type" "text"
+"placeholder" "What kind of collab you're going?"
+"custom_id" (print $idprint "length")
+"options" (cslice
+(sdict "label" "Small Scale Collab" "value" (print $idprint "length-collab") "description" "Less than or equal to five people.")
+(sdict "label" "Megacollab" "value" (print $idprint "length-mega") "description" "Typically needed more than five people.")
+(sdict "label" "Ultracollab" "value" (print $idprint "length-ultra") "description" "Often greater than 20 people, for mass organization of parts for your level.")
+)}}
+
+{{ $decoStyle := cmenu
+"type" "text"
+"placeholder" "What style of decoration you're going for?"
+"custom_id" (print $idprint "deco")
+"options" (cslice
+(sdict "label" "Modern" "value" (print $idprint "deco-modern") "description" "Optical, Split72, neigefeu")
+(sdict "label" "Glow Design" "value" (print $idprint "deco-glow") "description" "ChaSe, F3lixsram, Namtar")
+(sdict "label" "Effect" "value" (print $idprint "deco-effect") "description" "G4lvatron, Echonox, ILRELL")
+(sdict "label" "Core" "value" (print $idprint "deco-core") "description" "MaJacko, Platnuu, Nahuel2998")
+(sdict "label" "Art" "value" (print $idprint "deco-art") "description" "Reunomi, Subwoofer, Zylenox")
+(sdict "label" "Minigame" "value" (print $idprint "deco-minigame") "description" "Serponge, Incidius, SimilarAMZ")
+(sdict "label" "Neodesign" "value" (print $idprint "deco-neodesign") "description" "cometface, Lyriaki, Presta")
+(sdict "label" "Layouts" "value" (print $idprint "deco-layout") "description" "GaidenHertuny, Quitora, Zhander")
+(sdict "label" "Other" "value" (print $idprint "deco-other") "description" "If deco is not needed or other style is used")
+)}}
+
+{{ $collabNeeds := cmenu
+"type" "text"
+"placeholder" "Does your collab require deco and/or gameplay?"
+"custom_id" (print $idprint "type")
+"options" (cslice
+	(sdict "label" "Decoration Only" "value" (print $idprint "type-deco"))
+	(sdict "label" "Gameplay Only" "value" (print $idprint "type-gp"))
+	(sdict "label" "Decoration & Gameplay" "value" (print $idprint "type-both"))
+	(sdict "label" "Other" "value" (print $idprint "type-other") "description" "Like when you need someone who can optimize the level. Specify details when writing.")
+)}}
+
+{{ $difficulty := cmenu
+"type" "text"
+"placeholder" "What is the planned difficulty of your collab?"
+"custom_id" (print $idprint "difficulty")
+"options" (cslice
+	(sdict "emoji" (sdict "id" "1173796642168770610") "label" "Non-Demon" "value" (print $idprint "difficulty-nondemon") )
+	(sdict "emoji" (sdict "id" "1146327594342559795") "label" "Easy-Medium Demon" "value" (print $idprint "difficulty-easymedium") )
+	(sdict "emoji" (sdict "id" "1146327635937480785") "label" "Hard-Insane Demon" "value" (print $idprint "difficulty-hardinsane") )
+	(sdict "emoji" (sdict "id" "1146327674965467266") "label" "Extreme Demon" "value" (print $idprint "difficulty-extreme") )
+)}}
+
+{{$levelType := cbutton "label" "Switch level type" "custom_id" (print $idprint "level") "style" "grey" }}
+{{$standards := cbutton "label" "Switch standards" "custom_id" (print $idprint "standard") "style" "grey"}}
+{{$modifyContents := cbutton "emoji" (sdict "id" "959953320812879922") "label" "Modify contents of collab" "custom_id" (print $idprint "content") "style" "blurple"}}
+{{$postCollab := cbutton "emoji" (sdict "name" "⤴") "label" "Post your collab" "custom_id" (print $idprint "tent-send") "style" "success"}}
+{{$deleteCollab := cbutton "emoji" (sdict "id" "278318370808659969") "label" "Delete collab ads" "custom_id" (print $idprint "delete") "style" "danger"}}
+
+{{ $collabLengthDisabled := cmenu
+"type" "text"
+"placeholder" "What kind of collab you're going?"
+"custom_id" "kek1"
+"disabled" true
+"options" (cslice
+(sdict "label" "a" "value" "kek")
+)}}
+
+{{ $decoStyleDisabled := cmenu
+"type" "text"
+"placeholder" "What style of decoration you're going for?"
+"custom_id" "kek2"
+"disabled" true
+"options" (cslice
+(sdict "label" "a" "value" "kek")
+)}}
+
+{{ $collabNeedsDisabled := cmenu
+"type" "text"
+"placeholder" "Does your collab require deco and/or gameplay?"
+"custom_id" "kek3"
+"disabled" true
+"options" (cslice
+(sdict "label" "a" "value" "kek")
+)}}
+
+{{ $difficultyDisabled := cmenu
+"type" "text"
+"placeholder" "What is the planned difficulty of your collab?"
+"custom_id" "kek4"
+"disabled" true
+"options" (cslice
+(sdict "label" "a" "value" "kek")
+)}}
+
+{{$levelTypeDisabled := cbutton "label" "Switch level type" "custom_id" "kek5" "disabled" true "style" "grey" }}
+{{$standardsDisabled := cbutton "label" "Switch standards" "custom_id" "kek6" "disabled" true "style" "grey"}}
+{{$modifyContentsDisabled := cbutton "emoji" (sdict "id" "959953320812879922") "label" "Modify contents of collab" "custom_id" "kek9" "disabled" true "style" "blurple"}}
+{{$postCollabDisabled := cbutton "emoji" (sdict "name" "⤴") "label" "Post your collab" "custom_id" "kek10" "disabled" true "style" "success"}}
+{{$deleteCollabDisabled := cbutton "emoji" (sdict "id" "278318370808659969") "label" "Delete collab ads" "custom_id" "kek11" "disabled" true "style" "danger"}}
+
+{{$editCollab := cbutton "emoji" (sdict "name" "✏") "label" "Edit posted collab" "custom_id" (print $idprint "editpost") "style" "blurple"}} 
+{{$editCollabDisabled := cbutton "emoji" (sdict "name" "✏") "label" "Edit posted collab" "custom_id" "kek12" "disabled" true "style" "blurple"}} 
+{{$bumpUp := cbutton "emoji" (sdict "name" "⬆") "label" "Bump up post" "custom_id" (print $idprint "bump") "style" "success"}} 
+{{$bumpUpDisabled := cbutton "emoji" (sdict "name" "⬆") "label" "Bump up post" "custom_id" "kek13" "disabled" true "style" "success"}}
+
+{{$collabHardcodedData := sdict
+"menus"						(cslice $collabLength $decoStyle $collabNeeds $difficulty)
+"propertyButtons"			(cslice $levelType $standards $modifyContents)
+"uploadButtons"				(cslice $postCollab $deleteCollab)
+"uploadButtonsDisabled"		(cslice $postCollabDisabled $deleteCollab)
+"publishedButtons"			(cslice $editCollab $bumpUp $deleteCollab)
+"publishedButtonsDisabled"	(cslice $editCollabDisabled $bumpUpDisabled $deleteCollab)
+"menusFreeze"				(cslice $collabLengthDisabled $decoStyleDisabled $collabNeedsDisabled $difficultyDisabled)
+"propertyButtonsFreeze"		(cslice $levelTypeDisabled $standardsDisabled $modifyContentsDisabled)
+"uploadButtonsFreeze"		(cslice $postCollabDisabled $deleteCollabDisabled)
+"publishedButtonsFreeze"	(cslice $editCollabDisabled $bumpUpDisabled $deleteCollabDisabled)
+"dbTimer"					$dbTimer
+"collabCD"					$collabCD
+"logChannel"				$logChannel
+"logSuccess"				$logSuccess
+"attachForward"				$attachForward
+"regularCH"					$regularCH
+"priorityCH"				$priorityCH
+"staffRoles"				$staffRoles
+"priorityRoles"				$priorityRoles
+"blacklist"					$blacklistRoles
+ }}
+
+{{if $retrieve := (dbGet 0 "collabHardcodedData").Value}}
+    {{range $k, $v := $collabHardcodedData}}
+		{{$retrieve.Set $k $v}}
+	{{end}}
+    {{dbSet 0 "collabHardcodedData" $retrieve }}
+	{{sendMessage nil "Configurable values changed."}}
+{{else}}
+	{{dbSet 0 "collabHardcodedData" $collabHardcodedData }}
+	{{sendMessage nil "Step 1 of setup complete. Proceed to step 2."}}
+{{end}}
+

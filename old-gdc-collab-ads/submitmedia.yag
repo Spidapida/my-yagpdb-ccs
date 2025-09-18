@@ -61,7 +61,7 @@
 			{{$abc.Set 15 (cslice )}}
 			{{editMessage (index $abc 0) (index $abc 1) $mailto1}}
 			{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
-			{{sendMessage nil "Media cleared."}}
+			{{sendMessage nil "Media cleared. If you want to add media, attach them or paste the media link while using the command."}}
 			{{deleteResponse 10}}
 			{{deleteTrigger 10}}
 		{{else if gt $c 10}}
@@ -69,7 +69,7 @@
 			{{deleteResponse 10}}
 			{{deleteTrigger 10}}
 		{{else}}
-			{{$msg := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" "Please allow up to ten seconds before attaching the media... <a:loadig:594954688751861762>")}}
+			{{$msg := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" "Please allow up to ten seconds before attaching the media... <a:loadig:594954688751861762>\n**Do not delete the media you just sent to avoid errors while the system is waiting for Discord to embed everything correctly.**")}}
 			{{sleep 10}}
 			{{$warn := ""}}
 			{{if .Message.Attachments}}

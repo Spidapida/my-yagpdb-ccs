@@ -90,6 +90,8 @@
 {{$mailto1.Add "separator" false }}
 {{$mailto1.Add "buttons" (cslice (cbutton (index $neon 32)) (cbutton (index $neon 34)) (cbutton (index $neon 20))) }}
 
+{{$lel := cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "custom_id" (print $id "pullback") "style" "grey"}}
+
 {{if eq $alt 0}}
 	{{if eq .Channel.ID (index $abc 0)}}
 		{{if .IsButton}}
@@ -109,12 +111,13 @@
 					{{end}}
 					{{$j = add $j 1}}
 				{{end}}
+				
 				{{if ge $i $j}}
 					{{if eq (index $abc 13) true}}
 						{{$regularCH = $priorityCH}}
 					{{end}}
 					
-					{{$forumCH := createForumPost $regularCH (index $abc 3) (complexMessage "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link"))) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
+					{{$forumCH := createForumPost $regularCH (index $abc 3) (complexMessage "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" $lel ) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
 					{{$messTM := getMessage $forumCH.ID $forumCH.ID}}
 					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Your collab ad is now posted at https://discord.com/channels/" .Guild.ID "/" $forumCH.ID "." $flagMsg ) "ephemeral" false)}}
 
@@ -136,7 +139,7 @@
 					{{ deleteInteractionResponse $tok $id1 10 }}
 				{{end}}
 			{{else if eq .CustomID (print $id "editpost")}}
-				{{editMessage (index $abc 18) (index $abc 18) (complexMessageEdit "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link")) )}}
+				{{editMessage (index $abc 18) (index $abc 18) (complexMessageEdit "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" $lel )}}
 				{{editThread (index $abc 18) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
 				{{editMessage (index $abc 18) (index $abc 19) $mailto2}}
 				{{try}}
@@ -152,9 +155,7 @@
 						{{ deleteInteractionResponse $tok $id1 10 }}
 					{{end}}
 				{{end}}
-			
 			{{else if eq .CustomID (print $id "bump")}}
-
 				{{if le currentTime.Unix (add (index $abc 20) (toInt64 $collabCD)) }}
 					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "You can bump up your collaboration ad at <t:" (add (index $abc 20) (toInt64 $collabCD)) ">." ) "ephemeral" "true")}}
 					{{ deleteInteractionResponse $tok $id1 10 }}
@@ -163,7 +164,7 @@
 						{{$regularCH = $priorityCH}}
 					{{end}}
 					{{deleteForumPost (index $abc 18)}}
-					{{$forumCH := createForumPost $regularCH (index $abc 3) (complexMessage "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" (cslice (cbutton "label" "Edit collab details for owner" "emoji" (sdict "name" "✏") "url" (print "https://discord.com/channels/" .Guild.ID "/" (index $abc 0) ) "style" "link"))) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
+					{{$forumCH := createForumPost $regularCH (index $abc 3) (complexMessage "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" $lel) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
 					{{$messTM := getMessage $forumCH.ID $forumCH.ID}}
 					{{$id1 := sendResponseRetID $tok (complexMessage "content" (print "Your collab ad is bumped up. You can see it at https://discord.com/channels/" .Guild.ID "/" $forumCH.ID "." $flagMsg ) "ephemeral" false)}}
 					{{$id2 := sendMessageRetID $forumCH.ID $mailto2 }}
@@ -179,6 +180,13 @@
 					{{dbSetExpire .User.ID "collab-ads" $abc $dbTimer}}
 				{{end}}
 			{{end}}
+		{{end}}
+	{{else if eq .Channel.ID (index $abc 18)}}
+		{{if eq .CustomID (print $id "pullback")}}
+			{{openThread (index $abc 0)}}
+			{{$blurb := sendMessageRetID (index $abc 0) (print "<@" (index $abc 2) ">")}}
+			{{sendResponse nil (complexMessage "content" (print "Go to https://discord.com/channels/" .Guild.ID "/" (index $abc 0) " to manage your collab ad." ) "ephemeral" "true" )}}
+			{{deleteMessage (index $abc 0) $blurb 10}}
 		{{end}}
 	{{else}}
 		{{if ne .CustomID (print $id "print-collab")}}
