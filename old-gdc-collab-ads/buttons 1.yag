@@ -136,7 +136,7 @@
 				{{$id1 := sendResponseRetID $tok $snoy}}
 				{{ deleteInteractionResponse $tok $id1 5 }}
 			{{else if eq .CustomID (print $id "delete")}}
-				{{$id1 := sendResponseRetID nil (complexMessage "content" `## Are you sure you want to delete this? Note that once you posted your collab ad and you decided to delete the post, you are not able to create another one for a week.
+				{{$id1 := sendResponseRetID nil (complexMessage "content" `## Are you sure you want to do this? Once you posted your collab ad and you decided to delete the post, you can't create another one for a week.
 -# Dismiss or ignore this message if you don't want to delete your template.
 -# ** **` "buttons" (cbutton "label" "Yes" "custom_id" (print $id "del-yes") "style" "danger") "ephemeral" "true")}}
 				{{ deleteInteractionResponse $tok $id1 10 }}
@@ -148,6 +148,7 @@
 				{{end}}
 				{{sendMessage $logDelete (complexMessage "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "content" (print .User.Mention "(`" .User.ID "`) deleted the following template:" ))}}
 				{{sendMessage $logDelete (complexMessage "forward" (sdict "channel" (index $abc 0) "message" (index $abc 1) ) ) }}
+				{{sleep 10}} {{/* Added this because YAGPDB fails for some reason */}}
 				{{if gt (index $abc 18) (toInt64 0)}}
 					{{execCC $CCnum nil 0 "deleteForumPostCC"}}
 				{{end}}

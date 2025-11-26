@@ -81,6 +81,7 @@
 				{{sendResponse nil (complexMessage "content" (print "Hey there. As per the collab ad rules, you are not allowed to create a new collab ad if you posted one and then delete it before a week. You may create another one at <t:" (add (index $abc 20) (toInt64 $collabCD)) ">." ) "ephemeral" "true" )}}
 			{{else}}
 				{{openThread (index $abc 0)}}
+				{{addThreadMember (index $abc 0) (index $abc 2)}}
 				{{$blurb := sendMessageRetID (index $abc 0) (print "<@" (index $abc 2) ">")}}
 				{{sendResponse nil (complexMessage "content" (print "You already have your collab ad template. Go to https://discord.com/channels/" .Guild.ID "/" (index $abc 0) " to manage it." ) "ephemeral" "true" )}}
 				{{deleteMessage (index $abc 0) $blurb 10}}

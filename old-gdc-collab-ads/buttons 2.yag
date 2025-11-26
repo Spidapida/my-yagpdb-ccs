@@ -139,6 +139,7 @@
 					{{ deleteInteractionResponse $tok $id1 10 }}
 				{{end}}
 			{{else if eq .CustomID (print $id "editpost")}}
+				{{openThread (index $abc 18)}}
 				{{editMessage (index $abc 18) (index $abc 18) (complexMessageEdit "content" (print .User.Mention "'s collab details:\n" $mbed2) "buttons" $lel )}}
 				{{editThread (index $abc 18) "tags" (cslice (index $abc 7) (index $abc 8) (index $abc 9) (index $abc 10) (index $abc 11) (index $abc 12) ) }}
 				{{editMessage (index $abc 18) (index $abc 19) $mailto2}}

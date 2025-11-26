@@ -77,7 +77,12 @@
 					{{openThread $attachForward}}
 				{{catch}}
 				{{end}}
-				{{$attX := sendMessageRetID $attachForward (complexMessage "forward" (sdict "channel" (index $abc 0) "message" .Message.ID ) )}}
+				{{$attX := 0}}
+				{{try}}
+					{{$attX = sendMessageRetID $attachForward (complexMessage "forward" (sdict "channel" (index $abc 0) "message" .Message.ID ) )}}
+				{{catch}}
+					{{$attX = 0}}
+				{{end}}
 				{{if gt (len (toString $attX)) 2}}
 					{{$abc.Set 21 $attX}}
 					{{range (index (getMessage $attachForward $attX).MessageSnapshots 0).Message.Attachments}}
