@@ -1,0 +1,65 @@
+{{$collabConstants := (dbGet 0 "collabConstants").Value}}
+{{$collabUserData := or (dbGet .User.ID "collabUserData").Value (dbGet 0 "collabUserData").Value }}
+
+{{$a := .Interaction.Token}}
+
+{{$execCCID := $collabConstants.execCCID}}
+{{$isStaff := false}}
+{{$isBlacklisted := 0}}
+
+{{range $collabConstants.staffRoles}}
+	{{if hasRoleID .}}
+		{{$isStaff = true}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{$collabUserData.Set "userBoosted" false}}
+{{if hasRoleID $collabConstants.boosterRole}}
+	{{$collabUserData.Set "userBoosted" true}}
+{{end}}
+
+{{range $collabConstants.priorityRoles}}
+	{{if hasRoleID .}}
+		{{$collabUserData.Set "userPrioritized" true}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{range $collabConstants.blacklistRoles}}
+	{{if hasRole .}}
+		{{$isBlacklisted = .}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{if eq $isBlacklisted 0}}
+	{{if eq .Channel.ID $collabConstants.frontPage}}
+		{{if eq .CustomID "collabs-initial"}} {{/* erase this part if this is no longer needed */}}
+			{{if eq $collabUserData.templateThreadID 0}}
+				{{if gt currentTime.Unix (add $collabUserData.postedForumTimestamp $collabConstants.collabCD)}}
+					{{$templateThread := createThread nil nil (print .User.Username "'s collab ad") true 1440 false}}
+					{{$collabUserData.Set "userID" .User.ID}}
+					{{$collabUserData.Set "templateThreadID" $templateThread.ID}}
+					{{dbSet .User.ID "collabUserData" $collabUserData}}
+					{{execCC $execCCID nil 0 "firstSend"}}
+					{{updateMessage (complexMessage "content" (print "Please head to https://discord.com/channels/" .Guild.ID "/" $templateThread.ID "to make your collaboration ad."))}}
+				{{else}}
+					{{updateMessage (print "As per the collaboration ad rules, you are not allowed to create a new collaboration ad template if you posted one within a week. You may create another one at <t:" (add $collabUserData.postedForumTimestamp $collabConstants.collabCD) ">.")}}
+				{{end}}
+			{{else}}
+				{{try}}
+					{{openThread $collabUserData.templateThreadID}}
+				{{catch}}
+				{{end}}
+				{{$z := sendMessageRetID $collabUserData.templateThreadID (print .User.Mention ", this is the thread template of your collaboration ad.")}}
+				{{updateMessage (print "You already have your collaboration ad template, as seen by the mention. Go to Go to https://discord.com/channels/" .Guild.ID "/" $collabUserData.templateThreadID " to manage it.")}}
+				{{deleteMessage $collabUserData.templateThreadID $z}}
+			{{end}}
+		{{end}} {{/* erase this part if this is no longer needed */}}
+	{{else if eq .Channel.ID $collabUserData.templateThreadID}}
+		
+	{{end}}
+{{else}}
+	{{updateMessage (print "You have the role <@&" $isBlacklisted ">, so you are not allowed to do this action.")}}
+{{end}}

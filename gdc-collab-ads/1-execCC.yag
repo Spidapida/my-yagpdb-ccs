@@ -1,0 +1,88 @@
+{{$collabConstants := (dbGet 0 "collabConstants").Value}}
+{{$collabUserData := or (dbGet .User.ID "collabUserData").Value (dbGet 0 "collabUserData").Value }}
+
+{{$a := "**`❗ empty ❗`**"}}
+{{$b := "Something went wrong, please ping <@661882006719954953>!\n-# Error: `userFlag` incorrect value"}}
+{{$c := $collabConstants.dbTimer}}
+{{$d := 0}}
+{{$e := sdict }} {{/* CV2 */}}
+{{$f := cslice}} {{/* Menus and shit */}}
+
+{{$templateTitle := print "## " (or $collabUserData.dataCollabName $a)}}
+{{$templateDescription := sdict "components" (componentBuilder "text" `### Description of the collab:` "separator" true "text" (or $collabUserData.dataCollabDescription $a) ) }}
+{{$templateDetails := print `- **Collab type: **` (or $collabUserData.dataCollabSize $a) `
+- **Deco style: **` (or $collabUserData.dataCollabDecoStyle $a) `
+- **What work is needed: **` (or $collabUserData.dataCollabNeeds $a) `
+- **Estimated difficulty of the level: **` (or $collabUserData.dataCollabDifficulty $a) `
+- **Level type: **` (or $collabUserData.dataCollabLevelType $a) `
+- **Standards: **` (or $collabUserData.dataCollabStandards $a) `
+- **Discord invite link: **` (or $collabUserData.dataDiscordInviteLink $a) `
+- **My contribution to the collab:** ` (or $collabUserData.dataCollabStandards "*empty*") }}
+
+{{$templateMessage := componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" $templateTitle "separator" false
+"text" $templateDetails
+"container" $templateDescription}}
+{{range $collabUserData.dataCollabImages}}
+	{{$templateMessage.Add "gallery" (sdict "media" .)}}
+{{end}}
+
+{{if or $collabUserData.userPrioritized $collabUserData.userBoosted}}
+	{{$d = $collabConstants.priorityCH}}
+{{else}}
+	{{$d = $collabUserData.regularCH}}
+{{end}}
+{{$boardMessage := componentBuilder "text" (print "Important reminders " .User.Mention `: this collaboration ad will be posted in <#` $d `>.`) "separator" true}}
+
+{{if $collabUserData.Get "dataCollabSize"}}
+	{{$f.Append $collabConstants.collabLength}}
+{{else}}
+	{{$f.Append $collabConstants.collabLengthEmpty}}
+{{end}}
+{{if $collabUserData.Get "dataCollabDecoStyle"}}
+	{{$f.Append $collabConstants.decoStyle}}
+{{else}}
+	{{$f.Append $collabConstants.decoStyleEmpty}}
+{{end}}
+{{if $collabUserData.Get "dataCollabNeeds"}}
+	{{$f.Append $collabConstants.collabNeeds}}
+{{else}}
+	{{$f.Append $collabConstants.collabNeedsEmpty}}
+{{end}}
+{{if $collabUserData.Get "dataCollabDifficulty"}}
+	{{$f.Append $collabConstants.difficulty}}
+{{else}}
+	{{$f.Append $collabConstants.difficultyEmpty}}
+{{end}}
+{{if $collabUserData.Get "dataCollabLevelType"}}
+	{{$f.Append $collabConstants.levelType}}
+{{else}}
+	{{$f.Append $collabConstants.levelTypeEmpty}}
+{{end}}
+{{if $collabUserData.Get "dataCollabStandards"}}
+	{{$f.Append $collabConstants.standards}}
+{{else}}
+	{{$f.Append $collabConstants.standardsEmpty}}
+{{end}}
+{{if $collabUserData.Get "dataCollabName"}}
+	{{$f.Append $collabConstants.modifyContents}}
+{{else}}
+	{{$f.Append $collabConstants.modifyContentsEmpty}}
+{{end}}
+{{$e = sdict "color" 0xFFFFFF "components" (componentBuilder "interactive_components" $f)}}
+
+
+
+{{if eq $collabUserData.userFlag "halted"}}
+	{{$boardMessage.Add "buttons" (cbutton "disabled" true "style" "grey" "label" "This template has been halted by a staff." )}}
+{{else if eq $collabUserData.userFlag "pending" "pendingUnblocked"}}
+	{{$boardMessage.Add "container" $e}}
+{{end}}
+
+
+{{if eq .ExecData "firstSend"}}
+	{{$templateThreadMessageID := sendMessageRetID $collabUserData.templateThreadID $templateMessage}}
+	{{$templateAnnounceMessageID := sendMessageNoEscapeRetID $collabUserData.templateThreadID (componentBuilder "text" (print "Important reminders " .User.Mention `:
+- This collaboration ad will be posted in <#` $b `>.`) "separator" true)}}
+	{{$collabUserData.Set "templateThreadMessageID" $templateThreadMessageID}}
+	{{dbSetExpire .User.ID "collabUserData" $collabUserData $c}}
+{{end}}
