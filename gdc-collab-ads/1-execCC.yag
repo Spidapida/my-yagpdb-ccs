@@ -1,12 +1,79 @@
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
-{{$collabUserData := or (dbGet .User.ID "collabUserData").Value (dbGet 0 "collabUserData").Value }}
+{{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
 
+{{/* do this correctly later */}}
+{{$forumChannel := 0}}
+{{if or (eq $collabUserData.isStaff true) (eq $collabUserData.userBoosted true) (eq $collabUserData.userPrioritized true)}}
+	{{$forumChannel = $collabConstants.priorityCH}}
+{{else}}
+	{{$forumChannel = $collabConstants.regularCH}}
+{{end}}
+
+{{$emptyText := `*empty*`}}
+{{$collabMedia := cslice }}
+{{$containerMedia := componentBuilder "text" "Images for the collab: " "separator" true}}
+{{$containerThumbnail := componentBuilder "text" (print "### <a:magicmod" ":879476331853783141>  Thumbnail for the post") "separator" true}}
+{{$thumbnail := $collabUserData.dataThumbnail}}
+
+{{$templateTitle := or $collabUserData.dataCollabName $emptyText	}}
+{{$templateDetails := print `- **Host:** ` (or $collabUserData.dataCollabHost $emptyText) `
+- **Deco style:** ` (or $collabUserData.dataCollabDecoStyle $emptyText) `
+- **Collab type:** ` (or $collabUserData.dataCollabSize $emptyText) `
+- **Collab needs:** ` (or $collabUserData.dataCollabNeeds $emptyText) `
+- **Level difficulty:** ` (or $collabUserData.dataCollabDifficulty $emptyText) `
+- **Level type:** ` (or $collabUserData.dataCollabLevelType $emptyText) `
+- **Standards:** ` (or $collabUserData.dataCollabStandards $emptyText) `
+- **Discord invite link:** ` (or $collabUserData.dataDiscordInviteLink $emptyText) `
+- **My contribution to the collab:** ` (or $collabUserData.dataContribution $emptyText) }}
+{{$templateDescription := or $collabUserData.dataCollabDescription $emptyText }}
+{{range $collabUserData.dataCollabMedia}} {{$collabMedia.Append (sdict "media" . )}} {{end}}
+
+{{if $thumbnail}}
+	{{$containerThumbnail.Add "gallery" (sdict "media" $thumbnail)}}
+{{else}}
+	{{$containerThumbnail.Add "text" $emptyText}}
+{{end}}
+
+{{if $collabMedia}}
+	{{$containerMedia.Add "media" $collabMedia}}
+{{else}}
+	{{$containerMedia.Add "text" $emptyText}}
+{{end}}
+
+{{$templateBoardMessage := componentBuilder
+"text" (print "Important reminders " .User.Mention `:
+- This collab ad will be posted in <#` $forumChannel `>.
+
+` "## " $templateTitle)
+"container" (sdict "color" 0x1cade4 "components" $containerThumbnail)
+"container" (sdict "components" (componentBuilder "text" `### Relevant details about this collab:`
+"separator" true
+"text" $templateDetails ))}}
+
+{{$templateMedia := componentBuilder "container" (sdict "components" $containerMedia)}}
+
+{{$templateThreadMessage := componentBuilder "container" (sdict "components" (componentBuilder "text" "Description of the collab:" "separator" true "text" $templateDescription))}}
+
+{{$templateButtons := cslice $collabConstants.editDetails}}
+{{if eq $collabUserData.userFlag "pendingBlocked"}}
+	{{$templateButtons = $templateButtons.Append $collabConstants.postCollabDisabled}}
+{{else if eq $collabUserData.userFlag "pending" "pendingBypass"}}
+	{{$templateButtons = $templateButtons.Append $collabConstants.postCollab}}
+{{else if eq $collabUserData.userFlag "posted" "postedBypass"}}
+	{{$templateButtons = $templateButtons.Append $collabConstants.bumpUp}}
+{{else if eq $collabUserData.userFlag "postedBlocked"}}
+	{{$templateButtons = $templateButtons.Append $collabConstants.bumpUpDisabled}}
+{{end}}
+{{$templateButtons = $templateButtons.AppendSlice (cslice $collabConstants.mediaManage $collabConstants.boosterThumbnail $collabConstants.deleteCollab)}}
+{{$templateControlBoard := componentBuilder "container" (sdict "color" 0xff69b4 "components" (componentBuilder "buttons" $templateButtons))}}
+
+{{/*
 {{$a := "**`❗ empty ❗`**"}}
 {{$b := "Something went wrong, please ping <@661882006719954953>!\n-# Error: `userFlag` incorrect value"}}
 {{$c := $collabConstants.dbTimer}}
 {{$d := 0}}
-{{$e := sdict }} {{/* CV2 */}}
-{{$f := cslice}} {{/* Menus and shit */}}
+{{$e := sdict }} CV2
+{{$f := cslice}} Menus and shit
 
 {{$templateTitle := print "## " (or $collabUserData.dataCollabName $a)}}
 {{$templateDescription := sdict "components" (componentBuilder "text" `### Description of the collab:` "separator" true "text" (or $collabUserData.dataCollabDescription $a) ) }}
@@ -86,3 +153,4 @@
 	{{$collabUserData.Set "templateThreadMessageID" $templateThreadMessageID}}
 	{{dbSetExpire .User.ID "collabUserData" $collabUserData $c}}
 {{end}}
+*/}}

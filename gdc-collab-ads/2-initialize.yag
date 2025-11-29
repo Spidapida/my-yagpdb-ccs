@@ -141,14 +141,21 @@
 "max_length" 300 }}
 
 
-{{$addDetails := cbutton "emoji" (sdict "name" "✏") "label" "Add Details" "custom_id" (print $idprint "addDetails") "style" "blurple"}}
-{{$postCollab := cbutton "emoji" (sdict "name" "⤴") "label" "Post" "custom_id" (print $idprint "postCollab") "style" "success"}}
+{{$addDetails := cbutton "emoji" (sdict "id" "989294715130236938") "label" "Add Details" "custom_id" (print $idprint "addDetails") "style" "blurple"}}
+{{$postCollab := cbutton "emoji" (sdict "name" "📤") "label" "Post" "custom_id" (print $idprint "postCollab") "style" "success"}}
 {{$deleteCollab := cbutton "emoji" (sdict "id" "278318370808659969") "label" "Delete" "custom_id" (print $idprint "deleteCollab") "style" "danger"}}
 {{$editCollab := cbutton "emoji" (sdict "name" "✏") "label" "Edit" "custom_id" (print $idprint "editCollab") "style" "blurple"}}
 {{$bumpUp := cbutton "emoji" (sdict "name" "⬆") "label" "Bump up" "custom_id" (print $idprint "bumpUp") "style" "success"}}
-{{$media := cbutton "emoji" (sdict "name" "🖼️") "custom_id" (print $idprint "media") "style" "grey"}}
 {{$postCollabDisabled := cbutton "emoji" (sdict "name" "⤴") "label" "Post" "custom_id" (print $idprint "postCollabDisabled") "style" "success" "disabled" true}}
 {{$bumpUpDisabled := cbutton "emoji" (sdict "name" "⬆") "label" "Bump up" "custom_id" (print $idprint "bumpUpDisabled") "style" "success" "disabled" true}}
+{{$mediaManage := cbutton "emoji" (sdict "name" "🖼️") "custom_id" (print $idprint "mediaManage") "style" "grey"}}
+{{$mediaTop := cbutton "emoji" (sdict "name" "⏫") "style" "grey"}}
+{{$mediaUp := cbutton "emoji" (sdict "name" "🔼") "style" "grey"}}
+{{$mediaDelete := cbutton "emoji" (sdict "name" "🗑") "style" "grey"}}
+{{$mediaDown := cbutton "emoji" (sdict "name" "🔽") "style" "grey"}}
+{{$mediaBottom := cbutton "emoji" (sdict "name" "⏬") "style" "grey"}}
+{{$mediaSave := cbutton "emoji" (sdict "name" "💾") "style" "grey"}}
+{{$mediaCancel := cbutton "emoji" (sdict "id" "870823962093969449") "style" "grey"}}
 
 
 {{$collabConstants := sdict
@@ -202,57 +209,6 @@
 "blacklist"						$blacklistRoles
 }}
 
-{{$collabLength.Set "placeholder" "[ ✔ ] How large the collab is?" }}
-{{$decoStyle.Set "placeholder" "[ ✔ ] What decoration style you're going for?"}}
-{{$collabNeeds.Set "placeholder" "[ ✔ ] What are the requirements of the collab?"}}
-{{$difficulty.Set "placeholder" "[ ✔ ] What is the estimated difficulty of the collab?"}}
-{{$standards.Set "placeholder" "[ ✔ ] How high is the standards for the collab?"}}
-{{$levelType.Set "placeholder" "[ ✔ ] What is the level type of the collab?"}}
-{{$modifyContents.Set "label" "[ ✔ ] Modify contents of collab               →"}}
-
-{{$z := cslice "collabLength" "decoStyle" "collabNeeds" "difficulty" "standards" "levelType"}}
-{{range $z, $y := cslice $collabLength $decoStyle $collabNeeds $difficulty $standards $levelType}}
-	{{$collabConstants.Set $z (cmenu $y)}}
-{{end}}
-{{$collabConstants.Set "modifyContents" (cbutton $modifyContents)}}
-
-{{/*
-$collabConstants := sdict
-"menus1"					(cslice $collabLength $decoStyle $collabNeeds $difficulty $levelType)
-"menus2"					(cslice $standards)
-"uploadButtons"				(cslice $postCollab $deleteCollab)
-"uploadButtonsDisabled"		(cslice $postCollabDisabled $deleteCollab)
-"publishedButtons"			(cslice $editCollab $bumpUp $deleteCollab)
-"publishedButtonsDisabled"	(cslice $editCollabDisabled $bumpUpDisabled $deleteCollab)
-"menusFreeze"				(cslice $collabLengthDisabled $decoStyleDisabled $collabNeedsDisabled $difficultyDisabled)
-"propertyButtonsFreeze"		(cslice $levelTypeDisabled $standardsDisabled $modifyContentsDisabled)
-"uploadButtonsFreeze"		(cslice $postCollabDisabled $deleteCollabDisabled)
-"publishedButtonsFreeze"	(cslice $editCollabDisabled $bumpUpDisabled $deleteCollabDisabled)
-"dbTimer"					$dbTimer
-"collabCD"					$collabCD
-"logChannel"				$logChannel
-"logSuccess"				$logSuccess
-"attachForward"				$attachForward
-"frontPage"					$frontPage
-"regularCH"					$regularCH
-"priorityCH"				$priorityCH
-"staffRoles"				$staffRoles
-"boosterRole"				$boosterRole
-"priorityRoles"				$priorityRoles
-"blacklist"					$blacklistRoles
-*/}}
-
-{{if $retrieve := (dbGet 0 "collabConstants").Value}}
-    {{range $k, $v := $collabConstants}}
-		{{$retrieve.Set $k $v}}
-	{{end}}
-    {{dbSet 0 "collabConstants" $retrieve }}
-	{{sendMessage nil "Configurable values changed."}}
-{{else}}
-	{{dbSet 0 "collabConstants" $collabConstants }}
-	{{sendMessage nil "Step 1 of setup complete. Proceed to step 2."}}
-{{end}}
-
 {{dbSet 0 "collabUserData" (sdict
 	"userID"						0
 	"templateThreadID"				0
@@ -270,6 +226,17 @@ $collabConstants := sdict
 	"postedNotificationToken"		""
 	"postedNotificationTimestamp"	0
 )}}
+
+{{if $retrieve := (dbGet 0 "collabConstants").Value}}
+	{{range $k, $v := $collabConstants}}
+		{{$retrieve.Set $k $v}}
+	{{end}}
+	{{dbSet 0 "collabConstants" $retrieve }}
+	{{sendMessage nil "Configurable values changed."}}
+{{else}}
+	{{dbSet 0 "collabConstants" $collabConstants }}
+	{{sendMessage nil "Step 1 of setup complete. Proceed to step 2."}}
+{{end}}
 
 {{/* Data types:
 	"userID"						int64
@@ -498,4 +465,36 @@ neodesign and minigames need another level --- comment this later when needed
 {{$levelType.Set "placeholder" "[ ✔ ] What is the level type of the collab?"}}
 {{$modifyContents.Set "label" "[ ✔ ] Modify contents of collab               →"}}
 
+{{$z := cslice "collabLength" "decoStyle" "collabNeeds" "difficulty" "standards" "levelType"}}
+{{range $z, $y := cslice $collabLength $decoStyle $collabNeeds $difficulty $standards $levelType}}
+	{{$collabConstants.Set $z (cmenu $y)}}
+{{end}}
+{{$collabConstants.Set "modifyContents" (cbutton $modifyContents)}}
+
+*/}}
+
+{{/*
+$collabConstants := sdict
+"menus1"					(cslice $collabLength $decoStyle $collabNeeds $difficulty $levelType)
+"menus2"					(cslice $standards)
+"uploadButtons"				(cslice $postCollab $deleteCollab)
+"uploadButtonsDisabled"		(cslice $postCollabDisabled $deleteCollab)
+"publishedButtons"			(cslice $editCollab $bumpUp $deleteCollab)
+"publishedButtonsDisabled"	(cslice $editCollabDisabled $bumpUpDisabled $deleteCollab)
+"menusFreeze"				(cslice $collabLengthDisabled $decoStyleDisabled $collabNeedsDisabled $difficultyDisabled)
+"propertyButtonsFreeze"		(cslice $levelTypeDisabled $standardsDisabled $modifyContentsDisabled)
+"uploadButtonsFreeze"		(cslice $postCollabDisabled $deleteCollabDisabled)
+"publishedButtonsFreeze"	(cslice $editCollabDisabled $bumpUpDisabled $deleteCollabDisabled)
+"dbTimer"					$dbTimer
+"collabCD"					$collabCD
+"logChannel"				$logChannel
+"logSuccess"				$logSuccess
+"attachForward"				$attachForward
+"frontPage"					$frontPage
+"regularCH"					$regularCH
+"priorityCH"				$priorityCH
+"staffRoles"				$staffRoles
+"boosterRole"				$boosterRole
+"priorityRoles"				$priorityRoles
+"blacklist"					$blacklistRoles
 */}}
