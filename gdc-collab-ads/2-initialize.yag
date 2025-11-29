@@ -48,7 +48,7 @@
 (sdict "emoji" (sdict "id" "1071546532790276238") "label" "Ultracollab" "value" "Ultracollab" "description" "Often greater than 20 people, for mass organization of parts for your level.")}}
 
 {{$labelLevelDecoStyle := sdict "label" "Decoration Style"
-"description" "What is the deco style of your collab?" "component"}}
+"description" "What is the deco style of your collab?"}}
 {{$menuLevelDecoStyle := sdict "type" "text"
 "placeholder" "Select your deco style here"
 "required" true
@@ -119,7 +119,7 @@
 
 {{$labelStandards := sdict "label" "Standards"
 "description" "How high is the standards for the collab?"}}
-{{$menuStandards := "type" "text"
+{{$menuStandards := sdict "type" "text"
 "placeholder" "Select the collab standards here"
 "required" true
 "custom_id" (print $idprint "dataCollabStandards")}}
@@ -140,32 +140,67 @@
 "style" 2
 "max_length" 300 }}
 
-
-{{$addDetails := cbutton "emoji" (sdict "id" "989294715130236938") "label" "Add Details" "custom_id" (print $idprint "addDetails") "style" "blurple"}}
-{{$postCollab := cbutton "emoji" (sdict "name" "📤") "label" "Post" "custom_id" (print $idprint "postCollab") "style" "success"}}
-{{$deleteCollab := cbutton "emoji" (sdict "id" "278318370808659969") "label" "Delete" "custom_id" (print $idprint "deleteCollab") "style" "danger"}}
-{{$editCollab := cbutton "emoji" (sdict "name" "✏") "label" "Edit" "custom_id" (print $idprint "editCollab") "style" "blurple"}}
-{{$bumpUp := cbutton "emoji" (sdict "name" "⬆") "label" "Bump up" "custom_id" (print $idprint "bumpUp") "style" "success"}}
-{{$postCollabDisabled := cbutton "emoji" (sdict "name" "⤴") "label" "Post" "custom_id" (print $idprint "postCollabDisabled") "style" "success" "disabled" true}}
-{{$bumpUpDisabled := cbutton "emoji" (sdict "name" "⬆") "label" "Bump up" "custom_id" (print $idprint "bumpUpDisabled") "style" "success" "disabled" true}}
-{{$mediaManage := cbutton "emoji" (sdict "name" "🖼️") "custom_id" (print $idprint "mediaManage") "style" "grey"}}
-{{$mediaTop := cbutton "emoji" (sdict "name" "⏫") "style" "grey"}}
-{{$mediaUp := cbutton "emoji" (sdict "name" "🔼") "style" "grey"}}
-{{$mediaDelete := cbutton "emoji" (sdict "name" "🗑") "style" "grey"}}
-{{$mediaDown := cbutton "emoji" (sdict "name" "🔽") "style" "grey"}}
-{{$mediaBottom := cbutton "emoji" (sdict "name" "⏬") "style" "grey"}}
-{{$mediaSave := cbutton "emoji" (sdict "name" "💾") "style" "grey"}}
-{{$mediaCancel := cbutton "emoji" (sdict "id" "870823962093969449") "style" "grey"}}
+{{$labelCollabHost := sdict "label" "Host"
+"description" "Who is the host of the collab?"}}
+{{$textInputCollabHost := sdict "custom_id" (print $idprint "collabHost")
+"placeholder" "@spidapida"
+"min_length" 2 "max_length" 32 }}
 
 
-{{$collabConstants := sdict
-"addDetails"					$addDetails
+{{$editDetails := sdict "emoji" (sdict "name" "✏") "label" "Edit Details" "custom_id" (print $idprint "editDetails") "style" "blurple"}}
+{{$postCollab := sdict "emoji" (sdict "id" "704342789172887672") "label" "Post This!" "custom_id" (print $idprint "postCollab") "style" "success"}}
+{{$deleteCollab := sdict "emoji" (sdict "id" "278318370808659969") "label" "Delete Template" "custom_id" (print $idprint "deleteCollab") "style" "danger"}}
+{{$bumpUp := sdict "emoji" (sdict "name" "⬆") "label" "Bump Up" "custom_id" (print $idprint "bumpUp") "style" "success"}}
+{{$postCollabDisabled := sdict "emoji" (sdict "name" "⤴") "label" "Post This" "custom_id" (print $idprint "postCollabDisabled") "style" "success" "disabled" true}}
+{{$bumpUpDisabled := sdict "emoji" (sdict "name" "⬆") "label" "Bump Up" "custom_id" (print $idprint "bumpUpDisabled") "style" "success" "disabled" true}}
+{{$mediaManage := sdict "emoji" (sdict "id" "779859070122721320") "custom_id" (print $idprint "mediaManage") "style" "grey"}}
+{{$mediaTop := sdict "emoji" (sdict "name" "⏫") "style" "grey"}}
+{{$mediaUp := sdict "emoji" (sdict "name" "🔼") "style" "grey"}}
+{{$mediaDelete := sdict "emoji" (sdict "name" "🗑") "style" "grey"}}
+{{$mediaDown := sdict "emoji" (sdict "name" "🔽") "style" "grey"}}
+{{$mediaBottom := sdict "emoji" (sdict "name" "⏬") "style" "grey"}}
+{{$mediaSave := sdict "emoji" (sdict "name" "💾") "style" "success"}}
+{{$mediaCancel := sdict "emoji" (sdict "id" "870823962093969449") "style" "grey"}}
+{{$boosterThumbnail := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" (print $idprint "thumbnailBooster") "style" "blurple"}}
+{{$mediaAdd := sdict "emoji" (sdict "name" "➕") "style" "grey"}}
+
+{{$collabUserData := sdict
+	"userID"						0
+	"templateThreadID"				0
+	"templateBoardMessageID"		0
+	"templateThreadMessageID"		0
+	"templateControlsMessageID"		0
+	"userFlag"						"pending"
+	"userPrioritized"				false
+	"userBoosted"					false
+	"dataCollabMedia"				(cslice)
+	"postedForumThreadID"			0
+	"postedForumMessage"			0
+	"postedForumTimestamp"			0
+	"postedNotificationMessageID"	0
+	"postedNotificationToken"		""
+	"postedNotificationTimestamp"	0
+	}}
+{{/* "userFlag"						string, <pending, pendingBlocked, pendingBypass, posted, postedBlocked, postedBypass, editMode, halted> */}}
+{{$collabConstants := sdict	
+"collabUserData"				$collabUserData
+
+"editDetails"					$editDetails
 "postCollab"					$postCollab
 "deleteCollab"					$deleteCollab
-"editCollab"					$editCollab
 "bumpUp"						$bumpUp
 "postCollabDisabled"			$postCollabDisabled
 "bumpUpDisabled"				$bumpUpDisabled
+"boosterThumbnail"				$boosterThumbnail
+"mediaManage"					$mediaManage
+"mediaTop"						$mediaTop
+"mediaUp"						$mediaUp
+"mediaDelete"					$mediaDelete
+"mediaDown"						$mediaDown
+"mediaBottom"					$mediaBottom
+"mediaSave"						$mediaSave
+"mediaCancel"					$mediaCancel
+"mediaAdd"						$mediaAdd
 
 "labelCollabLength"				$labelCollabLength
 "labelLevelDecoStyle"			$labelLevelDecoStyle
@@ -209,24 +244,6 @@
 "blacklist"						$blacklistRoles
 }}
 
-{{dbSet 0 "collabUserData" (sdict
-	"userID"						0
-	"templateThreadID"				0
-	"templateBoardMessageID"		0
-	"templateThreadMessageID"		0
-	"templateControlsMessageID"		0
-	"userFlag"						"pending"
-	"userPrioritized"				false
-	"userBoosted"					false
-	"dataCollabImages"				(cslice)
-	"postedForumThreadID"			0
-	"postedForumMessage"			0
-	"postedForumTimestamp"			0
-	"postedNotificationMessageID"	0
-	"postedNotificationToken"		""
-	"postedNotificationTimestamp"	0
-)}}
-
 {{if $retrieve := (dbGet 0 "collabConstants").Value}}
 	{{range $k, $v := $collabConstants}}
 		{{$retrieve.Set $k $v}}
@@ -244,12 +261,13 @@
 	"templateBoardMessageID"		int64
 	"templateThreadMessageID"		int64
 	"userFlag"						string, <pending, pendingBlocked, pendingBypass, posted, postedBlocked, postedBypass, editMode, halted>
-	"userPrioritized"				boolean, [true = #priority-collab-ads, false = #collab-ads]
+	"isStaff"						boolean
 	"userBoosted"					boolean
+	"userPrioritized"				boolean, [true = #priority-collab-ads, false = #collab-ads]
 	"dataCollabName"				string, 100 characters
-	"dataCollabDescription"			string, 3000 characters
-	"dataDiscordInviteLink"			string, 255 characters
+	"dataCollabDescription"			string, 3000? characters
 
+	"dataDiscordInviteLink"			string, 255 characters
 	"dataContribution"				string, 500? characters
 	"dataCollabSize"				string, <Small Scale Collab, Megacollab, Ultracollab>
 	"dataCollabDecoStyle"			string, <Modern, Glow Design, Effect, Core, Art, Minigame, Neodesign, Layouts, Other>
@@ -257,16 +275,17 @@
 	"dataCollabDifficulty"			string, <Non-Demon, Easy-Medium Demon, Hard-Insane Demon, Extreme Demon>
 	"dataCollabLevelType"			string, <Classic, Platformer>
 	"dataCollabStandards"			string, <Low Standards, Medium Standards, High Standards>
-	"dataCollabImages"				cslice, string
+	"dataCollabMedia"				cslice, string
 	"dataThumbnail"					string, URL, 500? characters
-	"postedForumThreadID"			int64
 
+	"dataCollabHost"				string, 2-32 characters
+	"postedForumThreadID"			int64
 	"postedForumMessage"			int64
 	"postedForumTimestamp"			int64
 	"postedNotificationMessageID"	int64
 	"postedNotificationToken"		string
 	"postedNotificationTimestamp"	int64
-	"mediaIndex"					int
+	"mediaIndex						int
 */}}
 
 {{/* THESE ARE NOW OBSOLETE AND IS ONLY HERE FOR ARCHIVING PURPOSES
@@ -497,4 +516,22 @@ $collabConstants := sdict
 "boosterRole"				$boosterRole
 "priorityRoles"				$priorityRoles
 "blacklist"					$blacklistRoles
+
+{{dbSet 0 "collabUserData" (sdict
+	"userID"						0
+	"templateThreadID"				0
+	"templateBoardMessageID"		0
+	"templateThreadMessageID"		0
+	"templateControlsMessageID"		0
+	"userFlag"						"pending"
+	"userPrioritized"				false
+	"userBoosted"					false
+	"dataCollabMedia"				(cslice)
+	"postedForumThreadID"			0
+	"postedForumMessage"			0
+	"postedForumTimestamp"			0
+	"postedNotificationMessageID"	0
+	"postedNotificationToken"		""
+	"postedNotificationTimestamp"	0
+)}}
 */}}

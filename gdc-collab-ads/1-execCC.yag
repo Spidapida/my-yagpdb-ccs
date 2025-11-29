@@ -11,8 +11,8 @@
 
 {{$emptyText := `*empty*`}}
 {{$collabMedia := cslice }}
-{{$containerMedia := componentBuilder "text" "Images for the collab: " "separator" true}}
-{{$containerThumbnail := componentBuilder "text" (print "### <a:magicmod" ":879476331853783141>  Thumbnail for the post") "separator" true}}
+{{$containerMedia := componentBuilder "text" "### Images for the collab:" "separator" true}}
+{{$containerThumbnail := componentBuilder "text" (print "### <a:magicmod" ":879476331853783141>  Thumbnail for the post:") "separator" true}}
 {{$thumbnail := $collabUserData.dataThumbnail}}
 
 {{$templateTitle := or $collabUserData.dataCollabName $emptyText	}}
@@ -42,9 +42,9 @@
 
 {{$templateBoardMessage := componentBuilder
 "text" (print "Important reminders " .User.Mention `:
-- This collab ad will be posted in <#` $forumChannel `>.
-
-` "## " $templateTitle)
+- This collab ad will be posted in <#` $forumChannel `>.`)
+"separator" true
+"text" (print "## " $templateTitle)
 "container" (sdict "color" 0x1cade4 "components" $containerThumbnail)
 "container" (sdict "components" (componentBuilder "text" `### Relevant details about this collab:`
 "separator" true
@@ -52,7 +52,7 @@
 
 {{$templateMedia := componentBuilder "container" (sdict "components" $containerMedia)}}
 
-{{$templateThreadMessage := componentBuilder "container" (sdict "components" (componentBuilder "text" "Description of the collab:" "separator" true "text" $templateDescription))}}
+{{$templateThreadMessage := componentBuilder "container" (sdict "components" (componentBuilder "text" "### Description of the collab:" "separator" true "text" $templateDescription))}}
 
 {{$templateButtons := cslice $collabConstants.editDetails}}
 {{if eq $collabUserData.userFlag "pendingBlocked"}}
