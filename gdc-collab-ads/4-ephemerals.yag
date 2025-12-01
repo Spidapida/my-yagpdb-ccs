@@ -1,5 +1,5 @@
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
-{{$collabUserData := or (dbGet .User.ID "collabUserData").Value (dbGet 0 "collabUserData").Value }}
+{{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
 
 {{$a := .Interaction.Token}}
 

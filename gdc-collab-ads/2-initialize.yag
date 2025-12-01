@@ -36,13 +36,13 @@
 
 {{$idprint := "collabs-"}}
 
-{{$labelCollabLength := sdict "label" "Collab Size"
+{{$labelCollabSize := sdict "label" "Collab Size"
 "description" "How large the collaboration is in terms of the amount of people participating?"}}
-{{$menuCollabLength := sdict "type" "text"
+{{$menuCollabSize := sdict "type" "text"
 "placeholder" "Select your collab size here"
 "required" true
 "custom_id" (print $idprint "dataCollabSize")}}
-{{$optionsCollabLength := cslice
+{{$optionsCollabSize := cslice
 (sdict "emoji" (sdict "id" "1093942686374957096") "label" "Small Scale Collab" "value" "Small Scale Collab" "description" "Less than or equal to five people.")
 (sdict "emoji" (sdict "id" "1093942682822394046") "label" "Megacollab" "value" "Megacollab" "description" "Typically needed more than five people.")
 (sdict "emoji" (sdict "id" "1071546532790276238") "label" "Ultracollab" "value" "Ultracollab" "description" "Often greater than 20 people, for mass organization of parts for your level.")}}
@@ -52,8 +52,8 @@
 {{$menuLevelDecoStyle := sdict "type" "text"
 "placeholder" "Select your deco style here"
 "required" true
-"custom_id" (print $idprint "dataCollabDecoStyle")}}
-{{$optionsDecoStyle := cslice
+"custom_id" (print $idprint "dataLevelDecoStyle")}}
+{{$optionsLevelDecoStyle := cslice
 (sdict "emoji" (sdict "id" "869769735464706108") "label" "Modern" "value" "Modern" "description" "Optical, Split72, neigefeu")
 (sdict "emoji" (sdict "id" "715591739653750845") "label" "Glow" "value" "Glow" "description" "ChaSe, F3lixsram, Namtar")
 (sdict "emoji" (sdict "id" "716054341781553203") "label" "Effect" "value" "Effect" "description" "G4lvatron, Echonox, ILRELL")
@@ -76,12 +76,12 @@
 (sdict "emoji" (sdict "id" "959953320812879922") "label" "Decoration & Gameplay" "value" "Decoration & Gameplay")
 (sdict "emoji" (sdict "id" "1196464468306169978") "label" "Other" "value" "Other" "description" "Like when you need someone who can optimize the level. Specify details when writing.")}}
 
-{{$labelDifficulty := sdict "label" "Level Difficulty"
+{{$labelLevelDifficulty := sdict "label" "Level Difficulty"
 "description" "What is the estimated difficulty of the collab?"}}
 {{$menuLevelDifficulty := sdict "type" "text"
 "placeholder" "Select the difficulty here"
 "required" true
-"custom_id" (print $idprint "dataCollabDifficulty")}}
+"custom_id" (print $idprint "dataLevelDifficulty")}}
 {{$optionsLevelDifficulty := cslice 
 (sdict "emoji" (sdict "id" "1173796642168770610") "label" "Non-Demon" "value" "Non-Demon" )
 (sdict "emoji" (sdict "id" "1146327594342559795") "label" "Easy-Medium Demon" "value" "Easy-Medium Demon" )
@@ -93,7 +93,7 @@
 {{$menuLevelType := sdict "type" "text"
 "placeholder" "Select the level type here"
 "required" true
-"custom_id" (print $idprint "dataCollabLevelType")}}
+"custom_id" (print $idprint "dataLevelType")}}
 {{$optionsLevelType := cslice
 (sdict "emoji" (sdict "id" "767850357715238932") "label" "Classic" "value" "Classic")
 (sdict "emoji" (sdict "id" "1270303197512208425") "label" "Platformer" "value" "Platformer")}}
@@ -110,20 +110,20 @@
 }}
 
 {{$labelCollabDescription := sdict "label" "Description"
-"description" "Details about your collab. You can use this thread to draft the description of your collab, then paste it here."}}
+"description" "Details about your collab. You can use the thread to draft, then copy paste the text here."}}
 {{$textInputCollabDescription := sdict "custom_id" (print $idprint "collabDescription")
 "style" 2
 "required" true
 "placeholder" "There's a chance that external emojis might not be displayed correctly."
 "min_length" 1 "max_length" 3000 }}
 
-{{$labelStandards := sdict "label" "Standards"
+{{$labelCollabStandards := sdict "label" "Standards"
 "description" "How high is the standards for the collab?"}}
-{{$menuStandards := sdict "type" "text"
+{{$menuCollabStandards := sdict "type" "text"
 "placeholder" "Select the collab standards here"
 "required" true
 "custom_id" (print $idprint "dataCollabStandards")}}
-{{$optionsStandards := cslice
+{{$optionsCollabStandards := cslice
 (sdict "emoji" (sdict "id" "1271235910855430154") "label" "Low Standards" "value" "Low Standards")
 (sdict "emoji" (sdict "id" "1271235941805064252") "label" "Medium Standards" "value" "Medium Standards")
 (sdict "emoji" (sdict "id" "1271235915658035201") "label" "High Standards" "value" "High Standards")}}
@@ -131,6 +131,7 @@
 {{$labelCollabInvite := sdict "label" "Discord Invite Link"
 "description" "A Discord invite link to the collab (optional)"}}
 {{$textInputCollabInvite := sdict "custom_id" (print $idprint "collabInvite")
+"style" 1
 "placeholder" "https://discord.gg/gdcreators"
 "max_length" 255 }}
 
@@ -138,11 +139,15 @@
 "description" "What is your contribution towards your collab?"}}
 {{$textInputCollabContribution := sdict "custom_id" (print $idprint "collabContribution")
 "style" 2
+"required" true
+"value" "Uploader of the collab"
 "max_length" 300 }}
 
 {{$labelCollabHost := sdict "label" "Host"
 "description" "Who is the host of the collab?"}}
 {{$textInputCollabHost := sdict "custom_id" (print $idprint "collabHost")
+"style" 1
+"required" true
 "placeholder" "@spidapida"
 "min_length" 2 "max_length" 32 }}
 
@@ -169,11 +174,26 @@
 	"templateThreadID"				0
 	"templateBoardMessageID"		0
 	"templateThreadMessageID"		0
-	"templateControlsMessageID"		0
-	"userFlag"						"pending"
-	"userPrioritized"				false
+	"templateNotificationMessageID"	0
+	"userFlag"						"pendingBlocked"
+	"isStaff"						false
 	"userBoosted"					false
+	"userPrioritized"				false
+	"dataCollabTitle"				""
+
+	"dataCollabDescription"			""
+	"dataDiscordInviteLink"			""
+	"dataCollabContribution"		""
+	"dataCollabSize"				""
+	"dataLevelDecoStyle"			""
+	"dataCollabNeeds"				""
+	"dataLevelDifficulty"			""
+	"dataLevelType"					""
+	"dataCollabStandards"			""
+	"dataCollabHost"				""
+
 	"dataCollabMedia"				(cslice)
+	"dataThumbnail"					""
 	"postedForumThreadID"			0
 	"postedForumMessage"			0
 	"postedForumTimestamp"			0
@@ -181,7 +201,40 @@
 	"postedNotificationToken"		""
 	"postedNotificationTimestamp"	0
 	}}
-{{/* "userFlag"						string, <pending, pendingBlocked, pendingBypass, posted, postedBlocked, postedBypass, editMode, halted> */}}
+
+{{/* Data types:
+	"userID"						int64
+	"templateThreadID"				int64
+	"templateBoardMessageID"		int64
+	"templateThreadMessageID"		int64
+	"templateNotificationMessageID"	int64
+	"userFlag"						string, <pending, pendingBlocked, pendingBypass, posted, postedBlocked, postedBypass, editMode, halted>
+	"isStaff"						boolean
+	"userBoosted"					boolean
+	"userPrioritized"				boolean, [true = #priority-collab-ads, false = #collab-ads]
+	"dataCollabName"				string, 100 characters
+
+	"dataCollabDescription"			string, 3000? characters
+	"dataDiscordInviteLink"			string, 255 characters
+	"dataContribution"				string, 500? characters
+	"dataCollabSize"				string, <Small Scale Collab, Megacollab, Ultracollab>
+	"dataCollabDecoStyle"			string, <Modern, Glow Design, Effect, Core, Art, Minigame, Neodesign, Layouts, Other>
+	"dataCollabNeeds"				string, <Decoration Only, Gameplay Only, Decoration & Gameplay, Other>
+	"dataCollabDifficulty"			string, <Non-Demon, Easy-Medium Demon, Hard-Insane Demon, Extreme Demon>
+	"dataCollabLevelType"			string, <Classic, Platformer>
+	"dataCollabStandards"			string, <Low Standards, Medium Standards, High Standards>
+	"dataCollabMedia"				cslice, string
+
+	"dataThumbnail"					string, URL, 500? characters
+	"dataCollabHost"				string, 2-32 characters
+	"postedForumThreadID"			int64
+	"postedForumMessage"			int64
+	"postedForumTimestamp"			int64
+	"postedNotificationMessageID"	int64
+	"postedNotificationToken"		string
+	"postedNotificationTimestamp"	int64
+*/}}
+
 {{$collabConstants := sdict	
 "collabUserData"				$collabUserData
 
@@ -202,33 +255,37 @@
 "mediaCancel"					$mediaCancel
 "mediaAdd"						$mediaAdd
 
-"labelCollabLength"				$labelCollabLength
+"labelCollabSize"				$labelCollabSize
 "labelLevelDecoStyle"			$labelLevelDecoStyle
 "labelCollabNeeds"				$labelCollabNeeds
-"labelLevelDifficulty"			$labelDifficulty
+"labelLevelDifficulty"			$labelLevelDifficulty
 "labelLevelType"				$labelLevelType
 "labelCollabTitle"				$labelCollabTitle
 "labelCollabDescription"		$labelCollabDescription
-"labelStandards"				$labelStandards
+"labelCollabStandards"			$labelCollabStandards
 "labelCollabInvite"				$labelCollabInvite
 "labelCollabContribution"		$labelCollabContribution
+"labelCollabHost"				$labelCollabHost
 
-"menuCollabLength"				$menuCollabLength
+"menuCollabSize"				$menuCollabSize
 "menuLevelDecoStyle"			$menuLevelDecoStyle
 "menuCollabNeeds"				$menuCollabNeeds
 "menuLevelDifficulty"			$menuLevelDifficulty
+"menuLevelType"					$menuLevelType
 "textInputCollabTitle"			$textInputCollabTitle
 "textInputCollabDescription"	$textInputCollabDescription
-"menuStandards"					$menuStandards
+"menuCollabStandards"			$menuCollabStandards
 "textInputCollabInvite"			$textInputCollabInvite
 "textInputCollabContribution"	$textInputCollabContribution
+"textInputCollabHost"			$textInputCollabHost
 
-"optionsCollabLength"			$optionsCollabLength
-"optionsLevelDecoStyle"			$optionsDecoStyle
+
+"optionsCollabSize"				$optionsCollabSize
+"optionsLevelDecoStyle"			$optionsLevelDecoStyle
 "optionsCollabNeeds"			$optionsCollabNeeds
 "optionsLevelDifficulty"		$optionsLevelDifficulty
 "optionsLevelType"				$optionsLevelType
-"optionsStandards"				$optionsStandards
+"optionsCollabStandards"		$optionsCollabStandards
 
 "dbTimer"						$dbTimer
 "collabCD"						$collabCD
@@ -254,39 +311,6 @@
 	{{dbSet 0 "collabConstants" $collabConstants }}
 	{{sendMessage nil "Step 1 of setup complete. Proceed to step 2."}}
 {{end}}
-
-{{/* Data types:
-	"userID"						int64
-	"templateThreadID"				int64
-	"templateBoardMessageID"		int64
-	"templateThreadMessageID"		int64
-	"userFlag"						string, <pending, pendingBlocked, pendingBypass, posted, postedBlocked, postedBypass, editMode, halted>
-	"isStaff"						boolean
-	"userBoosted"					boolean
-	"userPrioritized"				boolean, [true = #priority-collab-ads, false = #collab-ads]
-	"dataCollabName"				string, 100 characters
-	"dataCollabDescription"			string, 3000? characters
-
-	"dataDiscordInviteLink"			string, 255 characters
-	"dataContribution"				string, 500? characters
-	"dataCollabSize"				string, <Small Scale Collab, Megacollab, Ultracollab>
-	"dataCollabDecoStyle"			string, <Modern, Glow Design, Effect, Core, Art, Minigame, Neodesign, Layouts, Other>
-	"dataCollabNeeds"				string, <Decoration Only, Gameplay Only, Decoration & Gameplay, Other>
-	"dataCollabDifficulty"			string, <Non-Demon, Easy-Medium Demon, Hard-Insane Demon, Extreme Demon>
-	"dataCollabLevelType"			string, <Classic, Platformer>
-	"dataCollabStandards"			string, <Low Standards, Medium Standards, High Standards>
-	"dataCollabMedia"				cslice, string
-	"dataThumbnail"					string, URL, 500? characters
-
-	"dataCollabHost"				string, 2-32 characters
-	"postedForumThreadID"			int64
-	"postedForumMessage"			int64
-	"postedForumTimestamp"			int64
-	"postedNotificationMessageID"	int64
-	"postedNotificationToken"		string
-	"postedNotificationTimestamp"	int64
-	"mediaIndex						int
-*/}}
 
 {{/* THESE ARE NOW OBSOLETE AND IS ONLY HERE FOR ARCHIVING PURPOSES
 
