@@ -1,156 +1,121 @@
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
 {{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
+{{$flag := $collabUserData.userFlag}}
 
 {{/* do this correctly later */}}
 {{$forumChannel := 0}}
-{{if or (eq $collabUserData.isStaff true) (eq $collabUserData.userBoosted true) (eq $collabUserData.userPrioritized true)}}
+{{$threadID := $collabUserData.threadID}}
+{{if or $collabUserData.isStaff $collabUserData.userBoosted $collabUserData.userPrioritized}}
 	{{$forumChannel = $collabConstants.priorityCH}}
 {{else}}
 	{{$forumChannel = $collabConstants.regularCH}}
 {{end}}
 
 {{$emptyText := `*empty*`}}
-{{$collabMedia := cslice }}
-{{$containerMedia := componentBuilder "text" "### Images for the collab:" "separator" true}}
-{{$containerThumbnail := componentBuilder "text" (print "### <a:magicmod" ":879476331853783141>  Thumbnail for the post:") "separator" true}}
-{{$thumbnail := $collabUserData.dataThumbnail}}
+{{$tempTitle := or $collabUserData.collabTitle $emptyText}}
+{{$tempDetails := print `- **Host:** ` (or $collabUserData.collabHost $emptyText) `
+- **Deco style:** ` (or $collabUserData.levelDecoStyle $emptyText) `
+- **Collab type:** ` (or $collabUserData.collabSize $emptyText) `
+- **Collab needs:** ` (or $collabUserData.collabNeeds $emptyText) `
+- **Level difficulty:** ` (or $collabUserData.levelDifficulty $emptyText) `
+- **Level type:** ` (or $collabUserData.levelType $emptyText) `
+- **Standards:** ` (or $collabUserData.collabStandards $emptyText) `
+- **Discord invite link:** ` (or $collabUserData.collabInvite $emptyText) `
+- **My contribution to the collab:** ` (or $collabUserData.collabContribution $emptyText) }}
+{{$tempDesc := or $collabUserData.collabDescription $emptyText }}
 
-{{$templateTitle := or $collabUserData.dataCollabName $emptyText	}}
-{{$templateDetails := print `- **Host:** ` (or $collabUserData.dataCollabHost $emptyText) `
-- **Deco style:** ` (or $collabUserData.dataCollabDecoStyle $emptyText) `
-- **Collab type:** ` (or $collabUserData.dataCollabSize $emptyText) `
-- **Collab needs:** ` (or $collabUserData.dataCollabNeeds $emptyText) `
-- **Level difficulty:** ` (or $collabUserData.dataCollabDifficulty $emptyText) `
-- **Level type:** ` (or $collabUserData.dataCollabLevelType $emptyText) `
-- **Standards:** ` (or $collabUserData.dataCollabStandards $emptyText) `
-- **Discord invite link:** ` (or $collabUserData.dataDiscordInviteLink $emptyText) `
-- **My contribution to the collab:** ` (or $collabUserData.dataContribution $emptyText) }}
-{{$templateDescription := or $collabUserData.dataCollabDescription $emptyText }}
-{{range $collabUserData.dataCollabMedia}} {{$collabMedia.Append (sdict "media" . )}} {{end}}
-
+{{$thumbnail := $collabUserData.collabThumbail}}
+{{$thumbTitle := "### <a:magicmod:879476331853783141>  Thumbnail for the post:"}}
+{{if and $thumbnail $collabUserData.noForwardThumbs}}
+	{{$thumbTitle := (print "### <a:magicmod:879476331853783141>  Thumbnail for the post:\n-# Note: Do not delete [your message](https://discord.com/channels/" .Guild.ID "/" $threadID "/" $collabUserData.noForwardThumbs " to avoid corrupting the thumbnail for other members of the server.")}}
+{{end}}
+{{$contThumbs := componentBuilder "text" $thumbTitle "separator" true}}
 {{if $thumbnail}}
-	{{$containerThumbnail.Add "gallery" (sdict "media" $thumbnail)}}
+	{{$contThumbs.Add "gallery" (sdict "media" $thumbnail)}}
 {{else}}
-	{{$containerThumbnail.Add "text" $emptyText}}
+	{{$contThumbs.Add "text" $emptyText}}
 {{end}}
 
+{{$collabMedia := cslice }}
+{{range $collabUserData.collabMedia}} {{$collabMedia.Append (sdict "media" . )}} {{end}}
+{{$no4WMedia := "### Media gallery:"}}
+{{if and $collabUserData.noForwardMedia $collabMedia}}
+	{{$no4WMedia = print "### Media gallery:\n-# Note: Do not delete [your message](https://discord.com/channels/" .Guild.ID "/" $threadID "/" $collabUserData.noForwardMedia " to avoid corrupting the media for other members of the server." }}
+{{end}}
+{{$contMedia := componentBuilder "text" $no4WMedia "separator" true}}
 {{if $collabMedia}}
-	{{$containerMedia.Add "media" $collabMedia}}
+	{{$contMedia.Add "gallery" $collabMedia}}
 {{else}}
-	{{$containerMedia.Add "text" $emptyText}}
+	{{$contMedia.Add "text" $emptyText}}
 {{end}}
 
-{{$templateBoardMessage := componentBuilder
+{{$maskWarn := ""}}
+{{if $collabUserData.hasMaskedLinks}}
+	{{$maskWarn = "\n- Some masked links are stripped to their regular link counterparts. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) if you want to add a website to a whitelist and reinstate the masked link."}}
+{{end}}
+
+{{$megaTemp := componentBuilder
 "text" (print "Important reminders " .User.Mention `:
-- This collab ad will be posted in <#` $forumChannel `>.`)
+- This collab ad will be posted in <#` $forumChannel `>.` $maskWarn)
 "separator" true
-"text" (print "## " $templateTitle)
-"container" (sdict "color" 0x1cade4 "components" $containerThumbnail)
+"text" (print "## " $tempTitle)
+"container" (sdict "color" 0x1cade4 "components" $contThumbs)
 "container" (sdict "components" (componentBuilder "text" `### Relevant details about this collab:`
 "separator" true
-"text" $templateDetails ))}}
+"text" $tempDetails ))}}
+{{$tempMedia := componentBuilder "container" (sdict "components" $contMedia)}}
+{{$tempThreadMsg := componentBuilder "container" (sdict "components" (componentBuilder "text" "### Description of the collab:" "separator" true "text" $tempDesc))}}
 
-{{$templateMedia := componentBuilder "container" (sdict "components" $containerMedia)}}
-
-{{$templateThreadMessage := componentBuilder "container" (sdict "components" (componentBuilder "text" "### Description of the collab:" "separator" true "text" $templateDescription))}}
-
-{{$templateButtons := cslice $collabConstants.editDetails}}
-{{if eq $collabUserData.userFlag "pendingBlocked"}}
-	{{$templateButtons = $templateButtons.Append $collabConstants.postCollabDisabled}}
-{{else if eq $collabUserData.userFlag "pending" "pendingBypass"}}
-	{{$templateButtons = $templateButtons.Append $collabConstants.postCollab}}
-{{else if eq $collabUserData.userFlag "posted" "postedBypass"}}
-	{{$templateButtons = $templateButtons.Append $collabConstants.bumpUp}}
-{{else if eq $collabUserData.userFlag "postedBlocked"}}
-	{{$templateButtons = $templateButtons.Append $collabConstants.bumpUpDisabled}}
-{{end}}
-{{$templateButtons = $templateButtons.AppendSlice (cslice $collabConstants.mediaManage $collabConstants.boosterThumbnail $collabConstants.deleteCollab)}}
-{{$templateControlBoard := componentBuilder "container" (sdict "color" 0xff69b4 "components" (componentBuilder "buttons" $templateButtons))}}
-
-{{/*
-{{$a := "**`❗ empty ❗`**"}}
-{{$b := "Something went wrong, please ping <@661882006719954953>!\n-# Error: `userFlag` incorrect value"}}
-{{$c := $collabConstants.dbTimer}}
-{{$d := 0}}
-{{$e := sdict }} CV2
-{{$f := cslice}} Menus and shit
-
-{{$templateTitle := print "## " (or $collabUserData.dataCollabName $a)}}
-{{$templateDescription := sdict "components" (componentBuilder "text" `### Description of the collab:` "separator" true "text" (or $collabUserData.dataCollabDescription $a) ) }}
-{{$templateDetails := print `- **Collab type: **` (or $collabUserData.dataCollabSize $a) `
-- **Deco style: **` (or $collabUserData.dataCollabDecoStyle $a) `
-- **What work is needed: **` (or $collabUserData.dataCollabNeeds $a) `
-- **Estimated difficulty of the level: **` (or $collabUserData.dataCollabDifficulty $a) `
-- **Level type: **` (or $collabUserData.dataCollabLevelType $a) `
-- **Standards: **` (or $collabUserData.dataCollabStandards $a) `
-- **Discord invite link: **` (or $collabUserData.dataDiscordInviteLink $a) `
-- **My contribution to the collab:** ` (or $collabUserData.dataCollabStandards "*empty*") }}
-
-{{$templateMessage := componentBuilder "allowed_mentions" (sdict "users" (cslice) "roles" (cslice)) "text" $templateTitle "separator" false
-"text" $templateDetails
-"container" $templateDescription}}
-{{range $collabUserData.dataCollabImages}}
-	{{$templateMessage.Add "gallery" (sdict "media" .)}}
+{{$tempButtons := cslice}}
+{{$tempStatus := $collabConstants.TSNormal}}
+{{if eq $flag "manageMedia"}}
+	{{$tempStatus = $collabConstants.TSMedia}}
+{{else if eq $flag "manageThumbnail"}}
+	{{$tempStatus = $collabConstants.TSThumbs}}
+{{else if eq $flag "deleteConfirm"}}
+	{{$tempStatus = $collabConstants.TSDel}}
+{{else if eq $flag "freeze"}}
+	{{$tempStatus = $collabConstants.TSFreeze}}
+{{else if $collabUserData.postForumID}}
+	{{$tempStatus = $collabConstants.TSUploaded}}
 {{end}}
 
-{{if or $collabUserData.userPrioritized $collabUserData.userBoosted}}
-	{{$d = $collabConstants.priorityCH}}
+{{if eq $flag "manageMedia" "manageThumbnail" "deleteConfirm" "freeze"}}
+	{{$tempButtons = cslice $collabConstants.editDetailsDisabled}}
+	{{if $collabUserData.postForumID}}
+		{{$tempButtons = $tempButtons.Append $collabConstants.bumpUpDisabled}}
+	{{else}}
+		{{$tempButtons = $tempButtons.Append $collabConstants.postCollabDisabled}}
+	{{end}}
+	{{$tempButtons = $tempButtons.AppendSlice (cslice $collabConstants.boosterThumbnailDisabled $collabConstants.mediaManageDisabled $collabConstants.deleteCollabDisabled)}}
 {{else}}
-	{{$d = $collabUserData.regularCH}}
+	{{$tempButtons = cslice $collabConstants.editDetails}}
+	{{if $collabUserData.postForumID}}
+		{{if eq $collabUserData.automodded "true"}}
+			{{$tempButtons = $tempButtons.Append $collabConstants.bumpUpDisabled}}
+		{{else}}
+			{{$tempButtons = $tempButtons.Append $collabConstants.bumpUp}}
+		{{end}}
+	{{else}}
+		{{if or (eq $collabUserData.automodded "true") (not $collabUserData.collabName)}}
+			{{$tempButtons = $tempButtons.Append $collabConstants.postCollabDisabled}}
+		{{else}}
+			{{$tempButtons = $tempButtons.Append $collabConstants.postCollab}}
+		{{end}}
+	{{end}}
+	{{$tempButtons = $tempButtons.AppendSlice (cslice $collabConstants.boosterThumbnail $collabConstants.mediaManage $collabConstants.deleteCollab)}}
 {{end}}
-{{$boardMessage := componentBuilder "text" (print "Important reminders " .User.Mention `: this collaboration ad will be posted in <#` $d `>.`) "separator" true}}
+{{$templateControlBoard := componentBuilder "container" (sdict "color" 0xff69b4 "components" (componentBuilder "text" $tempStatus "buttons" $tempButtons))}}
 
-{{if $collabUserData.Get "dataCollabSize"}}
-	{{$f.Append $collabConstants.collabLength}}
-{{else}}
-	{{$f.Append $collabConstants.collabLengthEmpty}}
-{{end}}
-{{if $collabUserData.Get "dataCollabDecoStyle"}}
-	{{$f.Append $collabConstants.decoStyle}}
-{{else}}
-	{{$f.Append $collabConstants.decoStyleEmpty}}
-{{end}}
-{{if $collabUserData.Get "dataCollabNeeds"}}
-	{{$f.Append $collabConstants.collabNeeds}}
-{{else}}
-	{{$f.Append $collabConstants.collabNeedsEmpty}}
-{{end}}
-{{if $collabUserData.Get "dataCollabDifficulty"}}
-	{{$f.Append $collabConstants.difficulty}}
-{{else}}
-	{{$f.Append $collabConstants.difficultyEmpty}}
-{{end}}
-{{if $collabUserData.Get "dataCollabLevelType"}}
-	{{$f.Append $collabConstants.levelType}}
-{{else}}
-	{{$f.Append $collabConstants.levelTypeEmpty}}
-{{end}}
-{{if $collabUserData.Get "dataCollabStandards"}}
-	{{$f.Append $collabConstants.standards}}
-{{else}}
-	{{$f.Append $collabConstants.standardsEmpty}}
-{{end}}
-{{if $collabUserData.Get "dataCollabName"}}
-	{{$f.Append $collabConstants.modifyContents}}
-{{else}}
-	{{$f.Append $collabConstants.modifyContentsEmpty}}
-{{end}}
-{{$e = sdict "color" 0xFFFFFF "components" (componentBuilder "interactive_components" $f)}}
-
-
-
-{{if eq $collabUserData.userFlag "halted"}}
-	{{$boardMessage.Add "buttons" (cbutton "disabled" true "style" "grey" "label" "This template has been halted by a staff." )}}
-{{else if eq $collabUserData.userFlag "pending" "pendingUnblocked"}}
-	{{$boardMessage.Add "container" $e}}
+{{if .ExecData.HasKey "firstSend"}}
+	{{$msgID1 := sendMessageRetID $threadID (componentBuilder)}}
 {{end}}
 
-
-{{if eq .ExecData "firstSend"}}
-	{{$templateThreadMessageID := sendMessageRetID $collabUserData.templateThreadID $templateMessage}}
-	{{$templateAnnounceMessageID := sendMessageNoEscapeRetID $collabUserData.templateThreadID (componentBuilder "text" (print "Important reminders " .User.Mention `:
-- This collaboration ad will be posted in <#` $b `>.`) "separator" true)}}
-	{{$collabUserData.Set "templateThreadMessageID" $templateThreadMessageID}}
-	{{dbSetExpire .User.ID "collabUserData" $collabUserData $c}}
+{{if .ExecData.HasKey "modalSet"}}
 {{end}}
-*/}}
+
+{{if .ExecData.HasKey "mediaChecks"}}
+{{end}}
+
+{{if .ExecData.HasKey "deleteTemplate"}}
+{{end}}

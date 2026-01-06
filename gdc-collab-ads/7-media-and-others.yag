@@ -1,0 +1,211 @@
+{{$collabConstants := (dbGet 0 "collabConstants").Value}}
+{{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
+{{$flag := $collabUserData.userFlag}}
+{{$ccid := $collabConstants.execCCID}}
+{{$dbTimer := $collabConstants.dbTimer}}
+
+{{define "link"}}
+	{{$x := cslice}}
+	{{- range . -}}
+		{{- $link := "" -}}
+		{{- if eq .Type "image" "video" -}}
+			{{- $link = .URL -}}
+		{{- else if eq .Type "rich" -}}
+			{{- if .Thumbnail -}}
+				{{- $link = .Video.URL -}}
+			{{- else if .Image -}}
+				{{- $link = .Image.URL -}}
+			{{- end -}}
+		{{- else if eq .Type "gifv" -}}
+			{{- with reFindAllSubmatches `https:\/\/media.tenor.com\/(.+)\/(.+).png` .Thumbnail.URL -}}
+				{{- $id := index . 0 1 -}}
+				{{- $id = slice $id 0 (sub (len $id) 2) -}}
+				{{- $link = print "https://c.tenor.com/" $id "Ad/tenor.gif" -}}
+			{{- end -}}
+		{{- end -}}
+		{{- $x = $x.Append (print $link) -}}
+	{{- end -}}
+	{{return $x}}
+{{end}}
+
+{{define "file"}}
+	{{$x := cslice}}
+	{{- range $AT := . -}}
+		{{- if gt .Width 0 -}}
+			{{- $ext := reFind `\.([0-9A-Za-z]+)$` .Filename -}}
+			{{- range cslice ".jpg" ".jpeg" ".png" ".gif" ".webp" ".avif" ".mp4" ".mov" ".webm" -}}
+				{{- if eq $ext . -}}
+					{{- $x = $x.Append (print $AT.URL) -}}
+				{{- end -}}
+			{{- end -}}
+		{{- end -}}
+	{{- end -}}
+	{{return $x}}
+{{end}}
+
+{{define "media"}}
+	{{$msg := .message}}
+	{{$user := $msg.Author.ID}}
+	{{$linkTemp := .links}}
+	{{$notifID := .notifID}}
+	{{$db := (dbGet $user "collabUserData").Value}}
+	{{$const := (dbGet 0 "collabConstants").Value}}
+	{{$channel := $const.attachForward}}
+	{{$imgAttach := cslice}}
+	{{$embAttach := cslice}}
+	{{$attachments := cslice}}
+	{{$noForward := false}}
+
+	{{if $msg.Attachments}}
+		{{try}} {{openThread $channel}} {{catch}} {{end}}
+		{{$msgID := 0}}
+		{{try}}
+			{{$msgID = sendMessageRetID $channel (complexMessage "forward" (sdict "channel" $msg.ChannelID "message" $msg.ID ))}}
+			{{$imgAttach = execTemplate "file" (index (getMessage $channel $msgID).MessageSnapshots 0).Message.Attachments}}
+		{{catch}}
+			{{$noForward = true}}
+			{{$warn := getMessage $msg.ChannelID $notifID}}
+			{{$warnContent := print $warn.Content "\n Due to Discord, the media attached is linked to your previous message. Please do not delete your message to ensure proper media playback when you posted your media."}}
+			{{editMessage $msg.ChannelID $notifID (complexMessageEdit "content" $warnContent)}}
+			{{$imgAttach = execTemplate "file" $msg.Attachments}}
+		{{end}}
+	{{end}}
+
+	{{if $linkTemp}}
+		{{$sleepCount := 0}}
+		{{$hasEmbed := false}}
+		{{try}} {{openThread $channel}} {{catch}} {{end}}
+		{{if gt (len $linkTemp) 5}}
+			{{$linkTemp1 := slice $linkTemp 0 5}}
+			{{$linkTemp2 := slice $linkTemp 5}}
+			{{$linkMsg1 := sendMessageRetID $channel (joinStr " " $linkTemp1)}}
+			{{$linkMsg2 := sendMessageRetID $channel (joinStr " " $linkTemp2)}}
+			{{range $ID := cslice $linkMsg1 $linkMsg2}}
+				{{range 10}}
+					{{sleep 1}}
+					{{$testEmbed := getMessage $channel $ID}}
+					{{if $testEmbed.Embeds}}
+						{{$embTemp := execTemplate "link" $testEmbed.Embeds}}
+						{{$embAttach = $embAttach.AppendSlice $embTemp}}
+						{{break}}
+					{{end}}
+				{{end}}
+			{{end}}
+		{{else}}
+			{{$linkMsg1 := sendMessageRetID $channel (joinStr " " $linkTemp)}}
+			{{range 10}}
+				{{sleep 1}}
+				{{$testEmbed := getMessage $channel $linkMsg1}}
+				{{if $testEmbed.Embeds}}
+					{{$embAttach = execTemplate "link" $testEmbed.Embeds}}
+					{{break}}
+				{{end}}
+			{{end}}
+		{{end}}
+	{{end}}
+	
+	{{if .urlFirst}}
+		{{$attachments = $attachments.AppendSlice $embAttach}}
+		{{$attachments = $attachments.AppendSlice $imgAttach}}
+	{{else}}
+		{{$attachments = $attachments.AppendSlice $imgAttach}}
+		{{$attachments = $attachments.AppendSlice $embAttach}}
+	{{end}}
+	{{$successAdd := add (len $embAttach) (len $imgAttach)}}
+	{{return (sdict "attachments" $attachments "successAdd" $successAdd "noForward" $noForward)}}
+{{end}}
+
+{{$urlFirst := inFold .Message.Content "--urlfirst"}}
+{{$links := reFindAll .LinkRegex .Message.Content}}
+{{$editMe := ""}}
+
+
+{{if eq $flag "deleteConfirm"}}
+	{{if eq .Message.Content "CONFIRM"}}
+		{{sendMessage nil (complexMessage "reply" .Message.ID "content" "Please wait for the whole operation to finish...")}}
+		{{if $zz := $collabUserData.postForumID}}
+			{{deleteForumPost $zz}}
+		{{end}}
+		{{execCC $ccid nil 0 (sdict "deleteTemplate" 1)}}
+	{{else if eq .Message.Content "CANCEL"}}
+		{{$collabUserData.Set "userFlag" "neutral"}}
+		{{sendMessage nil (complexMessage "reply" .Message.ID "content" "Cancelled.")}}
+		{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+	{{end}}
+{{else if eq $flag "manageMedia"}}
+	{{$notif := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" "<a:loading:969202742100893716> Setting media in progress...")}}
+	{{$exec := execTemplate "media" (sdict "message" .Message "links" $links "urlFirst" (inFold .Message.Content "--urlfirst") "notifID" $notif)}}
+	{{$totalMedia := add (len $links) (len .Message.Attachments)}}
+	{{$successCount := sub $totalMedia $exec.successAdd}}
+	{{$mediaLinks := $exec.attachments}}
+	{{$collabUserData.Set "userFlag" "neutral"}}
+	{{$editMe = "Media has been set successfully."}}
+
+	{{if eq (len $mediaLinks) 0}}
+		{{if in .Message.Content "--clearmedia"}}
+			{{$collabUserData.Set "collabMedia" (cslice)}}
+			{{editMessage nil $notif "Your media gallery has been cleared."}}
+		{{else}}
+			{{editMessage nil $notif (print "No media has been set in the gallery. Out of " $totalMedia ", no media has been set.")}}
+		{{end}}
+
+	{{else}}
+		{{if gt (len $mediaLinks) 10}}
+			{{$mediaLinks = slice $mediaLinks 0 10}}
+		{{end}}
+		{{$collabUserData.Set "collabMedia" $mediaLinks}}
+		{{if gt $successCount 0}}
+			{{$editMe = print "Media has been added successfully. Note that only " $successCount " of the " $totalMedia " media was added."}}
+		{{end}}
+		{{editMessage nil $notif $editMe}}
+	{{end}}
+
+	{{if $lol := $collabUserData.noForwardMedia}}
+		{{deleteMessage nil $lol}}
+		{{$collabUserData.Set "noForwardMedia" 0}}
+	{{end}}
+	{{if $exec.noForward}}
+		{{$collabUserData.Set "noForwardMedia" .Message.ID}}
+	{{else}}
+		{{$collabUserData.Set "noForwardMedia" 0}}
+		{{deleteTrigger 0}}
+	{{end}}
+	{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+	{{execCC $ccid nil 0 (sdict "edit" 1)}}
+
+{{else if eq $flag "addThumbnail"}}
+	{{$notif := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" "<a:loading:969202742100893716> Adding thumbnail in progress...")}}
+	{{$exec := execTemplate "media" (sdict "message" .Message "links" $links "urlFirst" false "notifID" $notif)}}
+	{{$collabUserData.Set "userFlag" "neutral"}}
+	{{$editMe = "Thumbnail has been set successfully."}}
+	{{$mediaLinks := index $exec.attachments 0}}
+
+	{{if eq (len $exec.Attachments) 0}}
+		{{if in .Message.Content "--clearmedia"}}
+			{{$collabUserData.Set "collabThumbail" ""}}
+			{{editMessage nil $notif "Your media gallery has been cleared."}}
+		{{else}}
+			{{editMessage nil $notif (print "No thumbnail has been set due to absence of valid attachment or media link.")}}
+		{{end}}
+
+	{{else}}
+		{{if gt (len $exec.attachments) 1}}
+			{{$editMe = print " You have more than one media, so only the first attachment/embed is chosen for the thumbail."}}
+		{{end}}
+		{{$collabUserData.Set "collabThumbnail" $mediaLinks}}
+		{{editMessage nil $notif $editMe}}
+	{{end}}
+
+	{{if $lol := $collabUserData.noForwardThumbs}}
+		{{deleteMessage nil $lol}}
+		{{$collabUserData.Set "noForwardThumbs" 0}}
+	{{end}}
+	{{if $exec.noForward}}
+		{{$collabUserData.Set "noForwardThumbs" .Message.ID}}
+	{{else}}
+		{{deleteTrigger 0}}
+		{{$collabUserData.Set "noForwardThumbs" 0}}
+	{{end}}
+	{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+	{{execCC $ccid nil 0 (sdict "edit" 1)}}
+{{end}}

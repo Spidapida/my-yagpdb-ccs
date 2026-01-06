@@ -1,0 +1,37 @@
+{{$safeSites := cslice
+
+"amazon.com"
+"apple.com"
+"bing.com"
+"bsky.app"
+"bsky.social"
+"catbox.moe"
+"cloudflare.com"
+"discord.com"
+"discordapp.com"
+"dis.gd"
+"duckduckgo.com"
+"facebook.com"
+"github.com"
+"google.com"
+"imgur.com"
+"linkedin.com"
+"microsoft.com"
+"reddit.com"
+"stackoverflow.com"
+"tenor.com"
+"tiktok.com"
+"twitter.com"
+"vimeo.com"
+"wikipedia.org"
+"x.com"
+"youtube.com"
+
+}}
+
+{{if $collabConstants := (dbGet 0 "collabConstants").Value.filterBasic}}
+	{{$collabConstants.Set "safeSites" $safeSites}}
+	{{dbSet 0 "collabConstants" $collabConstants}}
+{{else}}
+	{{sendMessage nil "unfinished"}}
+{{end}}

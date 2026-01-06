@@ -1,0 +1,242 @@
+{{$collabConstants := (dbGet 0 "collabConstants").Value}}
+{{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
+{{$errTxt := print "<@661882006719954953>, " .User.Mention " has found themselves in a weird position."}}
+{{$sites := $collabConstants.safeSites}}
+
+{{$a := .Interaction.Token}}
+{{$idprint := "collabs-"}}
+{{$ccid := $collabConstants.execCCID}}
+{{$isBlacklisted := 0}}
+{{$dbTimer := $collabConstants.dbTimer}}
+
+{{range $collabConstants.staffRoles}}
+	{{if hasRoleID .}}
+		{{$collabUserData.Set "isStaff" true}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{$collabUserData.Set "userBoosted" false}}
+{{if hasRoleID $collabConstants.boosterRole}}
+	{{$collabUserData.Set "userBoosted" true}}
+{{end}}
+
+{{range $collabConstants.priorityRoles}}
+	{{if hasRoleID .}}
+		{{$collabUserData.Set "userPrioritized" true}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{range $collabConstants.blacklistRoles}}
+	{{if hasRole .}}
+		{{$isBlacklisted = .}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{if eq $isBlacklisted 0}}
+	{{if eq .Channel.ID $collabUserData.threadID}}
+		{{if eq .StrippedID "modal-1"}}
+
+			{{$zm := $collabConstants.optionsCollabSize}}
+			{{range $zm}}
+				{{if eq .value $collabUserData.collabSize}}
+					{{.Set "default" true}}
+					{{break}}
+				{{end}}
+			{{end}}
+			{{$zn := $collabConstants.menuCollabSize}}
+			{{$zn.Set "options" $zm}}
+			{{$zo := $collabConstants.labelCollabSize}}
+			{{$zo.Set "component" (cmenu $zn)}}
+
+			{{$zp := $collabConstants.optionsCollabStandards}}
+			{{range $zp}}
+				{{if eq .value $collabUserData.collabStandards}}
+					{{.Set "default" true}}
+					{{break}}
+				{{end}}
+			{{end}}
+			{{$zq := $collabConstants.menuCollabStandards}}
+			{{$zq.Set "options" $zp}}
+			{{$zr := $collabConstants.labelCollabStandards}}
+			{{$zr.Set "component" (cmenu $zq)}}
+
+			{{sendModal (modalBuilder (print $idprint "modal-2") "Collab Ads Form (2/3)"
+			(clabel $zo) (clabel $zr))}}
+			{{$collabUserData.Set "levelDecoStyle" (index .ModalValues.levelDecoStyle.value 0)}}
+			{{$collabUserData.Set "collabNeeds" (index .ModalValues.collabNeeds.value 0)}}
+			{{$collabUserData.Set "levelDifficulty" (index .ModalValues.levelDifficulty.value 0)}}
+			{{$collabUserData.Set "levelType" (index .ModalValues.levelType.value 0)}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{execCC $ccid nil 0 (sdict "edit" 1)}}
+		{{else if eq .StrippedID "modal-2"}}
+
+			{{$ya := $collabConstants.textInputCollabTitle}}
+			{{if $yb := $collabUserData.collabTitle}}
+				{{$ya.Set "value" $yb}}
+			{{end}}
+			{{$yc := $collabConstants.labelCollabTitle}}
+			{{$yc.Set "component" (ctextInput $ya)}}
+
+			{{$yd := $collabConstants.textInputCollabDescription}}
+			{{if $ye := $collabUserData.collabDescription}}
+				{{$yd.Set "value" $ye}}
+			{{end}}
+			{{$yf := $collabConstants.labelCollabDescription}}
+			{{$yf.Set "component" (ctextInput $yd)}}
+
+			{{$yg := $collabConstants.textInputCollabHost}}
+			{{if $yh := $collabUserData.collabHost}}
+				{{$yg.Set "value" $yh}}
+			{{end}}
+			{{$yi := $collabConstants.labelCollabHost}}
+			{{$yi.Set "component" (ctextInput $yg)}}
+
+			{{$yj := $collabConstants.textInputCollabInvite}}
+			{{if $yk := $collabUserData.collabInvite}}
+				{{$yj.Set "value" $yk }}
+			{{end}}
+			{{$yl := $collabConstants.labelCollabInvite}}
+			{{$yl.Set "component" (ctextInput $yj)}}
+
+			{{$ym := $collabConstants.textInputCollabContribution}}
+			{{if $yn := $collabUserData.collabContribution}}
+				{{$ym.Set "value" $yn}}
+			{{end}}
+			{{$yo := $collabConstants.labelCollabContribution}}
+			{{$yo.Set "component" (ctextInput $ym)}}
+
+			{{sendModal (modalBuilder (print $idprint "modal-3") "Collab Ads Form (3/3)"
+			(clabel $yc) (clabel $yf) (clabel $yi) (clabel $yl) (clabel $yo) )}}
+			{{$collabUserData.Set "collabSize" (index .ModalValues.collabSize.value 0)}}
+			{{$collabUserData.Set "collabStandards" (index .ModalValues.collabStandards.value 0)}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{execCC $ccid nil 0 (sdict "edit" 1)}}
+		{{else if eq .StrippedID "modal-3"}}
+			{{$z := sendResponseRetID $a (complexMessage "content" "Please wait for the details to be added." "ephemeral" true)}}
+			{{$discordRegex := $collabConstants.discordRegex}}
+			{{$maskRegex := `\[[^\]]+\]\(([^)]+)\)`}}
+			{{$domainX := .DomainRegex}}
+			{{$va := cslice (reReplace `\n` .ModalValues.collabTitle.value "") .ModalValues.collabDescription.value .ModalValues.collabHost.value .ModalValues.collabContribution.value}}
+			{{$vb := cslice}}
+			{{$maskedLinks := false}}
+			{{- range $va -}}
+				{{- $masked := reFindAllSubmatches $maskRegex . -}}
+				{{- $tempTxt := "" -}}
+				{{- if $masked -}}
+					{{- $maskedLinks = true -}}
+					{{- $ifToReplace := cslice -}}
+					{{- range $masked -}}
+						{{- $zz := reSplit `\.` (reFind $domainX (index . 1)) -}}
+						{{- $z1 := sub (len $zz) 1 -}}
+						{{- $baseurl := print (index $zz (sub $z1 1)) "." (index $zz $z1) -}}
+						{{- $toReplace := true -}}
+						{{- range $sites -}}
+							{{- if eq . $baseurl -}}
+								{{- $toReplace = false -}}
+								{{- break -}}
+							{{- end -}}
+						{{- end -}}
+						{{- if $toReplace -}}
+							{{- $ifToReplace = $ifToReplace.Append true -}}
+						{{- else -}}
+							{{- $ifToReplace = $ifToReplace.Append false -}}
+						{{- end -}}
+					{{- end -}}
+
+					{{- $split := reSplit $maskRegex . -}}
+					{{- $count := sub (len $split) 1 -}}
+					{{- $i := 0 -}}
+					{{- while le $i $count -}}
+						{{- if eq $i $count -}}
+							{{- $tempTxt = print $tempTxt (index $split $i) -}}
+						{{- else -}}
+							{{if (index $ifToReplace $i)}}
+								{{- $tempTxt = print $tempTxt (index $split $i) (index $masked $i 1) -}}
+							{{else}}
+								{{- $tempTxt = print $tempTxt (index $split $i) (index $masked $i 0) -}}
+							{{end}}
+						{{- end -}}
+						{{- $i = add $i 1 -}}
+					{{- end -}}
+					{{- $vb = $vb.Append (reReplace $discordRegex $tempTxt "<Discord_invite_removed>") -}}
+				{{- else -}}
+					{{- $vb = $vb.Append (reReplace $discordRegex . "<Discord_invite_removed>") -}}
+				{{- end -}}
+				{{- $tempTxt = "" -}}
+			{{- end -}}
+			{{$v1 := index $vb 0}} {{/* title */}}
+			{{$v2 := index $vb 1}} {{/* description */}}
+			{{$v3 := index $vb 2}} {{/* host */}}
+			{{$v4 := index $vb 3}} {{/* contribution */}}
+			{{$v5 := reFind $discordRegex .ModalValues.collabInvite.value}}
+			{{$allTxt := joinStr " " (cslice $v1 $v2 $v3 $v4 $v5)}}
+			{{$cleanTxt := sanitizeText $allTxt}}
+
+			{{$flagged := ""}}
+			{{$inputNotice := ""}}
+			{{- range $collabConstants.filterNonLatin -}}
+				{{- if eq (inFold $allTxt .) true -}}
+					{{- $flagged = . -}}
+					{{$inputNotice = "word"}}
+					{{- break -}}
+				{{- end -}}
+			{{- end -}}
+
+			{{- if not $flagged -}}
+				{{- range $f1 := cslice " " "\n" "-" -}}
+					{{- range $f2 := cslice " " "\n" "-" -}}
+						{{- range $collabConstants.filterBasic -}}
+							{{- if eq (inFold $cleanTxt (print $f1 . $f2)) true -}}
+								{{- $flagged = . -}}
+								{{$inputNotice = "word"}}
+								{{- break -}}
+							{{- end -}}
+						{{- end -}}
+					{{- end -}}
+				{{- end -}}
+			{{- end -}}
+
+			{{- if not $flagged -}}
+				{{- range $collabConstants.filterWildcards -}}
+					{{- if eq (inFold $allTxt .) true -}}
+						{{- $flagged = . -}}
+						{{- $inputNotice = "phishing link" -}}
+						{{- break -}}
+					{{- end -}}
+				{{- end -}}
+			{{- end -}}
+
+			{{$a1 := "Collab details has been set."}}
+			{{$a2 := ""}}
+			{{$a3 := ""}}
+			{{$collabUserData.Set "hasMaskedLinks" $maskedLinks}}
+			{{deleteInteractionResponse $a $z}}
+			
+			{{if $flagged}}
+				{{$collabUserData.Set "automodded" "true"}}
+				{{if ne $collabUserData.postForumID 0}}
+					{{$a2 = "posting"}}
+					{{$a3 = "post"}}
+				{{else}}
+					{{$a2 = "bumping up"}}
+					{{$a3 = "bump up"}}
+				{{end}}
+				{{$y := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" (print $a1 " You have been prohibited from " $a2 " your collab ad due to the presence of a " $inputNotice $collabConstants.AMNotice1 $a3 $collabConstants.AMNotice2 ))}}
+			{{else}}
+				{{$collabUserData.Set "automodded" "false"}}
+				{{$y := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" $a)}}
+			{{end}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{execCC $ccid nil 0 (sdict "edit" $flagged "kind" $inputNotice)}}
+		{{else}}
+			{{sendResponse $errTxt}}
+		{{end}}
+	{{else}}
+		{{sendResponse $errTxt}}
+	{{end}}
+{{else}}
+	{{updateMessage (print "You have the role <@&" $isBlacklisted ">, so you are not allowed to do this action.")}}
+{{end}}

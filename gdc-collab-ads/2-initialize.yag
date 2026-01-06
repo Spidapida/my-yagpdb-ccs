@@ -41,7 +41,7 @@
 {{$menuCollabSize := sdict "type" "text"
 "placeholder" "Select your collab size here"
 "required" true
-"custom_id" (print $idprint "dataCollabSize")}}
+"custom_id" "collabSize"}}
 {{$optionsCollabSize := cslice
 (sdict "emoji" (sdict "id" "1093942686374957096") "label" "Small Scale Collab" "value" "Small Scale Collab" "description" "Less than or equal to five people.")
 (sdict "emoji" (sdict "id" "1093942682822394046") "label" "Megacollab" "value" "Megacollab" "description" "Typically needed more than five people.")
@@ -52,7 +52,7 @@
 {{$menuLevelDecoStyle := sdict "type" "text"
 "placeholder" "Select your deco style here"
 "required" true
-"custom_id" (print $idprint "dataLevelDecoStyle")}}
+"custom_id" "levelDecoStyle"}}
 {{$optionsLevelDecoStyle := cslice
 (sdict "emoji" (sdict "id" "869769735464706108") "label" "Modern" "value" "Modern" "description" "Optical, Split72, neigefeu")
 (sdict "emoji" (sdict "id" "715591739653750845") "label" "Glow" "value" "Glow" "description" "ChaSe, F3lixsram, Namtar")
@@ -69,7 +69,7 @@
 {{$menuCollabNeeds := sdict "type" "text"
 "placeholder" "Select your requirements here"
 "required" true
-"custom_id" (print $idprint "dataCollabNeeds")}}
+"custom_id" "collabNeeds"}}
 {{$optionsCollabNeeds := cslice 
 (sdict "emoji" (sdict "id" "1293081687344812053") "label" "Decoration Only" "value" "Decoration Only")
 (sdict "emoji" (sdict "id" "1189840260394393642") "label" "Gameplay Only" "value" "Gameplay Only")
@@ -81,7 +81,7 @@
 {{$menuLevelDifficulty := sdict "type" "text"
 "placeholder" "Select the difficulty here"
 "required" true
-"custom_id" (print $idprint "dataLevelDifficulty")}}
+"custom_id" "levelDifficulty"}}
 {{$optionsLevelDifficulty := cslice 
 (sdict "emoji" (sdict "id" "1173796642168770610") "label" "Non-Demon" "value" "Non-Demon" )
 (sdict "emoji" (sdict "id" "1146327594342559795") "label" "Easy-Medium Demon" "value" "Easy-Medium Demon" )
@@ -93,7 +93,7 @@
 {{$menuLevelType := sdict "type" "text"
 "placeholder" "Select the level type here"
 "required" true
-"custom_id" (print $idprint "dataLevelType")}}
+"custom_id" "levelType"}}
 {{$optionsLevelType := cslice
 (sdict "emoji" (sdict "id" "767850357715238932") "label" "Classic" "value" "Classic")
 (sdict "emoji" (sdict "id" "1270303197512208425") "label" "Platformer" "value" "Platformer")}}
@@ -102,7 +102,7 @@
 
 {{$labelCollabTitle := sdict  "label" "Title"
 "description" "Level name and/or host or collab team name"}}
-{{$textInputCollabTitle := sdict "custom_id" (print $idprint "collabTitle")
+{{$textInputCollabTitle := sdict "custom_id" "collabTitle"
 "style" 2
 "required" true
 "placeholder" "Title of your collab ad as well"
@@ -110,11 +110,11 @@
 }}
 
 {{$labelCollabDescription := sdict "label" "Description"
-"description" "Details about your collab. You can use the thread to draft, then copy paste the text here."}}
-{{$textInputCollabDescription := sdict "custom_id" (print $idprint "collabDescription")
+"description" "Can use the thread to draft, then paste. If present, Discord invites and masked links are removed."}}
+{{$textInputCollabDescription := sdict "custom_id" "collabDescription"
 "style" 2
 "required" true
-"placeholder" "There's a chance that external emojis might not be displayed correctly."
+"placeholder" "External emojis might not be displayed correctly if YAGPDB isn't in the server that has the emoji."
 "min_length" 1 "max_length" 3000 }}
 
 {{$labelCollabStandards := sdict "label" "Standards"
@@ -122,22 +122,22 @@
 {{$menuCollabStandards := sdict "type" "text"
 "placeholder" "Select the collab standards here"
 "required" true
-"custom_id" (print $idprint "dataCollabStandards")}}
+"custom_id" "collabStandards"}}
 {{$optionsCollabStandards := cslice
 (sdict "emoji" (sdict "id" "1271235910855430154") "label" "Low Standards" "value" "Low Standards")
 (sdict "emoji" (sdict "id" "1271235941805064252") "label" "Medium Standards" "value" "Medium Standards")
 (sdict "emoji" (sdict "id" "1271235915658035201") "label" "High Standards" "value" "High Standards")}}
 
 {{$labelCollabInvite := sdict "label" "Discord Invite Link"
-"description" "A Discord invite link to the collab (optional)"}}
-{{$textInputCollabInvite := sdict "custom_id" (print $idprint "collabInvite")
+"description" "A Discord invite link to the collab (optional). Invalid Discord invites will be removed."}}
+{{$textInputCollabInvite := sdict "custom_id" "collabInvite"
 "style" 1
 "placeholder" "https://discord.gg/gdcreators"
 "max_length" 255 }}
 
 {{$labelCollabContribution := sdict "label" "Contribution"
 "description" "What is your contribution towards your collab?"}}
-{{$textInputCollabContribution := sdict "custom_id" (print $idprint "collabContribution")
+{{$textInputCollabContribution := sdict "custom_id" "collabContribution"
 "style" 2
 "required" true
 "value" "Uploader of the collab"
@@ -145,7 +145,7 @@
 
 {{$labelCollabHost := sdict "label" "Host"
 "description" "Who is the host of the collab?"}}
-{{$textInputCollabHost := sdict "custom_id" (print $idprint "collabHost")
+{{$textInputCollabHost := sdict "custom_id" "collabHost"
 "style" 1
 "required" true
 "placeholder" "@spidapida"
@@ -154,85 +154,106 @@
 
 {{$editDetails := sdict "emoji" (sdict "name" "✏") "label" "Edit Details" "custom_id" (print $idprint "editDetails") "style" "blurple"}}
 {{$postCollab := sdict "emoji" (sdict "id" "704342789172887672") "label" "Post This!" "custom_id" (print $idprint "postCollab") "style" "success"}}
-{{$deleteCollab := sdict "emoji" (sdict "id" "278318370808659969") "label" "Delete Template" "custom_id" (print $idprint "deleteCollab") "style" "danger"}}
 {{$bumpUp := sdict "emoji" (sdict "name" "⬆") "label" "Bump Up" "custom_id" (print $idprint "bumpUp") "style" "success"}}
-{{$postCollabDisabled := sdict "emoji" (sdict "name" "⤴") "label" "Post This" "custom_id" (print $idprint "postCollabDisabled") "style" "success" "disabled" true}}
+{{$boosterThumbnail := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" (print $idprint "manageThumbnail") "style" "blurple"}}
+{{$mediaManage := sdict "emoji" (sdict "id" "779859070122721320") "label" "Manage Media" "custom_id" (print $idprint "manageMedia") "style" "grey"}}
+{{$deleteCollab := sdict "emoji" (sdict "id" "278318370808659969") "label" "Delete Collab" "custom_id" (print $idprint "deleteCollab") "style" "danger"}}
+
+{{$editDetailsDisabled := sdict "emoji" (sdict "name" "✏") "label" "Edit Details" "custom_id" (print $idprint "editDetails") "style" "blurple" "disabled" true}}
+{{$postCollabDisabled := sdict "emoji" (sdict "id" "704342789172887672") "label" "Post This!" "custom_id" (print $idprint "postCollabDisabled") "style" "success" "disabled" true}}
 {{$bumpUpDisabled := sdict "emoji" (sdict "name" "⬆") "label" "Bump Up" "custom_id" (print $idprint "bumpUpDisabled") "style" "success" "disabled" true}}
-{{$mediaManage := sdict "emoji" (sdict "id" "779859070122721320") "custom_id" (print $idprint "mediaManage") "style" "grey"}}
-{{$mediaTop := sdict "emoji" (sdict "name" "⏫") "style" "grey"}}
-{{$mediaUp := sdict "emoji" (sdict "name" "🔼") "style" "grey"}}
-{{$mediaDelete := sdict "emoji" (sdict "name" "🗑") "style" "grey"}}
-{{$mediaDown := sdict "emoji" (sdict "name" "🔽") "style" "grey"}}
-{{$mediaBottom := sdict "emoji" (sdict "name" "⏬") "style" "grey"}}
-{{$mediaSave := sdict "emoji" (sdict "name" "💾") "style" "success"}}
-{{$mediaCancel := sdict "emoji" (sdict "id" "870823962093969449") "style" "grey"}}
-{{$boosterThumbnail := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" (print $idprint "thumbnailBooster") "style" "blurple"}}
-{{$mediaAdd := sdict "emoji" (sdict "name" "➕") "style" "grey"}}
+{{$boosterThumbnailDisabled := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" (print $idprint "manageThumbnail") "style" "blurple" "disabled" true}}
+{{$mediaManageDisabled := sdict "emoji" (sdict "id" "779859070122721320") "label" "Manage Media" "custom_id" (print $idprint "manageMedia") "style" "grey" "disabled" true}}
+{{$deleteCollabDisabled := sdict "emoji" (sdict "id" "278318370808659969") "label" "Delete Collab" "custom_id" (print $idprint "deleteCollab") "style" "danger" "disabled" true}}
+
+{{$boosterThumbnail := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" (print $idprint "manageThumbnail") "style" "blurple" "disabled" true}}
+
+
+{{$confirmDeletePost := "Are you sure you want to delete this template, as well as your posted collab ad? Note that once you do this, you cannot create another new one until " }}
+{{$confirmDelPostWarn := "Are you sure you want to delete this template, as well as your posted collab ad?"}}
+{{$confirmDeleteTemp := "Are you sure you want to delete this template?"}}
+{{$confirmConfirm := " Type **`CONFIRM`** to confirm the deletion. To cancel, ignore the previous instruction for a minute, or type **`CANCEL`**."}}
+{{$noCreateCD := "As per the collaboration ad rules, you are not allowed to create a new collaboration ad template if you posted one within a week. You may create another one at <t:"}}
+{{$hasTemplate := "You already created your collaboration ad template, as seen by the mention. Go to https://discord.com/channels/"}}
+{{$mediaBlurb := "You may set media in your collab ad now by sending attachments or media links.\n- If you wish to clear the media, send `--clearmedia` without any attachments or media links.\n- By default, attachments will be ordered first before media links. To do the reverse, include the message `--urlfirst`.\n- While <@204255221017214977> can parse media in embeds, it cannot parse multiple media within an embed. Please copy the image link, and use that instead.\n- Forwarded media is currently not supported.\n- As usual, setting media must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
+{{$thumbBlurb := "As a <@&674754528381239330>, you may set a thumbnail in your collab ad. This will appear instead of the collab details in forums.\n- If you wish to clear the thumbnail, send `--clearthumbnail` without any attachment or media link.\n- Only one attachment or media link could be used for the thumbnail. If more than one is set, the first attachment or media link will be used.\n- As usual, setting a thumbnail must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
+{{$AMNotice1 := ", which is not permitted in the server. If you wish to rectify this, please re-edit your details again, or if you still want to "}}
+{{$AMNotice2 := " your collab ad anyway, please [create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) and explain your reasoning."}}
+{{$noBooster := "You need <:Boost:1193034632359317545> <@&674754528381239330> to set a thumbnail for your collab ad."}}
+{{$TSNormal := "-# Click `Edit Details` to enter details about your collab ad."}}
+{{$TSMedia := "-# Upload your media or paste your media links to set them in gallery."}}
+{{$TSThumbs := "-# Upload your media or paste your media link to set your thumbnail."}}
+{{$TSDel := "-# Confirm deletion by sending `CONFIRM`, or `CANCEL` to abort deletion."}}
+{{$TSFreeze := "-# <@&643101579016273941> has freezed your template. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) to resolve it."}}
+{{$TSUploaded := "-# You can update the details of your collab using the buttons below."}}
+{{$discordRegex := `(?:https?://)?(?:www.|ptb.|canary.)?(?:discord(?:app)?\.(?:(?:com|gg)/(?:invite|servers)/[a-z0-9\-_]+)|discord\.gg/[a-z0-9-_]+)`}}
 
 {{$collabUserData := sdict
-	"userID"						0
-	"templateThreadID"				0
-	"templateBoardMessageID"		0
-	"templateThreadMessageID"		0
-	"templateNotificationMessageID"	0
-	"userFlag"						"pendingBlocked"
-	"isStaff"						false
-	"userBoosted"					false
-	"userPrioritized"				false
-	"dataCollabTitle"				""
+	"threadID"				0
+	"tempMsgID1"			0
+	"tempMsgID2"			0
+	"userFlag"				"neutral"
+	"automodded"			""
+	"isStaff"				false
+	"userBoosted"			false
+	"userPrioritized"		false
+	"collabTitle"			""
+	"collabDescription"		""
+	
+	"collabInvite"			""
+	"collabContribution"	""
+	"collabSize"			""
+	"levelDecoStyle"		""
+	"collabNeeds"			""
+	"levelDifficulty"		""
+	"levelType"				""
+	"collabStandards"		""
+	"collabHost"			""
+	"collabThumbnail"		""
 
-	"dataCollabDescription"			""
-	"dataDiscordInviteLink"			""
-	"dataCollabContribution"		""
-	"dataCollabSize"				""
-	"dataLevelDecoStyle"			""
-	"dataCollabNeeds"				""
-	"dataLevelDifficulty"			""
-	"dataLevelType"					""
-	"dataCollabStandards"			""
-	"dataCollabHost"				""
-
-	"dataCollabMedia"				(cslice)
-	"dataThumbnail"					""
-	"postedForumThreadID"			0
-	"postedForumMessage"			0
-	"postedForumTimestamp"			0
-	"postedNotificationMessageID"	0
-	"postedNotificationToken"		""
-	"postedNotificationTimestamp"	0
+	"collabMedia"			(cslice)	
+	"notifID"				0
+	"notifToken"			""
+	"postForumID"			0
+	"postMsgID"				0
+	"postTime"				0
+	"noForwardMedia"		0
+	"noForwardThumbs"		0
+	"hasMaskedLinks"		false
+	
 	}}
 
 {{/* Data types:
-	"userID"						int64
-	"templateThreadID"				int64
-	"templateBoardMessageID"		int64
-	"templateThreadMessageID"		int64
-	"templateNotificationMessageID"	int64
-	"userFlag"						string, <pending, pendingBlocked, pendingBypass, posted, postedBlocked, postedBypass, editMode, halted>
-	"isStaff"						boolean
-	"userBoosted"					boolean
-	"userPrioritized"				boolean, [true = #priority-collab-ads, false = #collab-ads]
-	"dataCollabName"				string, 100 characters
+	"threadID"				int64
+	"tempMsgID1"			int64
+	"tempMsgID2"			int64
+	"tempNotifID"			int64
+	"userFlag"				string, <neutral, manageMedia, manageThumbnail, deleteConfirm, freeze>
+	"automodded"			string, <false, bypassed, true>
+	"isStaff"				boolean
+	"userBoosted"			boolean
+	"userPrioritized"		boolean, [true = #priority-collab-ads, false = #collab-ads]
 
-	"dataCollabDescription"			string, 3000? characters
-	"dataDiscordInviteLink"			string, 255 characters
-	"dataContribution"				string, 500? characters
-	"dataCollabSize"				string, <Small Scale Collab, Megacollab, Ultracollab>
-	"dataCollabDecoStyle"			string, <Modern, Glow Design, Effect, Core, Art, Minigame, Neodesign, Layouts, Other>
-	"dataCollabNeeds"				string, <Decoration Only, Gameplay Only, Decoration & Gameplay, Other>
-	"dataCollabDifficulty"			string, <Non-Demon, Easy-Medium Demon, Hard-Insane Demon, Extreme Demon>
-	"dataCollabLevelType"			string, <Classic, Platformer>
-	"dataCollabStandards"			string, <Low Standards, Medium Standards, High Standards>
-	"dataCollabMedia"				cslice, string
+	"collabName"			string, 100 characters
+	"collabDescription"		string, 3000? characters
+	"collabInvite"			string, 255 characters
+	"collabContribution"	string, 500? characters
+	"collabSize"			string, <Small Scale Collab, Megacollab, Ultracollab>
+	"levelDecoStyle"		string, <Modern, Glow Design, Effect, Core, Art, Minigame, Neodesign, Layouts, Other>
+	"collabNeeds"			string, <Decoration Only, Gameplay Only, Decoration & Gameplay, Other>
+	"levelDifficulty"		string, <Non-Demon, Easy-Medium Demon, Hard-Insane Demon, Extreme Demon>
+	"levelType"				string, <Classic, Platformer>
+	"collabStandards"		string, <Low Standards, Medium Standards, High Standards>
 
-	"dataThumbnail"					string, URL, 500? characters
-	"dataCollabHost"				string, 2-32 characters
-	"postedForumThreadID"			int64
-	"postedForumMessage"			int64
-	"postedForumTimestamp"			int64
-	"postedNotificationMessageID"	int64
-	"postedNotificationToken"		string
-	"postedNotificationTimestamp"	int64
+	"collabHost"			string, 2-32 characters
+	"collabMedia"			cslice, string
+	"collabThumbnail"		string, URL, 500? characters
+	"notifToken"			string
+	"postForumID"			int64
+	"postMsgID"				int64
+	"postTime"				int64
+	"noForwardMedia"				int64, [message ID of message not forwarded due to forward failing, media gallery]
+	"noForwardThumbs"				int64, [message ID of message not forwarded due to forward failing, thumbnail]
 */}}
 
 {{$collabConstants := sdict	
@@ -240,20 +261,36 @@
 
 "editDetails"					$editDetails
 "postCollab"					$postCollab
-"deleteCollab"					$deleteCollab
 "bumpUp"						$bumpUp
-"postCollabDisabled"			$postCollabDisabled
-"bumpUpDisabled"				$bumpUpDisabled
 "boosterThumbnail"				$boosterThumbnail
 "mediaManage"					$mediaManage
-"mediaTop"						$mediaTop
-"mediaUp"						$mediaUp
-"mediaDelete"					$mediaDelete
-"mediaDown"						$mediaDown
-"mediaBottom"					$mediaBottom
-"mediaSave"						$mediaSave
-"mediaCancel"					$mediaCancel
-"mediaAdd"						$mediaAdd
+"deleteCollab"					$deleteCollab
+
+"editDetailsDisabled"			$editDetailsDisabled
+"postCollabDisabled"			$postCollabDisabled
+"bumpUpDisabled"				$bumpUpDisabled
+"boosterThumbnailDisabled"		$boosterThumbnailDisabled
+"mediaManageDisabled"			$mediaManageDisabled
+"deleteCollabDisabled"			$deleteCollabDisabled
+
+"confirmDeletePost"				$confirmDeletePost
+"confirmDelPostWarn"			$confirmDelPostWarn
+"confirmDeleteTemp"				$confirmDeleteTemp
+"confirmConfirm"				$confirmConfirm
+"noCreateCD"					$noCreateCD
+"hasTemplate"					$hasTemplate
+"mediaBlurb"					$mediaBlurb
+"thumbBlurb"					$thumbBlurb
+"AMNotice1"						$AMNotice1
+"AMNotice2"						$AMNotice2
+"noBooster"						$noBooster
+"TSDel"							$TSDel
+"TSFreeze"						$TSFreeze
+"TSMedia"						$TSMedia
+"TSNormal"						$TSNormal
+"TSThumbs"						$TSThumbs
+"TSUploaded"					$TSUploaded
+"discordRegex"					$discordRegex
 
 "labelCollabSize"				$labelCollabSize
 "labelLevelDecoStyle"			$labelLevelDecoStyle
@@ -278,7 +315,6 @@
 "textInputCollabInvite"			$textInputCollabInvite
 "textInputCollabContribution"	$textInputCollabContribution
 "textInputCollabHost"			$textInputCollabHost
-
 
 "optionsCollabSize"				$optionsCollabSize
 "optionsLevelDecoStyle"			$optionsLevelDecoStyle
@@ -311,251 +347,3 @@
 	{{dbSet 0 "collabConstants" $collabConstants }}
 	{{sendMessage nil "Step 1 of setup complete. Proceed to step 2."}}
 {{end}}
-
-{{/* THESE ARE NOW OBSOLETE AND IS ONLY HERE FOR ARCHIVING PURPOSES
-
-{{ $collabLength := sdict
-"type" "text"
-"placeholder" "[  ] How large the collab is?"
-"custom_id" (print $idprint "dataCollabSize")
-"options" (cslice
-(sdict "emoji" (sdict "id" "1093942686374957096") "label" "Small Scale Collab" "value" "Small Scale Collab" "description" "Less than or equal to five people.")
-(sdict "emoji" (sdict "id" "1093942682822394046") "label" "Megacollab" "value" "Megacollab" "description" "Typically needed more than five people.")
-(sdict "emoji" (sdict "id" "1071546532790276238") "label" "Ultracollab" "value" "Ultracollab" "description" "Often greater than 20 people, for mass organization of parts for your level.")
-)}}
-
-neodesign and minigames need another level --- comment this later when needed
-{{ $decoStyle := sdict
-"type" "text"
-"placeholder" "[  ] What decoration style you're going for?"
-"custom_id" (print $idprint "dataCollabDecoStyle")
-"options" (cslice
-(sdict "emoji" (sdict "id" "869769735464706108") "label" "Modern" "value" "Modern" "description" "Optical, Split72, neigefeu")
-(sdict "emoji" (sdict "id" "715591739653750845") "label" "Glow" "value" "Glow" "description" "ChaSe, F3lixsram, Namtar")
-(sdict "emoji" (sdict "id" "716054341781553203") "label" "Effect" "value" "Effect" "description" "G4lvatron, Echonox, ILRELL")
-(sdict "emoji" (sdict "id" "714990307497738270") "label" "Core" "value" "Core" "description" "MaJacko, Platnuu, Nahuel2998")
-(sdict "emoji" (sdict "id" "825113473536098355") "label" "Art" "value" "Art" "description" "Reunomi, Subwoofer, Zylenox")
-(sdict "emoji" (sdict "id" "1218319697678696538") "label" "Minigame" "value" "Minigame" "description" "Serponge, Incidius, SimilarAMZ")
-(sdict "emoji" (sdict "id" "1276284453718589502") "label" "Neodesign" "value" "Neodesign" "description" "cometface, Lyriaki, Presta")
-(sdict "emoji" (sdict "id" "805988632363532309") "label" "Layouts" "value" "Layouts" "description" "GaidenHertuny, Quitora, Zhander")
-(sdict "emoji" (sdict "id" "1196464468306169978") "label" "Other" "value" "Other" "description" "If deco is not needed or other style is used")
-)}}
-
-
-{{ $collabNeeds := sdict
-"type" "text"
-"placeholder" "[  ] What are the requirements of the collab?"
-"custom_id" (print $idprint "dataCollabNeeds")
-"options" (cslice
-	(sdict "emoji" (sdict "id" "1293081687344812053") "label" "Decoration Only" "value" "Decoration Only")
-	(sdict "emoji" (sdict "id" "1189840260394393642") "label" "Gameplay Only" "value" "Gameplay Only")
-	(sdict "emoji" (sdict "id" "959953320812879922") "label" "Decoration & Gameplay" "value" "Decoration & Gameplay")
-	(sdict "emoji" (sdict "id" "1196464468306169978") "label" "Other" "value" "Other" "description" "Like when you need someone who can optimize the level. Specify details when writing.")
-)}}
-
-{{ $difficulty := sdict
-"type" "text"
-"placeholder" "[  ] What is the estimated difficulty of the collab?"
-"custom_id" (print $idprint "dataCollabDifficulty")
-"options" (cslice
-	(sdict "emoji" (sdict "id" "1173796642168770610") "label" "Non-Demon" "value" "Non-Demon" )
-	(sdict "emoji" (sdict "id" "1146327594342559795") "label" "Easy-Medium Demon" "value" "Easy-Medium Demon" )
-	(sdict "emoji" (sdict "id" "1146327635937480785") "label" "Hard-Insane Demon" "value" "Hard-Insane Demon" )
-	(sdict "emoji" (sdict "id" "1146327674965467266") "label" "Extreme Demon" "value" "Extreme Demon" )
-)}}
-
-{{ $standards := sdict
-"type" "text"
-"placeholder" "[  ] How high is the standards for the collab?"
-"custom_id" (print $idprint "dataCollabStandards")
-"options" (cslice
-	(sdict "emoji" (sdict "id" "1271235910855430154") "label" "Low Standards" "value" "Low Standards")
-	(sdict "emoji" (sdict "id" "1271235941805064252") "label" "Medium Standards" "value" "Medium Standards")
-	(sdict "emoji" (sdict "id" "1271235915658035201") "label" "High Standards" "value" "High Standards")
-)}}
-
-{{ $levelType := sdict
-"type" "text"
-"placeholder" "[  ] What is the level type of the collab?"
-"custom_id" (print $idprint "dataCollabLevelType")
-"options" (cslice
-	(sdict "emoji" (sdict "id" "767850357715238932") "label" "Classic" "value" "Classic")
-	(sdict "emoji" (sdict "id" "1270303197512208425") "label" "Platformer" "value" "Platformer")
-)}}
-
-{{$modifyContents := sdict "label" "[  ] Modify contents of collab               →" "custom_id" (print $idprint "content") "style" "blurple"}}
-{{$postCollab := cbutton "emoji" (sdict "name" "⤴") "label" "Post" "custom_id" (print $idprint "tent-send") "style" "success"}}
-{{$deleteCollab := cbutton "emoji" (sdict "id" "278318370808659969") "label" "Delete" "custom_id" (print $idprint "delete") "style" "danger"}}
-{{$editCollab := cbutton "emoji" (sdict "name" "✏") "label" "Edit" "custom_id" (print $idprint "editpost") "style" "blurple"}}
-{{$bumpUp := cbutton "emoji" (sdict "name" "⬆") "label" "Bump up" "custom_id" (print $idprint "bump") "style" "success"}}
-{{$saveEdit := sdict "label" "Save" "custom_id" (print $idprint "save") "style" "success"}}
-
-
-{{$modalOne := modalBuilder (print $idprint "modal-1") "Collab Ads Form #1" 
-
-(clabel "label" "Collab Size" "description" "How large the collaboration is in terms of the amount of people participating?" "component"
-(cmenu "type" "text"
-"placeholder" "Select your collab size here"
-"required" true
-"custom_id" (print $idprint "dataCollabSize")
-"options" (cslice
-(sdict "emoji" (sdict "id" "1093942686374957096") "label" "Small Scale Collab" "value" "Small Scale Collab" "description" "Less than or equal to five people.")
-(sdict "emoji" (sdict "id" "1093942682822394046") "label" "Megacollab" "value" "Megacollab" "description" "Typically needed more than five people.")
-(sdict "emoji" (sdict "id" "1071546532790276238") "label" "Ultracollab" "value" "Ultracollab" "description" "Often greater than 20 people, for mass organization of parts for your level."))
-))
-
-(clabel "label" "Decoration Style" "description" "What is the deco style of your collab?" "component"
-(cmenu "type" "text"
-"placeholder" "Select your deco style here"
-"required" true
-"custom_id" (print $idprint "dataCollabDecoStyle")
-"options" (cslice
-(sdict "emoji" (sdict "id" "869769735464706108") "label" "Modern" "value" "Modern" "description" "Optical, Split72, neigefeu")
-(sdict "emoji" (sdict "id" "715591739653750845") "label" "Glow" "value" "Glow" "description" "ChaSe, F3lixsram, Namtar")
-(sdict "emoji" (sdict "id" "716054341781553203") "label" "Effect" "value" "Effect" "description" "G4lvatron, Echonox, ILRELL")
-(sdict "emoji" (sdict "id" "714990307497738270") "label" "Core" "value" "Core" "description" "MaJacko, Platnuu, Nahuel2998")
-(sdict "emoji" (sdict "id" "825113473536098355") "label" "Art" "value" "Art" "description" "Reunomi, Subwoofer, Zylenox")
-(sdict "emoji" (sdict "id" "1218319697678696538") "label" "Minigame" "value" "Minigame" "description" "Serponge, Incidius, SimilarAMZ")
-(sdict "emoji" (sdict "id" "1276284453718589502") "label" "Neodesign" "value" "Neodesign" "description" "cometface, Lyriaki, Presta")
-(sdict "emoji" (sdict "id" "805988632363532309") "label" "Layouts" "value" "Layouts" "description" "GaidenHertuny, Quitora, Zhander")
-(sdict "emoji" (sdict "id" "1196464468306169978") "label" "Other" "value" "Other" "description" "If deco is not needed or other style is used"))
-))
-
-(clabel "label" "Collab Needs" "description" "What are the needs for the collab?" "component"
-(cmenu "type" "text"
-"placeholder" "Select your requirements here"
-"required" true
-"custom_id" (print $idprint "dataCollabNeeds")
-"options" (cslice
-	(sdict "emoji" (sdict "id" "1293081687344812053") "label" "Decoration Only" "value" "Decoration Only")
-	(sdict "emoji" (sdict "id" "1189840260394393642") "label" "Gameplay Only" "value" "Gameplay Only")
-	(sdict "emoji" (sdict "id" "959953320812879922") "label" "Decoration & Gameplay" "value" "Decoration & Gameplay")
-	(sdict "emoji" (sdict "id" "1196464468306169978") "label" "Other" "value" "Other" "description" "Like when you need someone who can optimize the level. Specify details when writing.")
-))
-)
-
-(clabel "label" "Level Difficulty" "description" "What is the estimated difficulty of the collab?" "component"
-(cmenu "type" "text"
-"placeholder" "Select the difficulty here"
-"required" true
-"custom_id" (print $idprint "dataCollabDifficulty")
-"options" (cslice
-	(sdict "emoji" (sdict "id" "1173796642168770610") "label" "Non-Demon" "value" "Non-Demon" )
-	(sdict "emoji" (sdict "id" "1146327594342559795") "label" "Easy-Medium Demon" "value" "Easy-Medium Demon" )
-	(sdict "emoji" (sdict "id" "1146327635937480785") "label" "Hard-Insane Demon" "value" "Hard-Insane Demon" )
-	(sdict "emoji" (sdict "id" "1146327674965467266") "label" "Extreme Demon" "value" "Extreme Demon" ))
-))
-
-(clabel "label" "Level Type" "description" "What is the level type of the collab?" "component"
-(cmenu "type" "text"
-"placeholder" "Select the level type here"
-"required" true
-"custom_id" (print $idprint "dataCollabLevelType")
-"options" (cslice
-	(sdict "emoji" (sdict "id" "767850357715238932") "label" "Classic" "value" "Classic")
-	(sdict "emoji" (sdict "id" "1270303197512208425") "label" "Platformer" "value" "Platformer")
-)
-))
-
-}}
-
-{{$modalTwo := modalBuilder (print $idprint "modal-2") "Collab Ads Form #2"
-
-(clabel "label" "Title" "description" "Level name and/or host or collab team name" "component" (ctextInput "custom_id" (print $idprint "collabTitle") "placeholder" "Title of your collab ad as well" "required" true "max_length" 100 "min_length" 1 "style" 2 "value" "will first figure this out later"))
-
-(clabel "label" "Standards" "description" "How high is the standards for the collab?" "component"
-(cmenu "type" "text"
-"placeholder" "Select the collab standards here"
-"required" true
-"custom_id" (print $idprint "dataCollabStandards")
-"options" (cslice
-	(sdict "emoji" (sdict "id" "1271235910855430154") "label" "Low Standards" "value" "Low Standards")
-	(sdict "emoji" (sdict "id" "1271235941805064252") "label" "Medium Standards" "value" "Medium Standards")
-	(sdict "emoji" (sdict "id" "1271235915658035201") "label" "High Standards" "value" "High Standards")
-)
-))
-
-}}
-
-{{$collabConstants := sdict
-"collabLengthEmpty"		(cmenu $collabLength)
-"decoStyleEmpty"		(cmenu $decoStyle)
-"collabNeedsEmpty"		(cmenu $collabNeeds)
-"difficultyEmpty"		(cmenu $difficulty)
-"standardsEmpty"		(cmenu $standards)
-"levelTypeEmpty"		(cmenu $levelType)
-"modifyContentsEmpty"	(cbutton $modifyContents)
-
-"dbTimer"				$dbTimer
-"collabCD"				$collabCD
-"logChannel"			$logChannel
-"logSuccess"			$logSuccess
-"attachForward"			$attachForward
-"frontPage"				$frontPage
-"regularCH"				$regularCH
-"priorityCH"			$priorityCH
-"staffRoles"			$staffRoles
-"boosterRole"			$boosterRole
-"priorityRoles"			$priorityRoles
-"blacklist"				$blacklistRoles
-}}
-
-{{$collabLength.Set "placeholder" "[ ✔ ] How large the collab is?" }}
-{{$decoStyle.Set "placeholder" "[ ✔ ] What decoration style you're going for?"}}
-{{$collabNeeds.Set "placeholder" "[ ✔ ] What are the requirements of the collab?"}}
-{{$difficulty.Set "placeholder" "[ ✔ ] What is the estimated difficulty of the collab?"}}
-{{$standards.Set "placeholder" "[ ✔ ] How high is the standards for the collab?"}}
-{{$levelType.Set "placeholder" "[ ✔ ] What is the level type of the collab?"}}
-{{$modifyContents.Set "label" "[ ✔ ] Modify contents of collab               →"}}
-
-{{$z := cslice "collabLength" "decoStyle" "collabNeeds" "difficulty" "standards" "levelType"}}
-{{range $z, $y := cslice $collabLength $decoStyle $collabNeeds $difficulty $standards $levelType}}
-	{{$collabConstants.Set $z (cmenu $y)}}
-{{end}}
-{{$collabConstants.Set "modifyContents" (cbutton $modifyContents)}}
-
-*/}}
-
-{{/*
-$collabConstants := sdict
-"menus1"					(cslice $collabLength $decoStyle $collabNeeds $difficulty $levelType)
-"menus2"					(cslice $standards)
-"uploadButtons"				(cslice $postCollab $deleteCollab)
-"uploadButtonsDisabled"		(cslice $postCollabDisabled $deleteCollab)
-"publishedButtons"			(cslice $editCollab $bumpUp $deleteCollab)
-"publishedButtonsDisabled"	(cslice $editCollabDisabled $bumpUpDisabled $deleteCollab)
-"menusFreeze"				(cslice $collabLengthDisabled $decoStyleDisabled $collabNeedsDisabled $difficultyDisabled)
-"propertyButtonsFreeze"		(cslice $levelTypeDisabled $standardsDisabled $modifyContentsDisabled)
-"uploadButtonsFreeze"		(cslice $postCollabDisabled $deleteCollabDisabled)
-"publishedButtonsFreeze"	(cslice $editCollabDisabled $bumpUpDisabled $deleteCollabDisabled)
-"dbTimer"					$dbTimer
-"collabCD"					$collabCD
-"logChannel"				$logChannel
-"logSuccess"				$logSuccess
-"attachForward"				$attachForward
-"frontPage"					$frontPage
-"regularCH"					$regularCH
-"priorityCH"				$priorityCH
-"staffRoles"				$staffRoles
-"boosterRole"				$boosterRole
-"priorityRoles"				$priorityRoles
-"blacklist"					$blacklistRoles
-
-{{dbSet 0 "collabUserData" (sdict
-	"userID"						0
-	"templateThreadID"				0
-	"templateBoardMessageID"		0
-	"templateThreadMessageID"		0
-	"templateControlsMessageID"		0
-	"userFlag"						"pending"
-	"userPrioritized"				false
-	"userBoosted"					false
-	"dataCollabMedia"				(cslice)
-	"postedForumThreadID"			0
-	"postedForumMessage"			0
-	"postedForumTimestamp"			0
-	"postedNotificationMessageID"	0
-	"postedNotificationToken"		""
-	"postedNotificationTimestamp"	0
-)}}
-*/}}

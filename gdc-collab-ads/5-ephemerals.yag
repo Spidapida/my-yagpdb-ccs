@@ -1,0 +1,151 @@
+{{$collabConstants := (dbGet 0 "collabConstants").Value}}
+{{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
+{{$errTxt := print "<@661882006719954953>, " .User.Mention " has found themselves in a weird position."}}
+
+{{$a := .Interaction.Token}}
+{{$idprint := "collabs-"}}
+{{$ccid := $collabConstants.execCCID}}
+{{$isBlacklisted := 0}}
+{{$dbTimer := $collabConstants.dbTimer}}
+
+{{range $collabConstants.staffRoles}}
+	{{if hasRoleID .}}
+		{{$collabUserData.Set "isStaff" true}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{$collabUserData.Set "userBoosted" false}}
+{{if hasRoleID $collabConstants.boosterRole}}
+	{{$collabUserData.Set "userBoosted" true}}
+{{end}}
+
+{{range $collabConstants.priorityRoles}}
+	{{if hasRoleID .}}
+		{{$collabUserData.Set "userPrioritized" true}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{range $collabConstants.blacklistRoles}}
+	{{if hasRole .}}
+		{{$isBlacklisted = .}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{if eq $isBlacklisted 0}}
+	{{$weekly := add $collabUserData.postTime $collabConstants.collabCD}}
+	{{$currentTime := currentTime.Unix}}
+	{{if eq .Channel.ID $collabConstants.frontPage}}
+		{{if eq .StrippedID "initial"}} {{/* erase this part if this is no longer needed */}}
+			{{if eq $collabUserData.threadID 0}}
+				{{if gt $currentTime $weekly}}
+					{{$templateThread := createThread $collabConstants.frontPage nil (print .User.Username "'s collab ad") true 1440 false}}
+					{{$collabUserData.Set "threadID" $templateThread.ID}}
+					{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+					{{execCC $ccid nil 0 (sdict "firstSend" 1)}}
+					{{sendResponse (complexMessage "content" (print "Please head to https://discord.com/channels/" .Guild.ID "/" $templateThread.ID " to make your collaboration ad.") "ephemeral" true)}}
+				{{else}}
+					{{sendResponse (complexMessage "content" (print $collabConstants.noCreateCD (add $collabUserData.postTime $collabConstants.collabCD) ">.") "ephemeral" true)}}
+				{{end}}
+			{{else}}
+				{{try}} {{openThread $collabUserData.threadID}} {{catch}} {{end}}
+				{{$z := sendMessageRetID $collabUserData.threadID (print .User.Mention ", this is the thread template of your collaboration ad.")}}
+				{{sendResponse (complexMessage "content" (print $collabConstants.hasTemplate .Guild.ID "/" $collabUserData.threadID " to manage it.") "ephemeral" true)}}
+				{{deleteMessage $collabUserData.threadID $z 15}}
+			{{end}}
+		{{else}}
+			{{sendResponse $errTxt}}
+		{{end}} {{/* erase this part if this is no longer needed */}}
+	{{else if eq .Channel.ID $collabUserData.threadID}}
+		{{if eq .StrippedID "manageMedia"}}
+			{{$collabUserData.Set "userFlag" "manageMedia"}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{sendResponse (complexMessage "content" $collabConstants.mediaBlurb "ephemeral" true)}}
+		{{else if eq .StrippedID "manageThumbnail"}}
+			{{if $collabUserData.userBoosted}}
+				{{$collabUserData.Set "userFlag" "manageThumbnail"}}
+				{{sendResponse (complexMessage "content" $collabConstants.thumbBlurb "ephemeral" true)}}
+			{{else}}
+				{{sendResponse (complexMessage "content" $collabConstants.noBooster "ephemeral" true)}}
+			{{end}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+		{{else if eq .StrippedID "postCollab"}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{execCC $ccid nil 0 (sdict "post" 1)}}
+			{{$z := sendResponseRetID $a "Please wait for your collab ad to be posted."}}
+		{{else if eq .StrippedID "bumpUp"}}
+			{{execCC $ccid nil 0 (sdict "bumpUp" 1)}}
+			{{$z := sendResponseRetID $a "Please wait for your collab ad to be bumped."}}
+		{{else if eq .StrippedID "deleteCollab"}}
+			{{$collabUserData.Set "userFlag" "deleteConfirm"}}
+			{{$compText := ""}}
+			{{if gt $currentTime $weekly}}
+				{{$compText = $collabConstants.confirmDelPostWarn}}
+			{{else if eq $weekly 0}}
+				{{$compText = $collabConstants.confirmDeleteTemp}}
+			{{else}}
+				{{$compText = print $collabConstants.confirmDeletePost "<t:" $weekly ">."}}
+			{{end}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{$msgID := sendResponseRetID $a (complexMessage "content" print $compText $collabConstants.confirmConfirm "ephemeral" true)}}
+		{{else if eq .StrippedID "editDetails"}}
+			{{$za := $collabConstants.optionsLevelDecoStyle}}
+			{{range $za}}
+				{{if eq .value $collabUserData.levelDecoStyle}}
+					{{.Set "default" true}}
+					{{break}}
+				{{end}}
+			{{end}}
+			{{$zb := $collabConstants.menuLevelDecoStyle}}
+			{{$zb.Set "options" $za}}
+			{{$zc := $collabConstants.labelLevelDecoStyle}}
+			{{$zc.Set "component" (cmenu $zb)}}
+
+			{{$zd := $collabConstants.optionsCollabNeeds}}
+			{{range $zd}}
+				{{if eq .value $collabUserData.collabNeeds}}
+					{{.Set "default" true}}
+					{{break}}
+				{{end}}
+			{{end}}
+			{{$ze := $collabConstants.menuCollabNeeds}}
+			{{$ze.Set "options" $zd}}
+			{{$zf := $collabConstants.labelCollabNeeds}}
+			{{$zf.Set "component" (cmenu $ze)}}
+
+			{{$zg := $collabConstants.optionsLevelDifficulty}}
+			{{range $zg}}
+				{{if eq .value $collabUserData.levelDifficulty}}
+					{{.Set "default" true}}
+					{{break}}
+				{{end}}
+			{{end}}
+			{{$zh := $collabConstants.menuLevelDifficulty}}
+			{{$zh.Set "options" $zg}}
+			{{$zi := $collabConstants.labelLevelDifficulty}}
+			{{$zi.Set "component" (cmenu $zh)}}
+
+			{{$zj := $collabConstants.optionsLevelType}}
+			{{range $zj}}
+				{{if eq .value $collabUserData.levelType}}
+					{{.Set "default" true}}
+					{{break}}
+				{{end}}
+			{{end}}
+			{{$zk := $collabConstants.menuLevelType}}
+			{{$zk.Set "options" $zj}}
+			{{$zl := $collabConstants.labelLevelType}}
+			{{$zl.Set "component" (cmenu $zk)}}
+			{{sendModal (modalBuilder (print $idprint "modal-1") "Collab Ads Form (1/3)"
+			(clabel $zc) (clabel $zf) (clabel $zi) (clabel $zl))}}
+		{{else}}
+			{{sendResponse $errTxt}}
+		{{end}}
+	{{else}}
+		{{sendResponse $errTxt}}
+	{{end}}
+{{else}}
+	{{updateMessage (print "You have the role <@&" $isBlacklisted ">, so you are not allowed to do this action.")}}
+{{end}}
