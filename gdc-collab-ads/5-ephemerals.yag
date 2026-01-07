@@ -1,12 +1,13 @@
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
 {{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
-{{$errTxt := print "<@661882006719954953>, " .User.Mention " has found themselves in a weird position."}}
+{{$errTxt := print "<@661882006719954953>, " .User.Mention " has found themselves in a weird position!\n-# Channel ID triggered: " .Channel.ID "\n-# User thread ID: " $collabUserData.threadID}}
 
 {{$a := .Interaction.Token}}
 {{$idprint := "collabs-"}}
 {{$ccid := $collabConstants.execCCID}}
 {{$isBlacklisted := 0}}
 {{$dbTimer := $collabConstants.dbTimer}}
+{{$z := 0}}
 
 {{range $collabConstants.staffRoles}}
 	{{if hasRoleID .}}
@@ -38,46 +39,57 @@
 	{{$weekly := add $collabUserData.postTime $collabConstants.collabCD}}
 	{{$currentTime := currentTime.Unix}}
 	{{if eq .Channel.ID $collabConstants.frontPage}}
-		{{if eq .StrippedID "initial"}} {{/* erase this part if this is no longer needed */}}
+		{{if eq .StrippedID "initial"}}
 			{{if eq $collabUserData.threadID 0}}
 				{{if gt $currentTime $weekly}}
 					{{$templateThread := createThread $collabConstants.frontPage nil (print .User.Username "'s collab ad") true 1440 false}}
 					{{$collabUserData.Set "threadID" $templateThread.ID}}
 					{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 					{{execCC $ccid nil 0 (sdict "firstSend" 1)}}
-					{{sendResponse (complexMessage "content" (print "Please head to https://discord.com/channels/" .Guild.ID "/" $templateThread.ID " to make your collaboration ad.") "ephemeral" true)}}
+					{{sendResponse $a (complexMessage "content" (print "Please head to https://discord.com/channels/" .Guild.ID "/" $templateThread.ID " to make your collaboration ad.") "ephemeral" true)}}
 				{{else}}
-					{{sendResponse (complexMessage "content" (print $collabConstants.noCreateCD (add $collabUserData.postTime $collabConstants.collabCD) ">.") "ephemeral" true)}}
+					{{sendResponse $a (complexMessage "content" (print $collabConstants.noCreateCD (add $collabUserData.postTime $collabConstants.collabCD) ">.") "ephemeral" true)}}
 				{{end}}
 			{{else}}
 				{{try}} {{openThread $collabUserData.threadID}} {{catch}} {{end}}
-				{{$z := sendMessageRetID $collabUserData.threadID (print .User.Mention ", this is the thread template of your collaboration ad.")}}
-				{{sendResponse (complexMessage "content" (print $collabConstants.hasTemplate .Guild.ID "/" $collabUserData.threadID " to manage it.") "ephemeral" true)}}
+				{{$z = sendMessageRetID $collabUserData.threadID (print .User.Mention ", this is the thread template of your collab ad.")}}
+				{{sendResponse $a (complexMessage "content" (print $collabConstants.hasTemplate .Guild.ID "/" $collabUserData.threadID " to manage it.") "ephemeral" true)}}
 				{{deleteMessage $collabUserData.threadID $z 15}}
 			{{end}}
 		{{else}}
-			{{sendResponse $errTxt}}
-		{{end}} {{/* erase this part if this is no longer needed */}}
+			{{sendResponse $a $errTxt}}
+		{{end}}
 	{{else if eq .Channel.ID $collabUserData.threadID}}
+		{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
 		{{if eq .StrippedID "manageMedia"}}
+			{{$z = sendResponseRetID $a $collabConstants.mediaBlurb}}
 			{{$collabUserData.Set "userFlag" "manageMedia"}}
-			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
-			{{sendResponse (complexMessage "content" $collabConstants.mediaBlurb "ephemeral" true)}}
 		{{else if eq .StrippedID "manageThumbnail"}}
 			{{if $collabUserData.userBoosted}}
+				{{$z = sendResponseRetID $a $collabConstants.thumbBlurb}}
 				{{$collabUserData.Set "userFlag" "manageThumbnail"}}
-				{{sendResponse (complexMessage "content" $collabConstants.thumbBlurb "ephemeral" true)}}
 			{{else}}
-				{{sendResponse (complexMessage "content" $collabConstants.noBooster "ephemeral" true)}}
+				{{$z = sendResponseRetID $a $collabConstants.noBooster}}
 			{{end}}
-			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 		{{else if eq .StrippedID "postCollab"}}
+			{{$z = sendResponseRetID $a "Please wait for your collab ad to be posted."}}
+			{{$collabUserData.Set "notifID" $z}}
+			{{$collabUserData.Set "notifToken" $a}}
 			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 			{{execCC $ccid nil 0 (sdict "post" 1)}}
-			{{$z := sendResponseRetID $a "Please wait for your collab ad to be posted."}}
 		{{else if eq .StrippedID "bumpUp"}}
-			{{execCC $ccid nil 0 (sdict "bumpUp" 1)}}
-			{{$z := sendResponseRetID $a "Please wait for your collab ad to be bumped."}}
+			{{if or (gt $currentTime $weekly) (and (eq (getThread $collabUserData.postForumID).ParentID $collabConstants.regularCH) (or $collabUserData.isStaff $collabUserData.userBoosted $collabUserData.userPrioritized))}}
+				{{$z = sendResponseRetID $a "Please wait for your collab ad to be bumped."}}
+				{{$collabUserData.Set "notifID" $z}}
+				{{$collabUserData.Set "notifToken" $a}}
+				{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+				{{execCC $ccid nil 0 (sdict "bumpUp" 1)}}
+			{{else}}
+				{{$z = sendResponseRetID $a (print "There is a week of cooldown between posting and bumping up, so you may do it at <t:" $weekly ">.")}}
+				{{$collabUserData.Set "notifID" $z}}
+				{{$collabUserData.Set "notifToken" $a}}
+				{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{end}}
 		{{else if eq .StrippedID "deleteCollab"}}
 			{{$collabUserData.Set "userFlag" "deleteConfirm"}}
 			{{$compText := ""}}
@@ -88,8 +100,7 @@
 			{{else}}
 				{{$compText = print $collabConstants.confirmDeletePost "<t:" $weekly ">."}}
 			{{end}}
-			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
-			{{$msgID := sendResponseRetID $a (complexMessage "content" print $compText $collabConstants.confirmConfirm "ephemeral" true)}}
+			{{$z = sendResponseRetID $a (complexMessage "content" print $compText $collabConstants.confirmConfirm "ephemeral" true)}}
 		{{else if eq .StrippedID "editDetails"}}
 			{{$za := $collabConstants.optionsLevelDecoStyle}}
 			{{range $za}}
@@ -141,11 +152,31 @@
 			{{sendModal (modalBuilder (print $idprint "modal-1") "Collab Ads Form (1/3)"
 			(clabel $zc) (clabel $zf) (clabel $zi) (clabel $zl))}}
 		{{else}}
-			{{sendResponse $errTxt}}
+			{{sendResponse $a $errTxt}}
+		{{end}}
+		{{if ne .StrippedID "editDetails" "postCollab" "bumpUp"}}
+			{{$collabUserData.Set "notifID" $z}}
+			{{$collabUserData.Set "notifToken" $a}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+		{{end}}
+	{{else if eq .Channel.ID $collabUserData.postForumID}}
+		{{if eq .StrippedID "recheck"}}
+			{{openThread $collabUserData.threadID}}
+			{{$z = sendMessageRetID $collabUserData.threadID (print .User.Mention ", this is your collab ad template.")}}
+			{{sendResponse $a (complexMessage "content" (print "Visit https://discord.com/channels/" .Guild.ID "/" $collabUserData.threadID "to take a look at your collab ad template.") "ephemeral" true)}}
+			{{deleteMessage $collabUserData.threadID $z 30}}
+		{{else}}
+			{{sendResponse $a $errTxt}}
+		{{end}}
+	{{else if eq (getThread .Channel.ID).ParentID $collabConstants.regularCH $collabConstants.priorityCH}}
+		{{if eq .StrippedID "recheck"}}
+			{{sendResponse $a (complexMessage "content" (print "You are not the owner of this ad. You may create your own collab in <#1411710934640099420>.") "ephemeral" true)}}
+		{{else}}
+			{{sendResponse $a $errTxt}}
 		{{end}}
 	{{else}}
-		{{sendResponse $errTxt}}
+		{{sendResponse $a $errTxt}}
 	{{end}}
 {{else}}
-	{{updateMessage (print "You have the role <@&" $isBlacklisted ">, so you are not allowed to do this action.")}}
+	{{sendResponse $a (complexMessage "content" (print "You have the role <@&" $isBlacklisted ">, so you are not allowed to do this action.") "ephemeral" true)}}
 {{end}}

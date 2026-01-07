@@ -16,6 +16,7 @@
 "google.com"
 "imgur.com"
 "linkedin.com"
+"medal.tv"
 "microsoft.com"
 "reddit.com"
 "stackoverflow.com"
@@ -29,7 +30,7 @@
 
 }}
 
-{{if $collabConstants := (dbGet 0 "collabConstants").Value.filterBasic}}
+{{if $collabConstants := (dbGet 0 "collabConstants").Value}}
 	{{$collabConstants.Set "safeSites" $safeSites}}
 	{{dbSet 0 "collabConstants" $collabConstants}}
 {{else}}

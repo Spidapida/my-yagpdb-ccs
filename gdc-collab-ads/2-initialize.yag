@@ -9,7 +9,7 @@
 
 {{/* These channel IDs must be either regular text channels or threads */}}
 {{$logChannel := 1005538878523973712 }} {{/* Channel ID for flagged collab ads */}}
-{{$logSuccess := 1398708222868586536}} {{/* Channel ID for successful posts */}}
+{{$logSuccess := 1398708222868586536}} {{/* Channel ID for posts and edits */}}
 {{$logDelete := 1383994591346430135}} {{/* Channel ID for logging deleted entries */}}
 {{$attachForward := 1398719118676594741}} {{/* Channel ID for storing attachments */}}
 
@@ -95,8 +95,8 @@
 "required" true
 "custom_id" "levelType"}}
 {{$optionsLevelType := cslice
-(sdict "emoji" (sdict "id" "767850357715238932") "label" "Classic" "value" "Classic")
-(sdict "emoji" (sdict "id" "1270303197512208425") "label" "Platformer" "value" "Platformer")}}
+(sdict "emoji" (sdict "id" "767850357715238932") "label" "Classic Mode" "value" "Classic Mode")
+(sdict "emoji" (sdict "id" "1270303197512208425") "label" "Platformer Mode" "value" "Platformer Mode")}}
 
 
 
@@ -128,8 +128,8 @@
 (sdict "emoji" (sdict "id" "1271235941805064252") "label" "Medium Standards" "value" "Medium Standards")
 (sdict "emoji" (sdict "id" "1271235915658035201") "label" "High Standards" "value" "High Standards")}}
 
-{{$labelCollabInvite := sdict "label" "Discord Invite Link"
-"description" "A Discord invite link to the collab (optional). Invalid Discord invites will be removed."}}
+{{$labelCollabInvite := sdict "label" "Discord Invite Link (Optional)"
+"description" "If there is more than one invite, only the first is added. Non-Discord invite links are not allowed."}}
 {{$textInputCollabInvite := sdict "custom_id" "collabInvite"
 "style" 1
 "placeholder" "https://discord.gg/gdcreators"
@@ -158,21 +158,20 @@
 {{$boosterThumbnail := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" (print $idprint "manageThumbnail") "style" "blurple"}}
 {{$mediaManage := sdict "emoji" (sdict "id" "779859070122721320") "label" "Manage Media" "custom_id" (print $idprint "manageMedia") "style" "grey"}}
 {{$deleteCollab := sdict "emoji" (sdict "id" "278318370808659969") "label" "Delete Collab" "custom_id" (print $idprint "deleteCollab") "style" "danger"}}
+{{$recall := sdict "label" "Edit Collab Details [Owner]" "custom_id" "collabs-recheck" "style" "grey"}}
 
-{{$editDetailsDisabled := sdict "emoji" (sdict "name" "✏") "label" "Edit Details" "custom_id" (print $idprint "editDetails") "style" "blurple" "disabled" true}}
+{{$editDetailsDisabled := sdict "emoji" (sdict "name" "✏") "label" "Edit Details" "custom_id" (print $idprint "editDetailsDisabled") "style" "blurple" "disabled" true}}
 {{$postCollabDisabled := sdict "emoji" (sdict "id" "704342789172887672") "label" "Post This!" "custom_id" (print $idprint "postCollabDisabled") "style" "success" "disabled" true}}
 {{$bumpUpDisabled := sdict "emoji" (sdict "name" "⬆") "label" "Bump Up" "custom_id" (print $idprint "bumpUpDisabled") "style" "success" "disabled" true}}
-{{$boosterThumbnailDisabled := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" (print $idprint "manageThumbnail") "style" "blurple" "disabled" true}}
-{{$mediaManageDisabled := sdict "emoji" (sdict "id" "779859070122721320") "label" "Manage Media" "custom_id" (print $idprint "manageMedia") "style" "grey" "disabled" true}}
-{{$deleteCollabDisabled := sdict "emoji" (sdict "id" "278318370808659969") "label" "Delete Collab" "custom_id" (print $idprint "deleteCollab") "style" "danger" "disabled" true}}
-
-{{$boosterThumbnail := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" (print $idprint "manageThumbnail") "style" "blurple" "disabled" true}}
+{{$boosterThumbnailDisabled := sdict "emoji" (sdict "id" "879476331853783141") "custom_id" (print $idprint "manageThumbnailDisabled") "style" "blurple" "disabled" true}}
+{{$mediaManageDisabled := sdict "emoji" (sdict "id" "779859070122721320") "label" "Manage Media" "custom_id" (print $idprint "manageMediaDisabled") "style" "grey" "disabled" true}}
+{{$deleteCollabDisabled := sdict "emoji" (sdict "id" "278318370808659969") "label" "Delete Collab" "custom_id" (print $idprint "deleteCollabDisabled") "style" "danger" "disabled" true}}
 
 
 {{$confirmDeletePost := "Are you sure you want to delete this template, as well as your posted collab ad? Note that once you do this, you cannot create another new one until " }}
 {{$confirmDelPostWarn := "Are you sure you want to delete this template, as well as your posted collab ad?"}}
 {{$confirmDeleteTemp := "Are you sure you want to delete this template?"}}
-{{$confirmConfirm := " Type **`CONFIRM`** to confirm the deletion. To cancel, ignore the previous instruction for a minute, or type **`CANCEL`**."}}
+{{$confirmConfirm := " Send **`CONFIRM`** in ALL CAPS to confirm the deletion. Typing anything else would abort the deletion."}}
 {{$noCreateCD := "As per the collaboration ad rules, you are not allowed to create a new collaboration ad template if you posted one within a week. You may create another one at <t:"}}
 {{$hasTemplate := "You already created your collaboration ad template, as seen by the mention. Go to https://discord.com/channels/"}}
 {{$mediaBlurb := "You may set media in your collab ad now by sending attachments or media links.\n- If you wish to clear the media, send `--clearmedia` without any attachments or media links.\n- By default, attachments will be ordered first before media links. To do the reverse, include the message `--urlfirst`.\n- While <@204255221017214977> can parse media in embeds, it cannot parse multiple media within an embed. Please copy the image link, and use that instead.\n- Forwarded media is currently not supported.\n- As usual, setting media must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
@@ -187,6 +186,8 @@
 {{$TSFreeze := "-# <@&643101579016273941> has freezed your template. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) to resolve it."}}
 {{$TSUploaded := "-# You can update the details of your collab using the buttons below."}}
 {{$discordRegex := `(?:https?://)?(?:www.|ptb.|canary.)?(?:discord(?:app)?\.(?:(?:com|gg)/(?:invite|servers)/[a-z0-9\-_]+)|discord\.gg/[a-z0-9-_]+)`}}
+{{$maskWarn := "\n- Some masked links are stripped to their regular link counterparts. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) if you want to add a website to a whitelist and reinstate the masked link."}}
+{{$noTitleEdit := "Collab details are set. However, due to Discord API limits, the thread title has to stay as-is. Please try to edit the title again at least ten minutes from now."}}
 
 {{$collabUserData := sdict
 	"threadID"				0
@@ -227,15 +228,14 @@
 	"threadID"				int64
 	"tempMsgID1"			int64
 	"tempMsgID2"			int64
-	"tempNotifID"			int64
 	"userFlag"				string, <neutral, manageMedia, manageThumbnail, deleteConfirm, freeze>
-	"automodded"			string, <false, bypassed, true>
+	"automodded"			string, [what term got automodded]
 	"isStaff"				boolean
 	"userBoosted"			boolean
 	"userPrioritized"		boolean, [true = #priority-collab-ads, false = #collab-ads]
-
 	"collabName"			string, 100 characters
 	"collabDescription"		string, 3000? characters
+
 	"collabInvite"			string, 255 characters
 	"collabContribution"	string, 500? characters
 	"collabSize"			string, <Small Scale Collab, Megacollab, Ultracollab>
@@ -244,16 +244,18 @@
 	"levelDifficulty"		string, <Non-Demon, Easy-Medium Demon, Hard-Insane Demon, Extreme Demon>
 	"levelType"				string, <Classic, Platformer>
 	"collabStandards"		string, <Low Standards, Medium Standards, High Standards>
-
 	"collabHost"			string, 2-32 characters
-	"collabMedia"			cslice, string
 	"collabThumbnail"		string, URL, 500? characters
+
+	"collabMedia"			cslice, string
+	"notifID"				int64
 	"notifToken"			string
 	"postForumID"			int64
 	"postMsgID"				int64
 	"postTime"				int64
-	"noForwardMedia"				int64, [message ID of message not forwarded due to forward failing, media gallery]
-	"noForwardThumbs"				int64, [message ID of message not forwarded due to forward failing, thumbnail]
+	"noForwardMedia"		int64, [message ID of message not forwarded due to forward failing, media gallery]
+	"noForwardThumbs"		int64, [message ID of message not forwarded due to forward failing, thumbnail]
+	"hasMaskedLinks"		false
 */}}
 
 {{$collabConstants := sdict	
@@ -265,6 +267,7 @@
 "boosterThumbnail"				$boosterThumbnail
 "mediaManage"					$mediaManage
 "deleteCollab"					$deleteCollab
+"recall"						$recall
 
 "editDetailsDisabled"			$editDetailsDisabled
 "postCollabDisabled"			$postCollabDisabled
@@ -291,6 +294,8 @@
 "TSThumbs"						$TSThumbs
 "TSUploaded"					$TSUploaded
 "discordRegex"					$discordRegex
+"maskWarn"						$maskWarn
+"noTitleEdit"					$noTitleEdit
 
 "labelCollabSize"				$labelCollabSize
 "labelLevelDecoStyle"			$labelLevelDecoStyle
@@ -335,6 +340,7 @@
 "boosterRole"					$boosterRole
 "priorityRoles"					$priorityRoles
 "blacklist"						$blacklistRoles
+"execCCID"						$execCCID
 }}
 
 {{if $retrieve := (dbGet 0 "collabConstants").Value}}

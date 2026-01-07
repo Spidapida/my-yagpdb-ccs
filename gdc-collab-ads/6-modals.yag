@@ -69,8 +69,6 @@
 			{{$collabUserData.Set "collabNeeds" (index .ModalValues.collabNeeds.value 0)}}
 			{{$collabUserData.Set "levelDifficulty" (index .ModalValues.levelDifficulty.value 0)}}
 			{{$collabUserData.Set "levelType" (index .ModalValues.levelType.value 0)}}
-			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
-			{{execCC $ccid nil 0 (sdict "edit" 1)}}
 		{{else if eq .StrippedID "modal-2"}}
 
 			{{$ya := $collabConstants.textInputCollabTitle}}
@@ -112,10 +110,9 @@
 			(clabel $yc) (clabel $yf) (clabel $yi) (clabel $yl) (clabel $yo) )}}
 			{{$collabUserData.Set "collabSize" (index .ModalValues.collabSize.value 0)}}
 			{{$collabUserData.Set "collabStandards" (index .ModalValues.collabStandards.value 0)}}
-			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
-			{{execCC $ccid nil 0 (sdict "edit" 1)}}
 		{{else if eq .StrippedID "modal-3"}}
-			{{$z := sendResponseRetID $a (complexMessage "content" "Please wait for the details to be added." "ephemeral" true)}}
+			{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
+			{{$z := sendResponseRetID $a (complexMessage "content" "Please wait for the details to be added.")}}
 			{{$discordRegex := $collabConstants.discordRegex}}
 			{{$maskRegex := `\[[^\]]+\]\(([^)]+)\)`}}
 			{{$domainX := .DomainRegex}}
@@ -129,9 +126,7 @@
 					{{- $maskedLinks = true -}}
 					{{- $ifToReplace := cslice -}}
 					{{- range $masked -}}
-						{{- $zz := reSplit `\.` (reFind $domainX (index . 1)) -}}
-						{{- $z1 := sub (len $zz) 1 -}}
-						{{- $baseurl := print (index $zz (sub $z1 1)) "." (index $zz $z1) -}}
+						{{- $baseurl := reFind `[A-Za-z0-9\+\-]+\.[A-Za-z0-9\+\-]+$` (reFind $domainX (index . 1)) -}}
 						{{- $toReplace := true -}}
 						{{- range $sites -}}
 							{{- if eq . $baseurl -}}
@@ -167,12 +162,12 @@
 				{{- end -}}
 				{{- $tempTxt = "" -}}
 			{{- end -}}
-			{{$v1 := index $vb 0}} {{/* title */}}
-			{{$v2 := index $vb 1}} {{/* description */}}
-			{{$v3 := index $vb 2}} {{/* host */}}
-			{{$v4 := index $vb 3}} {{/* contribution */}}
-			{{$v5 := reFind $discordRegex .ModalValues.collabInvite.value}}
-			{{$allTxt := joinStr " " (cslice $v1 $v2 $v3 $v4 $v5)}}
+			{{$collabName := index $vb 0}}
+			{{$collabDesc := index $vb 1}}
+			{{$collabHost := index $vb 2}}
+			{{$collabContrib := index $vb 3}}
+			{{$collabInvite := reFind $discordRegex .ModalValues.collabInvite.value}}
+			{{$allTxt := joinStr " " (cslice $collabName $collabDesc $collabHost $collabContrib $collabInvite)}}
 			{{$cleanTxt := sanitizeText $allTxt}}
 
 			{{$flagged := ""}}
@@ -180,7 +175,7 @@
 			{{- range $collabConstants.filterNonLatin -}}
 				{{- if eq (inFold $allTxt .) true -}}
 					{{- $flagged = . -}}
-					{{$inputNotice = "word"}}
+					{{$inputNotice = "flagged word"}}
 					{{- break -}}
 				{{- end -}}
 			{{- end -}}
@@ -191,7 +186,7 @@
 						{{- range $collabConstants.filterBasic -}}
 							{{- if eq (inFold $cleanTxt (print $f1 . $f2)) true -}}
 								{{- $flagged = . -}}
-								{{$inputNotice = "word"}}
+								{{$inputNotice = "flagged word"}}
 								{{- break -}}
 							{{- end -}}
 						{{- end -}}
@@ -213,10 +208,10 @@
 			{{$a2 := ""}}
 			{{$a3 := ""}}
 			{{$collabUserData.Set "hasMaskedLinks" $maskedLinks}}
-			{{deleteInteractionResponse $a $z}}
-			
+			{{deleteInteractionResponse $a $z 0}}
+			{{$y := 0}}
 			{{if $flagged}}
-				{{$collabUserData.Set "automodded" "true"}}
+				{{$collabUserData.Set "automodded" $flagged}}
 				{{if ne $collabUserData.postForumID 0}}
 					{{$a2 = "posting"}}
 					{{$a3 = "post"}}
@@ -224,18 +219,29 @@
 					{{$a2 = "bumping up"}}
 					{{$a3 = "bump up"}}
 				{{end}}
-				{{$y := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" (print $a1 " You have been prohibited from " $a2 " your collab ad due to the presence of a " $inputNotice $collabConstants.AMNotice1 $a3 $collabConstants.AMNotice2 ))}}
+				{{$y := sendMessageRetID nil (complexMessage "reply" $collabUserData.tempMsgID2 "content" (print $a1 " You have been prohibited from " $a2 " your collab ad due to the presence of a " $inputNotice $collabConstants.AMNotice1 $a3 $collabConstants.AMNotice2 ))}}
 			{{else}}
-				{{$collabUserData.Set "automodded" "false"}}
-				{{$y := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" $a)}}
+				{{$collabUserData.Set "automodded" ""}}
+				{{$y := sendMessageRetID nil (complexMessage "reply" $collabUserData.tempMsgID2 "content" "Collab details are set.")}}
+				{{$inputNotice = "eriotouwa"}}
 			{{end}}
+			{{$collabUserData.Set "collabName" $collabName}}
+			{{$collabUserData.Set "collabDescription" $collabDesc}}
+			{{$collabUserData.Set "collabHost" $collabHost}}
+			{{$collabUserData.Set "collabContribution" $collabContrib}}
+			{{$collabUserData.Set "collabInvite" $collabInvite}}
+			{{$collabUserData.Set "notifID" $y}}
 			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
-			{{execCC $ccid nil 0 (sdict "edit" $flagged "kind" $inputNotice)}}
+			{{execCC $ccid nil 0 (sdict "edit" $inputNotice)}}
 		{{else}}
-			{{sendResponse $errTxt}}
+			{{sendResponse $a $errTxt}}
+		{{end}}
+		{{if eq .StrippedID "modal-1" "modal-2"}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{execCC $ccid nil 0 (sdict "edit" "")}}
 		{{end}}
 	{{else}}
-		{{sendResponse $errTxt}}
+		{{sendResponse $a $errTxt}}
 	{{end}}
 {{else}}
 	{{updateMessage (print "You have the role <@&" $isBlacklisted ">, so you are not allowed to do this action.")}}
