@@ -64,6 +64,7 @@
 		{{if eq .StrippedID "manageMedia"}}
 			{{$z = sendResponseRetID $a $collabConstants.mediaBlurb}}
 			{{$collabUserData.Set "userFlag" "manageMedia"}}
+			{{execCC $ccid nil 0 (sdict "edit" 1)}}
 		{{else if eq .StrippedID "manageThumbnail"}}
 			{{if $collabUserData.userBoosted}}
 				{{$z = sendResponseRetID $a $collabConstants.thumbBlurb}}
@@ -73,22 +74,13 @@
 			{{end}}
 		{{else if eq .StrippedID "postCollab"}}
 			{{$z = sendResponseRetID $a "Please wait for your collab ad to be posted."}}
-			{{$collabUserData.Set "notifID" $z}}
-			{{$collabUserData.Set "notifToken" $a}}
-			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 			{{execCC $ccid nil 0 (sdict "post" 1)}}
 		{{else if eq .StrippedID "bumpUp"}}
 			{{if or (gt $currentTime $weekly) (and (eq (getThread $collabUserData.postForumID).ParentID $collabConstants.regularCH) (or $collabUserData.isStaff $collabUserData.userBoosted $collabUserData.userPrioritized))}}
 				{{$z = sendResponseRetID $a "Please wait for your collab ad to be bumped."}}
-				{{$collabUserData.Set "notifID" $z}}
-				{{$collabUserData.Set "notifToken" $a}}
-				{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 				{{execCC $ccid nil 0 (sdict "bumpUp" 1)}}
 			{{else}}
 				{{$z = sendResponseRetID $a (print "There is a week of cooldown between posting and bumping up, so you may do it at <t:" $weekly ">.")}}
-				{{$collabUserData.Set "notifID" $z}}
-				{{$collabUserData.Set "notifToken" $a}}
-				{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 			{{end}}
 		{{else if eq .StrippedID "deleteCollab"}}
 			{{$collabUserData.Set "userFlag" "deleteConfirm"}}
@@ -100,61 +92,64 @@
 			{{else}}
 				{{$compText = print $collabConstants.confirmDeletePost "<t:" $weekly ">."}}
 			{{end}}
-			{{$z = sendResponseRetID $a (complexMessage "content" print $compText $collabConstants.confirmConfirm "ephemeral" true)}}
+			{{$z = sendResponseRetID $a (print $compText $collabConstants.confirmConfirm)}}
 		{{else if eq .StrippedID "editDetails"}}
-			{{$za := $collabConstants.optionsLevelDecoStyle}}
-			{{range $za}}
-				{{if eq .value $collabUserData.levelDecoStyle}}
-					{{.Set "default" true}}
-					{{break}}
-				{{end}}
+			{{$modal := index .Values 0}}
+			{{$xa := cslice}}
+			{{$xb := cslice $collabConstants.textInputCollabTitle $collabConstants.textInputCollabDescription $collabConstants.textInputCollabHost $collabConstants.textInputCollabInvite $collabConstants.textInputCollabContribution}}
+			{{$xc := cslice $collabUserData.collabTitle $collabUserData.collabDescription $collabUserData.collabHost $collabUserData.collabInvite $collabUserData.collabContribution}}
+			{{$xd := cslice $collabConstants.labelCollabTitle $collabConstants.labelCollabDescription $collabConstants.labelCollabHost $collabConstants.labelCollabInvite $collabConstants.labelCollabContribution}}
+			{{$xe := 3}}
+			{{if eq $modal "modal-2"}}
+				{{$xa = cslice $collabConstants.optionsCollabNeeds $collabConstants.optionsCollabSize $collabConstants.optionsCollabStandards}}
+				{{$xb = cslice $collabUserData.collabNeeds $collabUserData.collabSize $collabUserData.collabStandards }}
+				{{$xc = cslice $collabConstants.menuCollabNeeds $collabConstants.menuCollabSize $collabConstants.menuCollabStandards }}
+				{{$xd = cslice $collabConstants.labelCollabNeeds $collabConstants.labelCollabSize $collabConstants.labelCollabStandards}}
+				{{$xe = 2}}
+			{{else if eq $modal "modal-1"}}
+				{{$xa = cslice $collabConstants.optionsLevelDecoStyle $collabConstants.optionsLevelDifficulty $collabConstants.optionsLevelType}}
+				{{$xb = cslice $collabUserData.levelDecoStyle $collabUserData.levelDifficulty $collabUserData.levelType}}
+				{{$xc = cslice $collabConstants.menuLevelDecoStyle $collabConstants.menuLevelDifficulty $collabConstants.menuLevelType}}
+				{{$xd = cslice $collabConstants.labelLevelDecoStyle $collabConstants.labelLevelDifficulty $collabConstants.labelLevelType}}
+				{{$xe = 1}}
 			{{end}}
-			{{$zb := $collabConstants.menuLevelDecoStyle}}
-			{{$zb.Set "options" $za}}
-			{{$zc := $collabConstants.labelLevelDecoStyle}}
-			{{$zc.Set "component" (cmenu $zb)}}
-
-			{{$zd := $collabConstants.optionsCollabNeeds}}
-			{{range $zd}}
-				{{if eq .value $collabUserData.collabNeeds}}
-					{{.Set "default" true}}
-					{{break}}
+			{{$ii := 0}}
+			{{if eq $modal "modal-1" "modal-2"}}
+				{{while lt $ii 3}}
+					{{$qa := index $xa $ii}}
+					{{$qc := index $xc $ii}}
+					{{range $qa}}
+						{{if eq .value (index $xb $ii)}}
+							{{.Set "default" true}}
+							{{break}}
+						{{end}}
+					{{end}}
+					{{$qc.Set "options" $qa}}
+					{{(index $xd $ii).Set "component" (cmenu $qc)}}
+					{{$ii = add $ii 1}}
 				{{end}}
-			{{end}}
-			{{$ze := $collabConstants.menuCollabNeeds}}
-			{{$ze.Set "options" $zd}}
-			{{$zf := $collabConstants.labelCollabNeeds}}
-			{{$zf.Set "component" (cmenu $ze)}}
-
-			{{$zg := $collabConstants.optionsLevelDifficulty}}
-			{{range $zg}}
-				{{if eq .value $collabUserData.levelDifficulty}}
-					{{.Set "default" true}}
-					{{break}}
+				{{$wa := clabel (index $xd 0)}}
+				{{$wb := clabel (index $xd 1)}}
+				{{$wc := clabel (index $xd 2)}}
+				{{sendModal (modalBuilder (print $idprint $modal) (print "Collab Ads Form (" $xe "/3)") $wa $wb $wc)}}
+			{{else}}
+				{{while lt $ii 5}}
+					{{$qa := index $xb $ii}}
+					{{$qa.Set "value" (index $xc $ii)}}
+					{{(index $xd $ii).Set "component" (ctextInput $qa)}}
+					{{$ii = add $ii 1}}
 				{{end}}
+				{{$wa := clabel (index $xd 0)}}
+				{{$wb := clabel (index $xd 1)}}
+				{{$wc := clabel (index $xd 2)}}
+				{{$wd := clabel (index $xd 3)}}
+				{{$we := clabel (index $xd 4)}}
+				{{sendModal (modalBuilder (print $idprint $modal) (print "Collab Ads Form (" $xe "/3)") $wa $wb $wc $wd $we)}}
 			{{end}}
-			{{$zh := $collabConstants.menuLevelDifficulty}}
-			{{$zh.Set "options" $zg}}
-			{{$zi := $collabConstants.labelLevelDifficulty}}
-			{{$zi.Set "component" (cmenu $zh)}}
-
-			{{$zj := $collabConstants.optionsLevelType}}
-			{{range $zj}}
-				{{if eq .value $collabUserData.levelType}}
-					{{.Set "default" true}}
-					{{break}}
-				{{end}}
-			{{end}}
-			{{$zk := $collabConstants.menuLevelType}}
-			{{$zk.Set "options" $zj}}
-			{{$zl := $collabConstants.labelLevelType}}
-			{{$zl.Set "component" (cmenu $zk)}}
-			{{sendModal (modalBuilder (print $idprint "modal-1") "Collab Ads Form (1/3)"
-			(clabel $zc) (clabel $zf) (clabel $zi) (clabel $zl))}}
 		{{else}}
 			{{sendResponse $a $errTxt}}
 		{{end}}
-		{{if ne .StrippedID "editDetails" "postCollab" "bumpUp"}}
+		{{if eq .StrippedID "editDetails" "postCollab" "bumpUp" "manageThumbnail" "manageMedia" "deleteCollab"}}
 			{{$collabUserData.Set "notifID" $z}}
 			{{$collabUserData.Set "notifToken" $a}}
 			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
@@ -165,12 +160,10 @@
 			{{$z = sendMessageRetID $collabUserData.threadID (print .User.Mention ", this is your collab ad template.")}}
 			{{sendResponse $a (complexMessage "content" (print "Visit https://discord.com/channels/" .Guild.ID "/" $collabUserData.threadID "to take a look at your collab ad template.") "ephemeral" true)}}
 			{{deleteMessage $collabUserData.threadID $z 30}}
-		{{else}}
-			{{sendResponse $a $errTxt}}
 		{{end}}
 	{{else if eq (getThread .Channel.ID).ParentID $collabConstants.regularCH $collabConstants.priorityCH}}
 		{{if eq .StrippedID "recheck"}}
-			{{sendResponse $a (complexMessage "content" (print "You are not the owner of this ad. You may create your own collab in <#1411710934640099420>.") "ephemeral" true)}}
+			{{sendResponse $a (complexMessage "content" $collabConstants.noOwner "ephemeral" true)}}
 		{{else}}
 			{{sendResponse $a $errTxt}}
 		{{end}}

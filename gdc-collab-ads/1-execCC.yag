@@ -2,9 +2,10 @@
 {{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
 {{$flag := $collabUserData.userFlag}}
 {{$dbTimer := $collabConstants.dbTimer}}
-{{$mainForum := $collabUserData.forumID}}
+{{$postForumID := $collabUserData.postForumID}}
 {{$threadID := $collabUserData.threadID}}
 {{$logSuccess := $collabConstants.logSuccess}}
+{{$postMsgID := $collabUserData.postMsgID}}
 
 {{$forumChannel := 0}}
 {{if or $collabUserData.isStaff $collabUserData.userBoosted $collabUserData.userPrioritized}}
@@ -25,59 +26,84 @@
 - **Discord invite link:** ` (or $collabUserData.collabInvite $emptyText) `
 - **My contribution to the collab:** ` (or $collabUserData.collabContribution $emptyText) }}
 {{$tempDesc := or $collabUserData.collabDescription $emptyText }}
-
-{{$thumbnail := $collabUserData.collabThumbail}}
-{{$thumbTitle := "### <a:magicmod:879476331853783141>  Thumbnail for the post:"}}
-{{if and $thumbnail $collabUserData.noForwardThumbs}}
-	{{$thumbTitle := (print "### <a:magicmod:879476331853783141>  Thumbnail for the post:\n-# Note: Do not delete [your message](https://discord.com/channels/" .Guild.ID "/" $threadID "/" $collabUserData.noForwardThumbs " to avoid corrupting the thumbnail for other members of the server.")}}
+{{$tempThumb := $collabUserData.collabThumbnail}}
+{{$tempMedia := cslice }} {{range $collabUserData.collabMedia}} {{$tempMedia = $tempMedia.Append (sdict "media" . )}} {{end}}
+{{$tempDescTL := $tempDesc}}
+{{if gt (len $tempDesc) 2500 }}
+	{{$tempDescTL = print (slice $tempDescTL 0 2500) "••• (abridged)"}}
 {{end}}
-{{$contThumbs := componentBuilder "text" $thumbTitle "separator" true}}
+
+{{$thumbTitle := "### <a:magicmod:879476331853783141>  Thumbnail for the post:"}}
 {{$thumbPost := "'"}}
-{{if $thumbnail}}
-	{{$contThumbs.Add "gallery" (sdict "media" $thumbnail)}}
-	{{$thumbPost = print "['](" $thumbnail ")" }}
+{{$contThumbs := componentBuilder "text" $thumbTitle "separator" true}}
+{{if and $tempThumb $collabUserData.noForwardThumbs}}
+	{{$thumbTitle = print $thumbTitle "\n-# Note: Do not delete [your message](https://discord.com/channels/" .Guild.ID "/" $threadID "/" $collabUserData.noForwardThumbs " to avoid corrupting the thumbnail for other members of the server."}}
+{{end}}
+{{if $tempThumb}}
+	{{$contThumbs.Add "gallery" (sdict "media" $tempThumb)}}
+	{{$thumbPost = print "['](" $tempThumb ")" }}
 {{else}}
 	{{$contThumbs.Add "text" $emptyText}}
 {{end}}
 
-{{$collabMedia := cslice }}
-{{range $collabUserData.collabMedia}} {{$collabMedia.Append (sdict "media" . )}} {{end}}
-{{$no4WMedia := "### Media gallery:"}}
-{{if and $collabUserData.noForwardMedia $collabMedia}}
-	{{$no4WMedia = print "### Media gallery:\n-# Note: Do not delete [your message](https://discord.com/channels/" .Guild.ID "/" $threadID "/" $collabUserData.noForwardMedia " to avoid corrupting the media for other members of the server." }}
-{{end}}
-{{$contMedia := componentBuilder "text" $no4WMedia "separator" true}}
-{{if $collabMedia}}
-	{{$contMedia.Add "gallery" $collabMedia}}
-{{else}}
-	{{$contMedia.Add "text" $emptyText}}
-{{end}}
-{{$tempMedia := sdict "components" $contMedia}}
+
+{{$megaMsg := componentBuilder "allowed_mentions" (sdict "users" (cslice))
+"text" (print .User.Mention "'s template")
+"separator" true}}
+{{$holdMsg := componentBuilder "text" (print "### Title: " $tempTitle)
+"container" (sdict "color" 0x1cade4 "components" $contThumbs)
+"container" (sdict "components" (componentBuilder "text" `### Relevant details about this collab:` "separator" true
+"text" $tempDetails ))
+}}
+{{$postForumMsg := sdict "content" (print .User.Mention $thumbPost "s collab ad details:\n" $tempDetails) "buttons" (cbutton $collabConstants.recall)}}
+{{$tags := cslice $collabUserData.collabSize $collabUserData.levelDecoStyle $collabUserData.levelDifficulty $collabUserData.levelType $collabUserData.collabStandards}}
 
 {{$maskWarn := ""}}
 {{if $collabUserData.hasMaskedLinks}}
 	{{$maskWarn = $collabConstants.maskWarn}}
 {{end}}
+{{$tempTempDesc := componentBuilder "container" (sdict "components" (componentBuilder "text" (print "### Collab Description:" $maskWarn) "separator" true "text" $tempDescTL))}}
+{{$tempPostDesc := componentBuilder "container" (sdict "components" (componentBuilder "text" "### Collab Description:" "separator" true "text" $tempDesc))}}
 
-{{$megaInitial := componentBuilder
-"separator" true
-"text" (print "## " $tempTitle)
-"container" (sdict "color" 0x1cade4 "components" $contThumbs)
-"container" (sdict "components" (componentBuilder "text" `### Relevant details about this collab:`
-"separator" true
-"text" $tempDetails ))}}
+{{$galleryTitle := "### Media Gallery:"}}
+{{$postGallery := "### Media Gallery:"}}
+{{if and $collabUserData.noForwardMedia $tempMedia}}
+	{{$galleryTitle = print $galleryTitle "\n-# Note: Do not delete [your message](https://discord.com/channels/" .Guild.ID "/" $threadID "/" $collabUserData.noForwardMedia " to avoid corrupting the media gallery for other members of the server." }}
+{{end}}
+{{$contTempMedia := componentBuilder "text" $galleryTitle "separator" true}}
+{{$contForumMedia := componentBuilder "text" $postGallery "separator" true}}
+{{if $tempMedia}}
+	{{$contTempMedia.Add "gallery" $tempMedia}}
+	{{$contForumMedia.Add "gallery" $tempMedia}}
+{{else}}
+	{{$contTempMedia.Add "text" $emptyText}}
+	{{$contForumMedia.Add "text" $emptyText}}
+{{end}}
 
-{{$megaMsg1 := componentBuilder "text" (print "Important reminders " .User.Mention `:
-- This collab ad will be posted in <#` $forumChannel `>.` $maskWarn)}}
-{{$megaMsg2 := componentBuilder "container" (sdict "components" (componentBuilder "text" "### Description of the collab:" "separator" true "text" $tempDesc))}}
-{{$megaLog := componentBuilder "text" (print .User.Mention " edited their collab ads:")}}
-
-{{$megaMsg1.Merge $megaInitial}}
-{{$megaMsg1.Add "container" $tempMedia}}
-{{$megaLog.Merge $megaInitial}}
-
-{{$tempButtons := cslice}}
-{{$tempStatus := $collabConstants.TSNormal}}
+{{$reqC := 0}}
+{{$et := ""}}
+{{$opts1 := $collabConstants.opts1}}
+{{$opts2 := $collabConstants.opts2}}
+{{$opts3 := $collabConstants.opts3}}
+{{$editDetails := $collabConstants.editDetails}}
+{{$editNo := $collabConstants.editDetailsDisabled}}
+{{if $collabUserData.levelType}}
+	{{$reqC = add $reqC 1}}
+	{{$opts1.Set "emoji" (sdict "id" "870823987016527922")}}
+{{end}}
+{{if $collabUserData.collabNeeds}}
+	{{$reqC = add $reqC 1}}
+	{{$opts2.Set "emoji" (sdict "id" "870823987016527922")}}
+{{end}}
+{{if $collabUserData.collabTitle}}
+	{{$reqC = add $reqC 1}}
+	{{$opts3.Set "emoji" (sdict "id" "870823987016527922")}}
+	{{if eq $collabUserData.automodded "true"}}
+		{{$opts3.Set "emoji" (sdict "id" "870823962093969449")}}
+		{{$et = " <❗❗❗>"}}
+	{{end}}
+{{end}}
+{{$tempStatus := print "Check out the menu `[ " $reqC " / 3 ] Details Filled` to enter details about your collab ad."}}
 {{if eq $flag "manageMedia"}}
 	{{$tempStatus = $collabConstants.TSMedia}}
 {{else if eq $flag "manageThumbnail"}}
@@ -86,104 +112,115 @@
 	{{$tempStatus = $collabConstants.TSDel}}
 {{else if eq $flag "freeze"}}
 	{{$tempStatus = $collabConstants.TSFreeze}}
-{{else if $collabUserData.postForumID}}
+{{else if $postForumID}}
 	{{$tempStatus = $collabConstants.TSUploaded}}
 {{end}}
 
-{{if eq $flag "manageMedia" "manageThumbnail" "deleteConfirm" "freeze"}}
-	{{$tempButtons = cslice $collabConstants.editDetailsDisabled}}
-	{{if $collabUserData.postForumID}}
-		{{$tempButtons = $tempButtons.Append $collabConstants.bumpUpDisabled}}
+{{$panels := cslice}}
+{{if eq $flag "neutral"}}
+	{{$editDetails.Set "placeholder" (print "[ " $reqC " / 3 ] Details Filled" $et)}}
+	{{$editDetails.Set "options" (cslice $opts1 $opts2 $opts3)}}
+	{{$panels = $panels.Append (cmenu $editDetails)}}
+	{{if $postForumID}}
+		{{if eq $collabUserData.automodded "true"}}
+			{{$panels = $panels.Append (cbutton $collabConstants.bumpUpDisabled)}}
+		{{else}}
+			{{$panels = $panels.Append (cbutton $collabConstants.bumpUp)}}
+		{{end}}
 	{{else}}
-		{{$tempButtons = $tempButtons.Append $collabConstants.postCollabDisabled}}
+		{{if or (eq $collabUserData.automodded "true") (lt $reqC 3)}}
+			{{$panels = $panels.Append (cbutton $collabConstants.postCollabDisabled)}}
+		{{else}}
+			{{$panels = $panels.Append (cbutton $collabConstants.postCollab)}}
+		{{end}}
 	{{end}}
-	{{$tempButtons = $tempButtons.AppendSlice (cslice $collabConstants.boosterThumbnailDisabled $collabConstants.mediaManageDisabled $collabConstants.deleteCollabDisabled)}}
+	{{$panels = $panels.AppendSlice (cslice (cbutton $collabConstants.mediaManage) (cbutton $collabConstants.boosterThumbnail) (cbutton $collabConstants.deleteCollab))}}
 {{else}}
-	{{$tempButtons = cslice $collabConstants.editDetails}}
-	{{if $collabUserData.postForumID}}
-		{{if $collabUserData.automodded }}
-			{{$tempButtons = $tempButtons.Append $collabConstants.bumpUpDisabled}}
-		{{else}}
-			{{$tempButtons = $tempButtons.Append $collabConstants.bumpUp}}
-		{{end}}
+	{{$editNo.Set "placeholder" (print "[ " $reqC " / 3 ] Details Filled" $et)}}
+	{{$editNo.Set "options" (cslice $opts1 $opts2 $opts3)}}
+	{{$panels = $panels.Append (cmenu $editNo)}}
+	{{if $postForumID}}
+		{{$panels = $panels.Append (cbutton $collabConstants.bumpUpDisabled)}}
 	{{else}}
-		{{if or $collabUserData.automodded (not $collabUserData.collabName)}}
-			{{$tempButtons = $tempButtons.Append $collabConstants.postCollabDisabled}}
-		{{else}}
-			{{$tempButtons = $tempButtons.Append $collabConstants.postCollab}}
-		{{end}}
+		{{$panels = $panels.Append (cbutton $collabConstants.postCollabDisabled)}}
 	{{end}}
-	{{$tempButtons = $tempButtons.AppendSlice (cslice $collabConstants.mediaManage $collabConstants.boosterThumbnail $collabConstants.deleteCollab)}}
+	{{$panels = $panels.AppendSlice (cslice (cbutton $collabConstants.mediaManageDisabled) (cbutton $collabConstants.boosterThumbnailDisabled) (cbutton $collabConstants.deleteCollabDisabled))}}
 {{end}}
-{{$tempPanel := sdict "color" 0xff69b4 "components" (componentBuilder "text" $tempStatus "buttons" $tempButtons)}}
+{{$tempPanel := sdict "color" 0xff69b4 "components" (componentBuilder "text" $tempStatus "interactive_components" $panels)}}
 
-{{$forumMsg := sdict "content" (print .User.Mention $thumbPost "s collab ad details:\n" $tempDetails) "buttons" (cbutton $collabConstants.recall)}}
-{{$tags := cslice $collabUserData.collabSize $collabUserData.levelDecoStyle $collabUserData.levelDifficulty $collabUserData.levelType $collabUserData.collabStandards}}
-
-{{if .ExecData.HasKey "firstSend"}}
-	{{$megaMsg2.Add "container" $tempPanel}}
-	{{$msgID1 := sendMessageRetID $threadID $megaMsg1}}
-	{{$msgID2 := sendMessageRetID $threadID $megaMsg2}}
-	{{$collabUserData.Set "tempMsgID1" $msgID1}}
-	{{$collabUserData.Set "tempMsgID2" $msgID2}}
-{{else if .ExecData.HasKey "edit"}}
-	{{$extra := $megaMsg2}}
-	{{$megaMsg2.Add "container" $tempPanel}}
-	{{editMessage $threadID $collabUserData.tempMsgID1 $megaMsg1}}
-	{{editMessage $threadID $collabUserData.tempMsgID2 $megaMsg2}}
-	{{if and $collabUserData.postForumID (not $collabUserData.automodded)}}
-		{{if $collabMedia}}
-			{{$extra.Add "container" (sdict "components" (componentBuilder "text" "### Media gallery:" "separator" true "gallery" $collabMedia))}}
-		{{end}}
-		{{editThread $collabUserData.postForumID "tags" $tags}}
-		{{editMessage $collabUserData.postForumID $collabUserData.postForumID (complexMessageEdit $forumMsg)}}
-		{{editMessage $collabUserData.postForumID $collabUserData.postMsgID $extra}}
-		{{$extraNotif := false}}
-		{{try}}
-			{{$threadName := (getThread $mainForum).Name}}
-			{{if ne $threadName $tempTitle}}
-				{{editChannelName $mainForum}}
-			{{end}}
-		{{catch}}
-			{{if .Error}}
-				{{$extraNotif = true}}
-			{{end}}
-		{{end}}
-		{{if $extraNotif}}
+{{if or (.ExecData.HasKey "firstSend") (.ExecData.HasKey "edit")}}
+	{{$megaMsg.Merge $holdMsg}}
+	{{$megaMsg.Merge $tempTempDesc}}
+	{{$megaMsg.Add "container" (sdict "components" $contTempMedia)}}
+	{{$megaMsg.Add "container" $tempPanel}}
+	{{if .ExecData.HasKey "firstSend"}}
+		{{$msgID := sendMessageRetID $threadID $megaMsg}}
+		{{$collabUserData.Set "tempMsgID" $msgID}}
+	{{else if .ExecData.HasKey "edit"}}
+		{{editMessage $threadID $collabUserData.tempMsgID $megaMsg}}
+		{{if and $postForumID (eq $collabUserData.automodded "true" "bypassed")}}
 			{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
-			{{$z := sendMessageRetID $threadID (complexMessage "reply" $collabUserData.tempMsgID2 "content" (print $collabConstants.noTitleEdit))}}
-			{{$collabUserData.Set "notifID" $z}}
-		{{end}}
-		{{if $touwa := .ExecData.edit}}
-			{{if eq $touwa "eriotouwa"}}
-				{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
-				{{sendMessage $logSuccess $megaLog}}
-				{{sendMessage $logSuccess $extra}}
-			{{else}}
-				{{sendMessage $logSuccess "unfinished me wants to sleep aaaa"}}
+			{{$miniMsg := componentBuilder "allowed_mentions" (sdict "users" (cslice)) "text" (print .User.Mention "edited their collab:") }}
+			{{$miniMsg.Merge $holdMsg}}
+			{{if $tempMedia}}
+				{{$tempPostDesc.Add "container" (sdict "components" $contForumMedia)}}
 			{{end}}
+			{{editThread $postForumID "tags" $tags}}
+			{{editMessage $postForumID $postForumID (complexMessageEdit $postForumMsg)}}
+			{{editMessage $postForumID $postMsgID $tempPostDesc}}
+			
+			{{try}}
+				{{$threadName := (getThread $postForumID).Name}}
+				{{if ne $threadName $tempTitle}}
+					{{editChannelName $postForumID $tempTitle}}
+				{{end}}
+			{{catch}}
+				{{if .Error}}
+					{{$extraMsg = $collabConstants.noTitleEdit}}
+				{{end}}
+			{{end}}
+			{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
+			{{sendMessage $logSuccess $miniMsg}}
+			{{sendMessage $logSuccess $tempPostDesc}}
 		{{end}}
 	{{end}}
 {{else if or (.ExecData.HasKey "post") (.ExecData.HasKey "bumpUp")}}
-	{{$extra := $megaMsg2}}
-	{{if $collabMedia}}
-		{{$extra.Add "container" (sdict "components" (componentBuilder "text" "### Media gallery:" "separator" true "gallery" $collabMedia))}}
+	{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
+	{{if $tempMedia}}
+		{{$tempPostDesc.Add "container" (sdict "components" $contForumMedia)}}
 	{{end}}
-	{{$tempPanel.Set "buttons" (cslice $collabConstants.editDetails $collabConstants.bumpUp $collabConstants.mediaManage $collabConstants.boosterThumbnail $collabConstants.deleteCollab)}}
-	{{$megaMsg2.Add "container" $tempPanel}}
+	{{$editDetails.Set "placeholder" (print "[ " $reqC " / 3 ] Details Filled" $et)}}
+	{{$editDetails.Set "options" (cslice $opts1 $opts2 $opts3)}}
+	{{$panels = cslice (cmenu $editDetails) (cbutton $collabConstants.bumpUp) (cbutton $collabConstants.mediaManage) (cbutton $collabConstants.boosterThumbnail) (cbutton $collabConstants.deleteCollab)}}
+	{{$megaMsg.Merge $holdMsg}}
+	{{$megaMsg.Merge $tempTempDesc}}
+	{{$megaMsg.Add "container" (sdict "components" $contTempMedia)}}
+	{{$megaMsg.Add "container" (sdict "color" 0xff69b4 "components" (componentBuilder "text" $collabConstants.TSUploaded "interactive_components" $panels))}}
 
-	{{$forumPost := createForumPost $forumChannel $tempTitle (complexMessage $forumMsg) "tags" $tags}}
+	{{$forumPost := createForumPost $forumChannel $tempTitle (complexMessage $postForumMsg) "tags" $tags}}
 	{{$forumID := $forumPost.ID}}
-	{{$forumExt := sendMessageRetID $forumID $megaMsg2 }}
+	{{$forumExt := sendMessageRetID $forumID $tempPostDesc}}
+	{{$miniMsg := componentBuilder}}
+	{{$act := ""}}
+	{{if .ExecData.HasKey "post"}}
+		{{editMessage $threadID $collabUserData.tempMsgID $megaMsg}}
+		{{$miniMsg = componentBuilder "allowed_mentions" (sdict "users" (cslice)) "text" (print .User.Mention "posted their collab:") }}
+		{{$act = "posted"}}
+	{{else if .ExecData.HasKey "bumpUp"}}
+		{{deleteForumPost $collabUserData.postForumID}}
+		{{$miniMsg = componentBuilder "allowed_mentions" (sdict "users" (cslice)) "text" (print .User.Mention "bumped up their collab `" $collabUserData.collabTitle "`:") }}
+		{{$act = "bumped up"}}
+	{{end}}
 	{{$collabUserData.Set "postForumID" $forumID}}
 	{{$collabUserData.Set "postMsgID" $forumExt}}
 	{{$collabUserData.Set "postTime" (getMessage $forumID $forumID).Timestamp.Parse.Unix}}
 	{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
-	{{if .ExecData.HasKey "post"}}
-		{{editMessage $threadID $collabUserData.tempMsgID2 $megaMsg2}}
-	{{else if .ExecData.HasKey "bumpUp"}}
-		{{deleteForumPost $collabUserData.postForumID}}
-	{{end}}
+	{{$miniMsg.Merge $holdMsg}}
+	{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
+	{{sendMessage $logSuccess $miniMsg}}
+	{{sendMessage $logSuccess $tempPostDesc}}
+	{{$z := sendMessageRetID $threadID (complexMessage "content" (print "Your collab ad is now " $act " in <#" $forumID ">."))}}
+	{{$collabUserData.Set "notifID" $z}}
 {{else if .ExecData.HasKey "destruct"}}
 	{{$newData := $collabConstants.collabUserData}}
 	{{$newData.Set "postTime" $collabUserData.postTime}}
@@ -191,4 +228,6 @@
 	{{deleteThread $threadID}}
 {{end}}
 
-{{/* logging things unfinished aaaah */}}
+{{if not (.ExecData.HasKey "destruct")}}
+	{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+{{end}}

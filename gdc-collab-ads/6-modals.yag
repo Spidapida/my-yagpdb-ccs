@@ -38,81 +38,22 @@
 {{if eq $isBlacklisted 0}}
 	{{if eq .Channel.ID $collabUserData.threadID}}
 		{{if eq .StrippedID "modal-1"}}
-
-			{{$zm := $collabConstants.optionsCollabSize}}
-			{{range $zm}}
-				{{if eq .value $collabUserData.collabSize}}
-					{{.Set "default" true}}
-					{{break}}
-				{{end}}
-			{{end}}
-			{{$zn := $collabConstants.menuCollabSize}}
-			{{$zn.Set "options" $zm}}
-			{{$zo := $collabConstants.labelCollabSize}}
-			{{$zo.Set "component" (cmenu $zn)}}
-
-			{{$zp := $collabConstants.optionsCollabStandards}}
-			{{range $zp}}
-				{{if eq .value $collabUserData.collabStandards}}
-					{{.Set "default" true}}
-					{{break}}
-				{{end}}
-			{{end}}
-			{{$zq := $collabConstants.menuCollabStandards}}
-			{{$zq.Set "options" $zp}}
-			{{$zr := $collabConstants.labelCollabStandards}}
-			{{$zr.Set "component" (cmenu $zq)}}
-
-			{{sendModal (modalBuilder (print $idprint "modal-2") "Collab Ads Form (2/3)"
-			(clabel $zo) (clabel $zr))}}
-			{{$collabUserData.Set "levelDecoStyle" (index .ModalValues.levelDecoStyle.value 0)}}
-			{{$collabUserData.Set "collabNeeds" (index .ModalValues.collabNeeds.value 0)}}
-			{{$collabUserData.Set "levelDifficulty" (index .ModalValues.levelDifficulty.value 0)}}
+			{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
+			{{$z := sendResponseRetID $a (complexMessage "content" "Collab details has been modified.")}}
 			{{$collabUserData.Set "levelType" (index .ModalValues.levelType.value 0)}}
+			{{$collabUserData.Set "levelDecoStyle" (index .ModalValues.levelDecoStyle.value 0)}}
+			{{$collabUserData.Set "levelDifficulty" (index .ModalValues.levelDifficulty.value 0)}}
+			{{$collabUserData.Set "notifID" $z}}
 		{{else if eq .StrippedID "modal-2"}}
-
-			{{$ya := $collabConstants.textInputCollabTitle}}
-			{{if $yb := $collabUserData.collabTitle}}
-				{{$ya.Set "value" $yb}}
-			{{end}}
-			{{$yc := $collabConstants.labelCollabTitle}}
-			{{$yc.Set "component" (ctextInput $ya)}}
-
-			{{$yd := $collabConstants.textInputCollabDescription}}
-			{{if $ye := $collabUserData.collabDescription}}
-				{{$yd.Set "value" $ye}}
-			{{end}}
-			{{$yf := $collabConstants.labelCollabDescription}}
-			{{$yf.Set "component" (ctextInput $yd)}}
-
-			{{$yg := $collabConstants.textInputCollabHost}}
-			{{if $yh := $collabUserData.collabHost}}
-				{{$yg.Set "value" $yh}}
-			{{end}}
-			{{$yi := $collabConstants.labelCollabHost}}
-			{{$yi.Set "component" (ctextInput $yg)}}
-
-			{{$yj := $collabConstants.textInputCollabInvite}}
-			{{if $yk := $collabUserData.collabInvite}}
-				{{$yj.Set "value" $yk }}
-			{{end}}
-			{{$yl := $collabConstants.labelCollabInvite}}
-			{{$yl.Set "component" (ctextInput $yj)}}
-
-			{{$ym := $collabConstants.textInputCollabContribution}}
-			{{if $yn := $collabUserData.collabContribution}}
-				{{$ym.Set "value" $yn}}
-			{{end}}
-			{{$yo := $collabConstants.labelCollabContribution}}
-			{{$yo.Set "component" (ctextInput $ym)}}
-
-			{{sendModal (modalBuilder (print $idprint "modal-3") "Collab Ads Form (3/3)"
-			(clabel $yc) (clabel $yf) (clabel $yi) (clabel $yl) (clabel $yo) )}}
+			{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
+			{{$z := sendResponseRetID $a (complexMessage "content" "Collab details has been modified.")}}
 			{{$collabUserData.Set "collabSize" (index .ModalValues.collabSize.value 0)}}
+			{{$collabUserData.Set "collabNeeds" (index .ModalValues.collabNeeds.value 0)}}
 			{{$collabUserData.Set "collabStandards" (index .ModalValues.collabStandards.value 0)}}
+			{{$collabUserData.Set "notifID" $z}}
 		{{else if eq .StrippedID "modal-3"}}
 			{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
-			{{$z := sendResponseRetID $a (complexMessage "content" "Please wait for the details to be added.")}}
+			{{$z := sendResponseRetID $a (complexMessage "content" "<a:loading:969202742100893716> Adding details...")}}
 			{{$discordRegex := $collabConstants.discordRegex}}
 			{{$maskRegex := `\[[^\]]+\]\(([^)]+)\)`}}
 			{{$domainX := .DomainRegex}}
@@ -211,7 +152,8 @@
 			{{deleteInteractionResponse $a $z 0}}
 			{{$y := 0}}
 			{{if $flagged}}
-				{{$collabUserData.Set "automodded" $flagged}}
+				{{$collabUserData.Set "termModded" $flagged}}
+				{{$collabUserData.Set "automodded" "true"}}
 				{{if ne $collabUserData.postForumID 0}}
 					{{$a2 = "posting"}}
 					{{$a3 = "post"}}
@@ -219,13 +161,14 @@
 					{{$a2 = "bumping up"}}
 					{{$a3 = "bump up"}}
 				{{end}}
-				{{$y := sendMessageRetID nil (complexMessage "reply" $collabUserData.tempMsgID2 "content" (print $a1 " You have been prohibited from " $a2 " your collab ad due to the presence of a " $inputNotice $collabConstants.AMNotice1 $a3 $collabConstants.AMNotice2 ))}}
+				{{$y := sendMessageRetID nil (complexMessage "reply" $collabUserData.tempMsgID "content" (print $a1 " You have been prohibited from " $a2 " your collab ad due to the presence of a " $inputNotice $collabConstants.AMNotice1 $a3 $collabConstants.AMNotice2 ))}}
 			{{else}}
-				{{$collabUserData.Set "automodded" ""}}
-				{{$y := sendMessageRetID nil (complexMessage "reply" $collabUserData.tempMsgID2 "content" "Collab details are set.")}}
+				{{$collabUserData.Set "automodded" "false"}}
+				{{$collabUserData.Set "termModded" ""}}
+				{{$y := sendMessageRetID nil (complexMessage "reply" $collabUserData.tempMsgID "content" "Collab details are set.")}}
 				{{$inputNotice = "eriotouwa"}}
 			{{end}}
-			{{$collabUserData.Set "collabName" $collabName}}
+			{{$collabUserData.Set "collabTitle" $collabName}}
 			{{$collabUserData.Set "collabDescription" $collabDesc}}
 			{{$collabUserData.Set "collabHost" $collabHost}}
 			{{$collabUserData.Set "collabContribution" $collabContrib}}
