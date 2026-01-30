@@ -4,111 +4,267 @@
 {{$sites := $collabConstants.safeSites}}
 
 {{$a := .Interaction.Token}}
+{{$b := (getResponse $a nil).ID}}
+{{$notifCH := $collabConstants.notifCH}}
 {{$idprint := "collabs-"}}
 {{$ccid := $collabConstants.execCCID}}
 {{$isBlacklisted := 0}}
 {{$dbTimer := $collabConstants.dbTimer}}
 
+{{$collabUserData.Set "staff" false}}
 {{range $collabConstants.staffRoles}}
 	{{if hasRoleID .}}
-		{{$collabUserData.Set "isStaff" true}}
+		{{$collabUserData.Set "staff" true}}
 		{{break}}
 	{{end}}
 {{end}}
 
-{{$collabUserData.Set "userBoosted" false}}
+{{$collabUserData.Set "boost" false}}
 {{if hasRoleID $collabConstants.boosterRole}}
-	{{$collabUserData.Set "userBoosted" true}}
+	{{$collabUserData.Set "boost" true}}
 {{end}}
 
+{{$collabUserData.Set "L20UP" false}}
 {{range $collabConstants.priorityRoles}}
 	{{if hasRoleID .}}
-		{{$collabUserData.Set "userPrioritized" true}}
+		{{$collabUserData.Set "L20UP" true}}
 		{{break}}
 	{{end}}
 {{end}}
 
-{{range $collabConstants.blacklistRoles}}
-	{{if hasRole .}}
+{{range $collabConstants.blacklist}}
+	{{if hasRoleID .}}
 		{{$isBlacklisted = .}}
 		{{break}}
 	{{end}}
 {{end}}
 
+{{define "clock"}}
+	{{if $db := (dbGet 0 "execCCID").Value}}
+		{{if eq 0 (toInt (mod $db 2))}}
+			{{execCC (dbGet 0 "collabConstants").Value.execCCID nil 0 .}}
+		{{else}}
+			{{execCC (dbGet 0 "collabConstants").Value.execCCID2 nil 0 .}}
+		{{end}}
+	{{else}}
+		{{dbSet 0 "execCCID" 0}}
+		{{execCC (dbGet 0 "collabConstants").Value.execCCID nil 0 .}}
+	{{end}}
+{{end}}
+
+{{define "formatMe"}}
+	{{$data := .data}}
+	{{$discordRegex := .dr}}
+	{{$sites := .sites}}
+	{{$noForm := .noFormat}}
+	{{$domainX := .dom}}
+	{{$max := .max}}
+	{{$reFR := `[\*_~\x60\|\n]`}}
+
+	{{$reform := reFindAll $reFR $data}}
+	{{if and $reform $noForm}}
+		{{$cut := reSplit $reFR $data}}
+		{{$num := sub (len $cut) 1}}
+		{{$j := 0}}
+		{{$hold := ""}}
+		{{- while le $j $num -}}
+			{{- if eq $j $num -}}
+				{{- $hold = print $hold (index $cut $j) -}}
+			{{- else -}}
+				{{- if eq "\n" (index $reform $j) -}}
+					{{- $hold = print $hold (index $cut $j) ` ` -}}
+				{{- else -}}
+					{{- $hold = print $hold (index $cut $j) `\` (index $reform $j) -}}
+				{{- end -}}
+			{{- end -}}
+			{{- $j = add $j 1 -}}
+		{{- end -}}
+		{{$data = $hold}}
+	{{end}}
+
+	{{$maskRegex := `\[[^\]]+\]\(([^)]+)\)`}}
+	{{- $masked := reFindAllSubmatches $maskRegex $data -}}
+	{{- $tempTxt := "" -}}
+	{{$maskedLinks := false}}
+	{{$txt := ""}}
+	{{- if $masked -}}
+		{{- $maskedLinks = true -}}
+		{{- $ifToReplace := cslice -}}
+		{{- range $masked -}}
+			{{- $baseurl := reFind `[A-Za-z0-9\+\-]+\.[A-Za-z0-9\+\-]+$` (reFind $domainX (index $data 1)) -}}
+			{{- $toReplace := true -}}
+			{{- range $sites -}}
+				{{- if eq . $baseurl -}}
+					{{- $toReplace = false -}}
+					{{- break -}}
+				{{- end -}}
+			{{- end -}}
+			{{- if $toReplace -}}
+				{{- $ifToReplace = $ifToReplace.Append true -}}
+			{{- else -}}
+				{{- $ifToReplace = $ifToReplace.Append false -}}
+			{{- end -}}
+		{{- end -}}
+
+		{{- $split := reSplit $maskRegex $data -}}
+		{{- $count := sub (len $split) 1 -}}
+		{{- $i := 0 -}}
+		{{- while le $i $count -}}
+			{{- if eq $i $count -}}
+				{{- $tempTxt = print $tempTxt (index $split $i) -}}
+			{{- else -}}
+				{{if (index $ifToReplace $i)}}
+					{{- $tempTxt = print $tempTxt (index $split $i) (index $masked $i 1) -}}
+				{{else}}
+					{{- $tempTxt = print $tempTxt (index $split $i) (index $masked $i 0) -}}
+				{{end}}
+			{{- end -}}
+			{{- $i = add $i 1 -}}
+		{{- end -}}
+		{{$txt = reReplace $discordRegex $tempTxt "<Discord_invite_removed>"}}
+	{{- else -}}
+		{{$txt = reReplace $discordRegex $data "<Discord_invite_removed>"}}
+	{{- end -}}
+	{{if gt (len $txt) $max}}
+		{{return (sdict "txt" (slice $txt 0 $max) "masked" $maskedLinks)}}
+	{{else}}
+		{{return (sdict "txt" $txt "masked" $maskedLinks)}}
+	{{end}}
+{{end}}
+
 {{if eq $isBlacklisted 0}}
-	{{if eq .Channel.ID $collabUserData.threadID}}
+	{{if eq .Channel.ID $collabUserData.tID}}
+		{{try}} {{deleteInteractionResponse $collabUserData.nTok $collabUserData.nID 0}} {{catch}} {{end}}
+		{{try}} {{deleteMessage $collabUserData.tID $collabUserData.nmID 0}} {{catch}} {{end}}
 		{{if eq .StrippedID "modal-1"}}
-			{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
-			{{$z := sendResponseRetID $a (complexMessage "content" "Collab details has been modified.")}}
-			{{$collabUserData.Set "levelType" (index .ModalValues.levelType.value 0)}}
-			{{$collabUserData.Set "levelDecoStyle" (index .ModalValues.levelDecoStyle.value 0)}}
-			{{$collabUserData.Set "levelDifficulty" (index .ModalValues.levelDifficulty.value 0)}}
-			{{$collabUserData.Set "notifID" $z}}
+			{{$songs := .ModalValues.LM.value}}
+			{{$NG1 := reFind `^\d{1,}$` $songs}}
+			{{$NONG := reFindAll .LinkRegex $songs}}
+			{{$tempS := reReplace .LinkRegex $songs ""}}
+			{{$NGM := reFindAll `\d{1,} ` $tempS}}
+			{{$NGE := reFindAll ` \d{1,}` $tempS}}
+			{{$NGMaster := cslice}}
+			{{range $NGM}}
+				{{$NGMaster = $NGMaster.Append (reReplace " " . "")}}
+			{{end}}
+			{{if $NGE}}
+				{{$NGMaster = $NGMaster.Append (reReplace " " (index $NGE (sub (len $NGE) 1)) "")}}
+			{{end}}
+			{{$NG7 := cslice}}
+			{{$NG8 := cslice}}
+			{{range $NGMaster}}
+				{{if gt (len .) 7}}
+					{{$NG8 = $NG8.Append .}}
+				{{else}}
+					{{$NG7 = $NG7.Append .}}
+				{{end}}
+			{{end}}
+			{{$NG1s := ""}}
+			{{if and (le (len $NG1) 7) (gt (len $NG1) 0)}}
+				{{$NG1s = print "<https://www.newgrounds.com/audio/listen/" $NG1 ">"}}
+			{{else if gt (len $NG1) 7}}
+				{{$NG1s = print "`" $NG1 "`"}}
+			{{end}}
+			{{$tempNG := cslice}}
+			{{range $NG7}}
+				{{$tempNG = $tempNG.Append (print "<https://www.newgrounds.com/audio/listen/" . ">") }}
+			{{end}}
+			{{$tempROB := cslice}}
+			{{range $NG8}}
+				{{$tempROB = $tempROB.Append (print "`" . "`")}}
+			{{end}}
+			{{$tempNONG := cslice}}
+			{{$truth := "" }}
+			{{range $NONG}}
+				{{$nog := .}}
+				{{range $collabConstants.filterWildcards}}
+					{{if eq (inFold $nog .) true}}
+						{{$truth = .}}
+						{{break}}
+					{{end}}
+				{{end}}
+				{{$tempNONG = $tempNONG.Append (print "<" $nog ">")}}
+			{{end}}
+			{{$a1 := "Level details has been set."}}
+			{{$a2 := ""}}
+			{{$a3 := ""}}
+			{{$a4 := ""}}
+			{{if $truth}}
+				{{$collabUserData.Set "ter2" $truth}}
+				{{$collabUserData.Set "AMo2" "true"}}
+				{{if ne $collabUserData.fID 0}}
+					{{$a2 = "posting"}}
+					{{$a3 = "post"}}
+				{{else}}
+					{{$a2 = "bumping up"}}
+					{{$a3 = "bump up"}}
+				{{end}}
+				{{$a1 = print $a1 " You have been prohibited from " $a2 $collabConstants.rb $collabConstants.AMNotice1 $a3 $collabConstants.AMNotice2 }}
+				{{$a4 = "mod"}}
+			{{else}}
+				{{$collabUserData.Set "AMo2" "false"}}
+				{{$collabUserData.Set "ter2" ""}}
+			{{end}}
+			{{$fin := ""}}
+			{{if $NG1s}}
+				{{$fin = $NG1s}}
+			{{end}}
+			{{if or $tempNG $tempNONG $tempROB}}
+				{{$fin = ""}}
+			{{end}}
+			{{range $tempNG}}
+				{{$fin = print $fin . " "}}
+			{{end}}
+			{{range $tempNONG}}
+				{{$fin = print $fin . " "}}
+			{{end}}
+			{{range $tempROB}}
+				{{$fin = print $fin . " "}}
+			{{end}}
+			{{if gt (len $fin) 500}}
+				{{$fin = print (slice $fin 0 485) " ••• (abridged)"}}
+			{{end}}
+			{{if $fin}}
+				{{$collabUserData.Set "LM" $fin}}
+			{{else}}
+				{{if not $collabUserData.fID}}
+					{{$collabUserData.Set "LM" ""}}
+				{{end}}
+			{{end}}
+			{{$collabUserData.Set "LS" (index .ModalValues.LS.value 0)}}
+			{{$collabUserData.Set "LT" (index .ModalValues.LT.value 0)}}
+			{{$collabUserData.Set "LD" (index .ModalValues.LD.value 0)}}
+			{{$collabUserData.Set "nID" $b}}
+			{{$collabUserData.Set "nTok" $a}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{$xx := execTemplate "clock" (sdict "edit" $a4 "t" $a "m" $a1)}}
 		{{else if eq .StrippedID "modal-2"}}
-			{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
-			{{$z := sendResponseRetID $a (complexMessage "content" "Collab details has been modified.")}}
-			{{$collabUserData.Set "collabSize" (index .ModalValues.collabSize.value 0)}}
-			{{$collabUserData.Set "collabNeeds" (index .ModalValues.collabNeeds.value 0)}}
-			{{$collabUserData.Set "collabStandards" (index .ModalValues.collabStandards.value 0)}}
-			{{$collabUserData.Set "notifID" $z}}
+			{{$collabUserData.Set "CZ" (index .ModalValues.CZ.value 0)}}
+			{{$collabUserData.Set "CN" (index .ModalValues.CN.value 0)}}
+			{{$collabUserData.Set "CS" (index .ModalValues.CS.value 0)}}
+			{{$collabUserData.Set "nID" $b}}
+			{{$collabUserData.Set "nTok" $a}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{$xx := execTemplate "clock" (sdict "edit" "" "t" $a "m" "Level details has been set.")}}
 		{{else if eq .StrippedID "modal-3"}}
-			{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
-			{{$z := sendResponseRetID $a (complexMessage "content" "<a:loading:969202742100893716> Adding details...")}}
 			{{$discordRegex := $collabConstants.discordRegex}}
 			{{$maskRegex := `\[[^\]]+\]\(([^)]+)\)`}}
-			{{$domainX := .DomainRegex}}
-			{{$va := cslice (reReplace `\n` .ModalValues.collabTitle.value "") .ModalValues.collabDescription.value .ModalValues.collabHost.value .ModalValues.collabContribution.value}}
-			{{$vb := cslice}}
-			{{$maskedLinks := false}}
-			{{- range $va -}}
-				{{- $masked := reFindAllSubmatches $maskRegex . -}}
-				{{- $tempTxt := "" -}}
-				{{- if $masked -}}
-					{{- $maskedLinks = true -}}
-					{{- $ifToReplace := cslice -}}
-					{{- range $masked -}}
-						{{- $baseurl := reFind `[A-Za-z0-9\+\-]+\.[A-Za-z0-9\+\-]+$` (reFind $domainX (index . 1)) -}}
-						{{- $toReplace := true -}}
-						{{- range $sites -}}
-							{{- if eq . $baseurl -}}
-								{{- $toReplace = false -}}
-								{{- break -}}
-							{{- end -}}
-						{{- end -}}
-						{{- if $toReplace -}}
-							{{- $ifToReplace = $ifToReplace.Append true -}}
-						{{- else -}}
-							{{- $ifToReplace = $ifToReplace.Append false -}}
-						{{- end -}}
-					{{- end -}}
 
-					{{- $split := reSplit $maskRegex . -}}
-					{{- $count := sub (len $split) 1 -}}
-					{{- $i := 0 -}}
-					{{- while le $i $count -}}
-						{{- if eq $i $count -}}
-							{{- $tempTxt = print $tempTxt (index $split $i) -}}
-						{{- else -}}
-							{{if (index $ifToReplace $i)}}
-								{{- $tempTxt = print $tempTxt (index $split $i) (index $masked $i 1) -}}
-							{{else}}
-								{{- $tempTxt = print $tempTxt (index $split $i) (index $masked $i 0) -}}
-							{{end}}
-						{{- end -}}
-						{{- $i = add $i 1 -}}
-					{{- end -}}
-					{{- $vb = $vb.Append (reReplace $discordRegex $tempTxt "<Discord_invite_removed>") -}}
-				{{- else -}}
-					{{- $vb = $vb.Append (reReplace $discordRegex . "<Discord_invite_removed>") -}}
-				{{- end -}}
-				{{- $tempTxt = "" -}}
-			{{- end -}}
-			{{$collabName := index $vb 0}}
-			{{$collabDesc := index $vb 1}}
-			{{$collabHost := index $vb 2}}
-			{{$collabContrib := index $vb 3}}
-			{{$collabInvite := reFind $discordRegex .ModalValues.collabInvite.value}}
-			{{$allTxt := joinStr " " (cslice $collabName $collabDesc $collabHost $collabContrib $collabInvite)}}
+			{{$CN := execTemplate "formatMe" (sdict "data" .ModalValues.CT.value "dr" $discordRegex "sites" $sites "dom" .DomainRegex "max" 100 "noFormat" true)}}
+			{{$CD :=  execTemplate "formatMe" (sdict "data" .ModalValues.CP.value "dr" $discordRegex "sites" $sites "dom" .DomainRegex "max" 3900 "noNewlines" false)}}
+			{{$CK := execTemplate "formatMe" (sdict "data" .ModalValues.CH.value "dr" $discordRegex "sites" $sites "dom" .DomainRegex "max" 33 "noFormat" true)}}
+			{{$CC := execTemplate "formatMe" (sdict "data" .ModalValues.CC.value "dr" $discordRegex "sites" $sites "dom" .DomainRegex "max" 200 "noFormat" true)}}
+			{{$maskedLinks := false}}
+			{{if or $CN.masked $CD.masked $CK.masked $CC.masked}}
+				{{$maskedLinks = true}}
+			{{end}}
+
+			{{$collabName := $CN.txt}}
+			{{$collabDesc := $CD.txt}}
+			{{$CH := $CK.txt}}
+			{{$collabContrib := $CC.txt}}
+			{{$CI := reFind $discordRegex .ModalValues.CI.value}}
+			{{$allTxt := joinStr " " (cslice $collabName $collabDesc $CH $collabContrib $CI)}}
 			{{$cleanTxt := sanitizeText $allTxt}}
 
 			{{$flagged := ""}}
@@ -148,44 +304,42 @@
 			{{$a1 := "Collab details has been set."}}
 			{{$a2 := ""}}
 			{{$a3 := ""}}
-			{{$collabUserData.Set "hasMaskedLinks" $maskedLinks}}
-			{{deleteInteractionResponse $a $z 0}}
-			{{$y := 0}}
+			{{$a4 := ""}}
+			{{$collabUserData.Set "msk" $maskedLinks}}
+			{{$y := "Collab ad details has been set."}}
 			{{if $flagged}}
-				{{$collabUserData.Set "termModded" $flagged}}
-				{{$collabUserData.Set "automodded" "true"}}
-				{{if ne $collabUserData.postForumID 0}}
-					{{$a2 = "posting"}}
-					{{$a3 = "post"}}
-				{{else}}
+				{{$collabUserData.Set "term" $flagged}}
+				{{$collabUserData.Set "AMod" "true"}}
+				{{if $collabUserData.fID}}
 					{{$a2 = "bumping up"}}
 					{{$a3 = "bump up"}}
+				{{else}}
+					{{$a2 = "posting"}}
+					{{$a3 = "post"}}
 				{{end}}
-				{{$y := sendMessageRetID nil (complexMessage "reply" $collabUserData.tempMsgID "content" (print $a1 " You have been prohibited from " $a2 " your collab ad due to the presence of a " $inputNotice $collabConstants.AMNotice1 $a3 $collabConstants.AMNotice2 ))}}
+				{{$y = print $y " You have been prohibited from " $a2 " your collab ad due to the presence of a " $inputNotice $collabConstants.AMNotice1 $a3 $collabConstants.AMNotice2 }}
+				{{$a4 = "mod"}}
 			{{else}}
-				{{$collabUserData.Set "automodded" "false"}}
-				{{$collabUserData.Set "termModded" ""}}
-				{{$y := sendMessageRetID nil (complexMessage "reply" $collabUserData.tempMsgID "content" "Collab details are set.")}}
-				{{$inputNotice = "eriotouwa"}}
+				{{$collabUserData.Set "AMod" "false"}}
+				{{$collabUserData.Set "term" ""}}
 			{{end}}
-			{{$collabUserData.Set "collabTitle" $collabName}}
-			{{$collabUserData.Set "collabDescription" $collabDesc}}
-			{{$collabUserData.Set "collabHost" $collabHost}}
-			{{$collabUserData.Set "collabContribution" $collabContrib}}
-			{{$collabUserData.Set "collabInvite" $collabInvite}}
-			{{$collabUserData.Set "notifID" $y}}
+			{{$collabUserData.Set "CT" $collabName}}
+			{{$collabUserData.Set "CP" $collabDesc}}
+			{{$collabUserData.Set "CH" $CH}}
+			{{$collabUserData.Set "CC" $collabContrib}}
+			{{$collabUserData.Set "CI" $CI}}
+			{{$collabUserData.Set "nID" $b}}
+			{{$collabUserData.Set "nTok" $a}}
 			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
-			{{execCC $ccid nil 0 (sdict "edit" $inputNotice)}}
+			
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{$xx := execTemplate "clock" (sdict "edit" $a4 "t" $a "m" $y)}}
 		{{else}}
-			{{sendResponse $a $errTxt}}
-		{{end}}
-		{{if eq .StrippedID "modal-1" "modal-2"}}
-			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
-			{{execCC $ccid nil 0 (sdict "edit" "")}}
+			{{sendMessage $notifCH $errTxt}}
 		{{end}}
 	{{else}}
-		{{sendResponse $a $errTxt}}
+		{{sendMessage $notifCH $errTxt}}
 	{{end}}
 {{else}}
-	{{updateMessage (print "You have the role <@&" $isBlacklisted ">, so you are not allowed to do this action.")}}
+	{{editResponse $a nil (print $collabConstants.r8 $isBlacklisted $collabConstants.r9)}}
 {{end}}

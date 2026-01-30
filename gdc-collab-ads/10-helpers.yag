@@ -1,0 +1,56 @@
+{{$help1 := "## Collab Ad Staff Commands:\n### Staff commands:\n- `-ca help` - bring this help panel\n- `-ca show <@user> [key/all]` - displays the user's collab ad template data\n- - if no optional argument is supplied, values not viewable on user's template will be shown\n- - you can supply the `key` to only show that key value; run `-ca wandterms` or `-ca wandlist` for the valid keys\n- - passing `all` would display all of user's data in a text file\n- `-ca whitelist <@user>` - give bypass to the user if blocked by AutoMod\n- `-ca cdoff <@user>` - removes the user's cooldown on bumping up or creating another collab ad template\n- `-ca freeze <@user>` - freeze the user's collab ad\n-  `-ca unfreeze <@user>` - unfreeze the user's template; this command is also applicable if buttons and menus are disabled due to unfinished execution of the system \n- `-ca wand <@user> remove <key>` - reset a value from the user's collab ad database to initial or empty state\n- `-ca wand <@user> set <key> <value/s>` - set a value from the user's collab ad database; run `-ca wandterms` or `-ca wandlist` for the valid keys\n- `-ca wandterms` or `-ca wandlist` - see the valid keys used for `-ca wand` and `-ca show` commands\n- `-ca wandclear <@user>` - nuke user's database, template, and posted collab ad (if applicable)\n- `-ca website list` - bring up websites allowed to be mask linked\n- `-ca website add <url>` - adds a website allowed to be mask linked\n- `-ca website remove <url>` - removes a website allowed to be mask linked\n- `-ca automod list {nonlatin/basic/websites}` - bring up AutoMod terms disallowed for collab ads\n- `-ca automod checkit <string>` - see if submitted string is in AutoMod\n### Admin and head staff commands:\n- `-ca automod add {nonlatin/basic/websites} <term>` - adds a term to AutoMod\n- `-ca automod remove {nonlatin/basic/websites} <term>` - removes a term from AutoMod"}}
+{{$help2 := print "```" ` Key  |Data Type|                  Description
+-----------------------------------------------------------------
+tID   |  int64  | thread ID of collab ad template
+tmID  |  int64  | message ID of collab ad template
+flag  |  string | <neutral>, <manageMedia>, <manageThumbnail>, <deleteConfirm>, <freeze> = user status
+AMod  |  string | <true>, <false>, <bypassed> = AutoMod status for Collab Description
+term  |  string | what term got AutoModded for Collab Description
+
+staff | boolean | :d
+boost | boolean | :d
+L20UP | boolean | Level 20+, Quality Control, Contributor, GD Mod, Event Winner, Legacy Leaderboard
+CT    |  string | [100 characters] Collab Title
+CP    |  string | [3900 characters] Collab Description
+
+CI    |  string | [255 characters] Discord Invite
+CC    |  string | [200 characters] Collab Contribution
+CZ    |  string | <Small Scale Collab>, <Megacollab>, <Ultracollab>, Collab Size
+LS    |  string | <Modern>, <Glow>, <Effect>, <Core>, <Art>, <Minigame>, <Neodesign>, <Layouts>, <Other> = Level Deco Style
+CN    |  string | <Decoration Only>, <Gameplay Only>, <Decoration & Gameplay>, <Other> = Collab Needs
+
+LD    |  string | <Non-Demon>, <Easy-Medium Demon>, <Hard-Insane Demon>, <Extreme Demon +> = Level Difficulty
+LT    |  string | <Classic Mode>, <Platformer Mode> = Level Type
+CS    |  string | <Low Standards>, <Medium Standards>, <High Standards> = Collab Standards
+CH    |  string | [32 characters] Collab Host
+LM    |  string | [500 characters] Level Music
+
+CF    |  string | Collab Thumbnail, cannot set through attachment
+CM    |  array  | [each element is string] Collab Media, cannot set through attachment
+nID   |  int64  | Notification Message ID, ephemeral
+nTok  |  string | Notification Token
+fID   |  int64  | Forum ID of Posted Collab Ad
+
+fmID  |  int64  | Message ID of Posted Colab Ad
+time  |  int64  | [Unix] Timestamp of Collab Ad Post
+no4WM |  int64  | Message ID of Non-Forwarded Media
+no4WF |  int64  | Message ID of Non-Forwarded Thumbnail
+msk   | boolean | If whether Collab Description has masked links
+
+CTTM  |  int64  | [Unix] Timestamp when Collab Title was changed
+nmID  |  int64  | Notification Message ID, non-ephemeral
+AMo2  |  string | <true>, <false>, <bypassed> = AutoMod status for Level Music
+ter2  |  string | what term got AutoModded for Level Music` "```"}}
+
+{{$p := sdict
+"helpP" $help1
+"helpK" $help2}}
+{{if $collabConstants := (dbGet 0 "collabConstants").Value}}
+	{{range $k, $v := $p}}
+		{{$collabConstants.Set $k $v}}
+	{{end}}
+	{{dbSet 0 "collabConstants" $collabConstants}}
+	{{sendMessage nil "Adding details finished. Proceed to next step."}}
+{{else}}
+    {{sendMessage nil "Adding failed because database was not initiated. Please read the instructions."}}
+{{end}}

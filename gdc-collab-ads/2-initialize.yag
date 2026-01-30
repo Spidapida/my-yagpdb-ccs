@@ -1,59 +1,23 @@
-{{/* Configurable Values Start */}}
-
-{{$dbTimer := 4838400}} {{/* Database expiration in seconds, default is 2 months = 4838400 */}}
-{{$collabCD :=  604800}} {{/* Collab ad cooldown in seconds, default is 1 week = 604800 */}}
-
-{{$execCCID := 69}} {{/* 1-execCC.yag CCID */}}
-
-{{$frontPage := 1411710934640099420}} {{/* Channel ID for posting the front page of the CC. This must be a regular text channel, not a thread. */}}
-
-{{/* These channel IDs must be either regular text channels or threads */}}
-{{$logChannel := 1005538878523973712 }} {{/* Channel ID for flagged collab ads */}}
-{{$logSuccess := 1398708222868586536}} {{/* Channel ID for posts and edits */}}
-{{$logDelete := 1383994591346430135}} {{/* Channel ID for logging deleted entries */}}
-{{$attachForward := 1398719118676594741}} {{/* Channel ID for storing attachments */}}
-
-{{/* These channel IDs must be forum channels */}}
-{{$regularCH := 1354527351874257169}} {{/* Forum channel, where the collab ad usually goes */}}
-{{$priorityCH := 1354527201663647915}} {{/* Forum channel, priority channel */}}
-
-{{/* Staff roles, so they can interact with the system with an elevation. */}}
-{{$staffRoles := cslice 856869462569254912 1343014642309529620 643101579016273941 859731598706475010 }}
-{{/*						administrator		head staff			staff					trial staff */}}
-
-{{/* Booster role ID */}}
-{{$boosterRole := 674754528381239330}}
-
-{{/* Roles for priority channel */}}
-{{$priorityRoles := cslice 977673155730628648 869636088430465105 869636093501403167 1331845571291648041 1151191185155698752  1006306435480702976 1006306411317309460 972856883792736266 972856106760146974 972856089316053025 856872456806596638 972856066809401396}}
-{{/*						quality control		gd elder mod			gd mod		gd leaderboard mod		event winner	level max					level 75				level 50			level 40			level 30			legacy			level 20 */}}
-
-{{/* Restricted roles */}}
-{{$blacklistRoles := cslice 643105838483111936 1235737941800910858 1169182700536598608 893879950589952050}}
-{{/*						muted			automuted		collab network suppression	collab restriction*/}}
-
-{{/* Configurable Values End */}}
-
 {{$idprint := "collabs-"}}
 
-{{$labelCollabSize := sdict "label" "Collab Size"
+{{$labelCZ := sdict "label" "Collab Size"
 "description" "How large the collaboration is in terms of the amount of people participating?"}}
-{{$menuCollabSize := sdict "type" "text"
+{{$menuCZ := sdict "type" "text"
 "placeholder" "Select your collab size here"
 "required" true
-"custom_id" "collabSize"}}
-{{$optionsCollabSize := cslice
+"custom_id" "CZ"}}
+{{$optionsCZ := cslice
 (sdict "emoji" (sdict "id" "1093942686374957096") "label" "Small Scale Collab" "value" "Small Scale Collab" "description" "Less than or equal to five people.")
 (sdict "emoji" (sdict "id" "1093942682822394046") "label" "Megacollab" "value" "Megacollab" "description" "Typically needed more than five people.")
 (sdict "emoji" (sdict "id" "1071546532790276238") "label" "Ultracollab" "value" "Ultracollab" "description" "Often greater than 20 people, for mass organization of parts for your level.")}}
 
-{{$labelLevelDecoStyle := sdict "label" "Decoration Style"
+{{$labelLS := sdict "label" "Decoration Style"
 "description" "What is the deco style of your collab?"}}
-{{$menuLevelDecoStyle := sdict "type" "text"
+{{$menuLS := sdict "type" "text"
 "placeholder" "Select your deco style here"
 "required" true
-"custom_id" "levelDecoStyle"}}
-{{$optionsLevelDecoStyle := cslice
+"custom_id" "LS"}}
+{{$optionsLS := cslice
 (sdict "emoji" (sdict "id" "869769735464706108") "label" "Modern" "value" "Modern" "description" "Optical, Split72, neigefeu")
 (sdict "emoji" (sdict "id" "715591739653750845") "label" "Glow" "value" "Glow" "description" "ChaSe, F3lixsram, Namtar")
 (sdict "emoji" (sdict "id" "716054341781553203") "label" "Effect" "value" "Effect" "description" "G4lvatron, Echonox, ILRELL")
@@ -64,97 +28,105 @@
 (sdict "emoji" (sdict "id" "805988632363532309") "label" "Layouts" "value" "Layouts" "description" "GaidenHertuny, Quitora, Zhander")
 (sdict "emoji" (sdict "id" "1196464468306169978") "label" "Other" "value" "Other" "description" "If deco is not needed or other style is used")}}
 
-{{$labelCollabNeeds := sdict  "label" "Collab Needs"
+{{$labelCN := sdict  "label" "Collab Needs"
 "description" "What are the needs for the collab?"}}
-{{$menuCollabNeeds := sdict "type" "text"
+{{$menuCN := sdict "type" "text"
 "placeholder" "Select your requirements here"
 "required" true
-"custom_id" "collabNeeds"}}
-{{$optionsCollabNeeds := cslice 
+"custom_id" "CN"}}
+{{$optionsCN := cslice 
 (sdict "emoji" (sdict "id" "1293081687344812053") "label" "Decoration Only" "value" "Decoration Only")
 (sdict "emoji" (sdict "id" "1189840260394393642") "label" "Gameplay Only" "value" "Gameplay Only")
 (sdict "emoji" (sdict "id" "959953320812879922") "label" "Decoration & Gameplay" "value" "Decoration & Gameplay")
 (sdict "emoji" (sdict "id" "1196464468306169978") "label" "Other" "value" "Other" "description" "Like when you need someone who can optimize the level. Specify details when writing.")}}
 
-{{$labelLevelDifficulty := sdict "label" "Level Difficulty"
+{{$labelLD := sdict "label" "Level Difficulty"
 "description" "What is the estimated difficulty of the collab?"}}
-{{$menuLevelDifficulty := sdict "type" "text"
+{{$menuLD := sdict "type" "text"
 "placeholder" "Select the difficulty here"
 "required" true
-"custom_id" "levelDifficulty"}}
-{{$optionsLevelDifficulty := cslice 
+"custom_id" "LD"}}
+{{$optionsLD := cslice 
 (sdict "emoji" (sdict "id" "1173796642168770610") "label" "Non-Demon" "value" "Non-Demon" )
 (sdict "emoji" (sdict "id" "1146327594342559795") "label" "Easy-Medium Demon" "value" "Easy-Medium Demon" )
 (sdict "emoji" (sdict "id" "1146327635937480785") "label" "Hard-Insane Demon" "value" "Hard-Insane Demon" )
-(sdict "emoji" (sdict "id" "1146327674965467266") "label" "Extreme Demon" "value" "Extreme Demon" )}}
+(sdict "emoji" (sdict "id" "1146327674965467266") "label" "Extreme Demon +" "value" "Extreme Demon +" )}}
 
-{{$labelLevelType := sdict "label" "Level Type"
+{{$labelLT := sdict "label" "Level Type"
 "description" "What is the level type of the collab?"}}
-{{$menuLevelType := sdict "type" "text"
+{{$menuLT := sdict "type" "text"
 "placeholder" "Select the level type here"
 "required" true
-"custom_id" "levelType"}}
-{{$optionsLevelType := cslice
+"custom_id" "LT"}}
+{{$optionsLT := cslice
 (sdict "emoji" (sdict "id" "767850357715238932") "label" "Classic Mode" "value" "Classic Mode")
 (sdict "emoji" (sdict "id" "1270303197512208425") "label" "Platformer Mode" "value" "Platformer Mode")}}
 
 
 
-{{$labelCollabTitle := sdict  "label" "Title"
+{{$labelCT := sdict  "label" "Title"
 "description" "Level name and/or host or collab team name"}}
-{{$textInputCollabTitle := sdict "custom_id" "collabTitle"
+{{$textInputCT := sdict "custom_id" "CT"
 "style" 2
 "required" true
 "placeholder" "Title of your collab ad as well"
 "min_length" 1 "max_length" 100 
 }}
 
-{{$labelCollabDescription := sdict "label" "Description"
+{{$labelCP := sdict "label" "Description"
 "description" "Can use the thread to draft, then paste. If present, Discord invites and masked links are removed."}}
-{{$textInputCollabDescription := sdict "custom_id" "collabDescription"
+{{$textInputCP := sdict "custom_id" "CP"
 "style" 2
 "required" true
 "placeholder" "External emojis might not be displayed correctly if YAGPDB isn't in the server that has the emoji."
 "min_length" 1 "max_length" 3900 }}
 
-{{$labelCollabStandards := sdict "label" "Standards"
+{{$labelCS := sdict "label" "Standards"
 "description" "How high is the standards for the collab?"}}
-{{$menuCollabStandards := sdict "type" "text"
+{{$menuCS := sdict "type" "text"
 "placeholder" "Select the collab standards here"
 "required" true
-"custom_id" "collabStandards"}}
-{{$optionsCollabStandards := cslice
+"custom_id" "CS"}}
+{{$optionsCS := cslice
 (sdict "emoji" (sdict "id" "1271235910855430154") "label" "Low Standards" "value" "Low Standards")
 (sdict "emoji" (sdict "id" "1271235941805064252") "label" "Medium Standards" "value" "Medium Standards")
 (sdict "emoji" (sdict "id" "1271235915658035201") "label" "High Standards" "value" "High Standards")}}
 
-{{$labelCollabInvite := sdict "label" "Discord Invite Link (Optional)"
+{{$labelCI := sdict "label" "Discord Invite Link (Optional)"
 "description" "If there is more than one invite, only the first is added. Non-Discord invite links are not allowed."}}
-{{$textInputCollabInvite := sdict "custom_id" "collabInvite"
+{{$textInputCI := sdict "custom_id" "CI"
 "style" 1
 "placeholder" "https://discord.gg/gdcreators"
 "max_length" 255 }}
 
-{{$labelCollabContribution := sdict "label" "Contribution"
+{{$labelCC := sdict "label" "Contribution"
 "description" "What is your contribution towards your collab?"}}
-{{$textInputCollabContribution := sdict "custom_id" "collabContribution"
+{{$textInputCC := sdict "custom_id" "CC"
 "style" 2
 "required" true
 "value" "Uploader of the collab"
 "min_length" 1 "max_length" 200 }}
 
-{{$labelCollabHost := sdict "label" "Host"
+{{$labelCH := sdict "label" "Host"
 "description" "Who is the host of the collab?"}}
-{{$textInputCollabHost := sdict "custom_id" "collabHost"
+{{$textInputCH := sdict "custom_id" "CH"
 "style" 1
 "required" true
 "placeholder" "@spidapida"
-"min_length" 2 "max_length" 32 }}
+"min_length" 2 "max_length" 33 }}
+
+{{$labelLM := sdict "label" "Level Music"
+"description" "Separate multiple songs with space. Accepted: song links (NONG), Newgrounds song ID, in-game song ID"}}
+{{$textInputLM := sdict "custom_id" "LM"
+"style" 2
+"required" true
+"placeholder" "Song IDs in-game will be translated to Newgrounds song link, if applicable."
+"min_length" 1 "max_length" 500 }}
 
 
-{{$opts1 := sdict "emoji" (sdict "id" "1458725686855598186") "label" "Level Details" "value" (print "modal-1") }}
-{{$opts2 := sdict "emoji" (sdict "id" "1458725686855598186") "label" "Collab Details #1" "value" (print "modal-2") }}
-{{$opts3 := sdict "emoji" (sdict "id" "1458725686855598186") "label" "Collab Details #2" "value" (print "modal-3") }}
+{{$opts1 := sdict "emoji" (sdict "id" "1458725686855598186") "label" "Enter Level Details" "value" (print "modal-1") }}
+{{$opts2 := sdict "emoji" (sdict "id" "1458725686855598186") "label" "Enter Collab Details #1" "value" (print "modal-2") }}
+{{$opts3 := sdict "emoji" (sdict "id" "1458725686855598186") "label" "Enter Collab Details #2" "value" (print "modal-3") }}
 
 {{$editDetails := sdict "type" "text" "placeholder" "[ 0 / 3 ] Collab Ad Details Filled" "custom_id" (print $idprint "editDetails")}}
 {{$postCollab := sdict "emoji" (sdict "id" "704342789172887672") "label" "Post This!" "custom_id" (print $idprint "postCollab") "style" "success"}}
@@ -172,183 +144,139 @@
 {{$deleteCollabDisabled := sdict "emoji" (sdict "id" "278318370808659969") "label" "Delete Collab" "custom_id" (print $idprint "deleteCollabDisabled") "style" "danger" "disabled" true}}
 {{$errorBtn := sdict "label" "error, pls ping @spidapida" "style" "danger" "disabled" true}}
 
-
-{{$confirmDeletePost := "Are you sure you want to delete this template, as well as your posted collab ad? Note that once you do this, you cannot create another new one until " }}
-{{$confirmDelPostWarn := "Are you sure you want to delete this template, as well as your posted collab ad?"}}
-{{$confirmDeleteTemp := "Are you sure you want to delete this template?"}}
-{{$confirmConfirm := " Send **`CONFIRM`** in ALL CAPS to confirm the deletion. Typing anything else would abort the deletion."}}
-{{$noCreateCD := "As per the collaboration ad rules, you are not allowed to create a new collaboration ad template if you posted one within a week. You may create another one at <t:"}}
-{{$hasTemplate := "You already created your collaboration ad template, as seen by the mention. Go to https://discord.com/channels/"}}
-{{$mediaBlurb := "You may set media in your collab ad now by sending attachments or media links.\n- If you wish to clear the media, send `--clearmedia` without any attachments or media links.\n- By default, attachments will be ordered first before media links. To do the reverse, include the message `--urlfirst`.\n- While <@204255221017214977> can parse media in embeds, it cannot parse multiple media within an embed. Please copy the image link, and use that instead.\n- Forwarded media is currently not supported.\n- As usual, setting media must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
-{{$thumbBlurb := "As a <@&674754528381239330>, you may set a thumbnail in your collab ad. This will appear instead of the collab details in forums.\n- If you wish to clear the thumbnail, send `--clearthumbnail` without any attachment or media link.\n- Only one attachment or media link could be used for the thumbnail. If more than one is set, the first attachment or media link will be used.\n- As usual, setting a thumbnail must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
-{{$AMNotice1 := ", which is not permitted in the server. If you wish to rectify this, please re-edit your details again, or if you still want to "}}
-{{$AMNotice2 := " your collab ad anyway, please [create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) and explain your reasoning."}}
-{{$noBooster := "You need <:Boost:1193034632359317545> <@&674754528381239330> to set a thumbnail for your collab ad."}}
-{{$TSMedia := "-# Upload your media or paste your media links to set them in gallery."}}
-{{$TSThumbs := "-# Upload your media or paste your media link to set your thumbnail."}}
-{{$TSDel := "-# Confirm deletion by sending `CONFIRM`, or `CANCEL` to abort deletion."}}
-{{$TSFreeze := "-# <@&643101579016273941> has freezed your template. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) to resolve it."}}
-{{$TSUploaded := "-# You can update the details of your collab using the menu and buttons below."}}
-{{$discordRegex := `(?:https?://)?(?:www.|ptb.|canary.)?(?:discord(?:app)?\.(?:(?:com|gg)/(?:invite|servers)/[a-z0-9\-_]+)|discord\.gg/[a-z0-9-_]+)`}}
-{{$maskWarn := "\n- Some masked links are stripped to their regular links. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) if you want to add a website to a whitelist and reinstate the masked link."}}
-{{$noTitleEdit := " However, due to Discord API limits, the thread title has to stay as-is. Please try to edit the title again at least ten minutes from now."}}
-{{$noOwner := "You are not the owner of this ad. You may create your own collab in <#1411710934640099420>."}}
-
 {{$collabUserData := sdict
-	"threadID"				0
-	"tempMsgID"				0
-	"userFlag"				"neutral"
-	"automodded"			"false"
-	"termModded"			""
-	"isStaff"				false
-	"userBoosted"			false
-	"userPrioritized"		false
-	"collabTitle"			""
-	"collabDescription"		""
+	"tID"	(toInt64 0)
+	"tmID"	0
+	"flag"	"neutral"
+	"AMod"	"false"
+	"term"	""
+	"staff"	false
+	"boost"	false
+	"L20UP"	false
+	"CT"	""
+	"CP"	""
 
-	"collabInvite"			""
-	"collabContribution"	""
-	"collabSize"			""
-	"levelDecoStyle"		""
-	"collabNeeds"			""
-	"levelDifficulty"		""
-	"levelType"				""
-	"collabStandards"		""
-	"collabHost"			""
-	"collabThumbnail"		""
+	"CI"	""
+	"CC"	""
+	"CZ"	""
+	"LS"	""
+	"CN"	""
+	"LD"	""
+	"LT"	""
+	"CS"	""
+	"CH"	""
+	"LM"	""
 
-	"collabMedia"			(cslice)	
-	"notifID"				0
-	"notifToken"			""
-	"postForumID"			0
-	"postMsgID"				0
-	"postTime"				0
-	"noForwardMedia"		0
-	"noForwardThumbs"		0
-	"hasMaskedLinks"		false
-	
+	"CF"	""
+	"CM"	(cslice)	
+	"nID"	0
+	"nTok"	""
+	"fID"	0
+	"fmID"	0
+	"time"	0
+	"no4WM"	0
+	"no4WF"	0
+	"msk"	false
+
+	"CTTM"	0
+	"nmID"	0
+	"AMo2"	"false"
+	"ter2"	""
 	}}
 
-{{/* Data types:
-	"threadID"				int64
-	"tempMsgID"			int64
-	"userFlag"				string, <neutral, manageMedia, manageThumbnail, deleteConfirm, freeze>
-	"automodded"			string, <true, bypassed, false>
-	"termModded"			string, [what term got automodded]
-	"isStaff"				boolean
-	"userBoosted"			boolean
-	"userPrioritized"		boolean, [true = #priority-collab-ads, false = #collab-ads]
-	"collabTitle"			string, 100 characters
-	"collabDescription"		string, 3900 characters
+{{/* collab user data descriptors:
+	"tID"		int64, tempalte thread ID
+	"tmID"		int64, template message ID
+	"flag"		string, <neutral, manageMedia, manageThumbnail, deleteConfirm, freeze>, user flag status
+	"AMod"		string, <true, bypassed, false>, automod status
+	"term"		string, what term got automodded
+	"staff"		boolean, if staff
+	"boost"		boolean, if boosted
+	"L20UP"		boolean, [true = #priority-collab-ads, false = #collab-ads]
+	"CT"		string, 100 characters, collab title
+	"CP"		string, 3900 characters, collab description
 
-	"collabInvite"			string, 255 characters
-	"collabContribution"	string, 200 characters
-	"collabSize"			string, <Small Scale Collab, Megacollab, Ultracollab>
-	"levelDecoStyle"		string, <Modern, Glow Design, Effect, Core, Art, Minigame, Neodesign, Layouts, Other>
-	"collabNeeds"			string, <Decoration Only, Gameplay Only, Decoration & Gameplay, Other>
-	"levelDifficulty"		string, <Non-Demon, Easy-Medium Demon, Hard-Insane Demon, Extreme Demon>
-	"levelType"				string, <Classic, Platformer>
-	"collabStandards"		string, <Low Standards, Medium Standards, High Standards>
-	"collabHost"			string, 2-32 characters
-	"collabThumbnail"		string, URL, 500? characters
+	"CI"		string, 255 characters, only one is accepted, collab's Discord invite
+	"CC"		string, 200 characters, collab contribution
+	"CZ"		string, <Small Scale Collab, Megacollab, Ultracollab>, collab size
+	"LS"		string, <Modern, Glow Design, Effect, Core, Art, Minigame, Neodesign, Layouts, Other>, level decoration style
+	"CN"		string, <Decoration Only, Gameplay Only, Decoration & Gameplay, Other>, collab needs
+	"LD"		string, <Non-Demon, Easy-Medium Demon, Hard-Insane Demon, Extreme Demon>, level difficulty
+	"LT"		string, <Classic, Platformer>, level type
+	"CS"		string, <Low Standards, Medium Standards, High Standards>, collab standards
+	"CH"		string, 2-33 characters, collab host
+	"LM"		string, 500 characters, level music
 
-	"collabMedia"			cslice, string
-	"notifID"				int64
-	"notifToken"			string
-	"postForumID"			int64
-	"postMsgID"				int64
-	"postTime"				int64
-	"noForwardMedia"		int64, [message ID of message not forwarded due to forward failing, media gallery]
-	"noForwardThumbs"		int64, [message ID of message not forwarded due to forward failing, thumbnail]
-	"hasMaskedLinks"		false
+	"CF"		string, collab thumbnail
+	"CM"		cslice, string, collab media
+	"nID"		int64, thread notification ID
+	"nTok"		string, interaction token
+	"fID"		int64, posted forum ID
+	"fmID"		int64, posted forum message ID
+	"time"		int64, posted timestamp
+	"no4WM"		int64, message ID of message not forwarded due to forward failing, media gallery
+	"no4WF"		int64, message ID of message not forwarded due to forward failing, thumbnail
+	"msk"		boolean, if masked link is/are present in visible details of collab
+
+	"CTTM"		int64, timestamp of collab title edit
+	"nmID"		int64, message ID of setting media/thumbnail
+	"AMo2"		boolean, <true>, <false>, <bypassed> = AutoMod status for Level Music
+	"ter2"		string, what term got AutoModded for Level Music
 */}}
 
 {{$collabConstants := sdict	
 "collabUserData"				$collabUserData
 
-"opts1"							$opts1
-"opts2"							$opts2
-"opts3"							$opts3
-"editDetails"					$editDetails
-"postCollab"					$postCollab
-"bumpUp"						$bumpUp
-"boosterThumbnail"				$boosterThumbnail
-"mediaManage"					$mediaManage
-"deleteCollab"					$deleteCollab
-"recall"						$recall
+"opts1"			$opts1
+"opts2"			$opts2
+"opts3"			$opts3
+"edit"			$editDetails
+"post"			$postCollab
+"bumpUp"		$bumpUp
+"thumbs"		$boosterThumbnail
+"media"			$mediaManage
+"del"			$deleteCollab
+"recall"		$recall
 
-"editDetailsDisabled"			$editDetailsDisabled
-"postCollabDisabled"			$postCollabDisabled
-"bumpUpDisabled"				$bumpUpDisabled
-"boosterThumbnailDisabled"		$boosterThumbnailDisabled
-"mediaManageDisabled"			$mediaManageDisabled
-"deleteCollabDisabled"			$deleteCollabDisabled
+"editNo"		$editDetailsDisabled
+"postNo"		$postCollabDisabled
+"bumpUpNo"		$bumpUpDisabled
+"thumbsNo"		$boosterThumbnailDisabled
+"mediaNo"		$mediaManageDisabled
+"delNo"			$deleteCollabDisabled
 
-"confirmDeletePost"				$confirmDeletePost
-"confirmDelPostWarn"			$confirmDelPostWarn
-"confirmDeleteTemp"				$confirmDeleteTemp
-"confirmConfirm"				$confirmConfirm
-"noCreateCD"					$noCreateCD
-"hasTemplate"					$hasTemplate
-"mediaBlurb"					$mediaBlurb
-"thumbBlurb"					$thumbBlurb
-"AMNotice1"						$AMNotice1
-"AMNotice2"						$AMNotice2
-"noBooster"						$noBooster
-"TSDel"							$TSDel
-"TSFreeze"						$TSFreeze
-"TSMedia"						$TSMedia
-"TSThumbs"						$TSThumbs
-"TSUploaded"					$TSUploaded
-"discordRegex"					$discordRegex
-"maskWarn"						$maskWarn
-"noTitleEdit"					$noTitleEdit
-"noOwner"						$noOwner
+"LCSize"		$labelCZ
+"LLDeco"		$labelLS
+"LCNeed"		$labelCN
+"LLDiff"		$labelLD
+"LLType"		$labelLT
+"LCTitle"		$labelCT
+"LCDesc"		$labelCP
+"LCStand"		$labelCS
+"LCInv"			$labelCI
+"LCContr"		$labelCC
+"LCHost"		$labelCH
+"LLMusic"		$labelLM
 
-"labelCollabSize"				$labelCollabSize
-"labelLevelDecoStyle"			$labelLevelDecoStyle
-"labelCollabNeeds"				$labelCollabNeeds
-"labelLevelDifficulty"			$labelLevelDifficulty
-"labelLevelType"				$labelLevelType
-"labelCollabTitle"				$labelCollabTitle
-"labelCollabDescription"		$labelCollabDescription
-"labelCollabStandards"			$labelCollabStandards
-"labelCollabInvite"				$labelCollabInvite
-"labelCollabContribution"		$labelCollabContribution
-"labelCollabHost"				$labelCollabHost
+"MCSize"		$menuCZ
+"MLDeco"		$menuLS
+"MCNeed"		$menuCN
+"MLDiff"		$menuLD
+"MLType"		$menuLT
+"TICTitle"		$textInputCT
+"TICDesc"		$textInputCP
+"MCStand"		$menuCS
+"TICInv"		$textInputCI
+"TICContr"		$textInputCC
+"TICHost"		$textInputCH
+"TILMusic"		$textInputLM
 
-"menuCollabSize"				$menuCollabSize
-"menuLevelDecoStyle"			$menuLevelDecoStyle
-"menuCollabNeeds"				$menuCollabNeeds
-"menuLevelDifficulty"			$menuLevelDifficulty
-"menuLevelType"					$menuLevelType
-"textInputCollabTitle"			$textInputCollabTitle
-"textInputCollabDescription"	$textInputCollabDescription
-"menuCollabStandards"			$menuCollabStandards
-"textInputCollabInvite"			$textInputCollabInvite
-"textInputCollabContribution"	$textInputCollabContribution
-"textInputCollabHost"			$textInputCollabHost
-
-"optionsCollabSize"				$optionsCollabSize
-"optionsLevelDecoStyle"			$optionsLevelDecoStyle
-"optionsCollabNeeds"			$optionsCollabNeeds
-"optionsLevelDifficulty"		$optionsLevelDifficulty
-"optionsLevelType"				$optionsLevelType
-"optionsCollabStandards"		$optionsCollabStandards
-
-"dbTimer"						$dbTimer
-"collabCD"						$collabCD
-"logChannel"					$logChannel
-"logSuccess"					$logSuccess
-"attachForward"					$attachForward
-"frontPage"						$frontPage
-"regularCH"						$regularCH
-"priorityCH"					$priorityCH
-"staffRoles"					$staffRoles
-"boosterRole"					$boosterRole
-"priorityRoles"					$priorityRoles
-"blacklist"						$blacklistRoles
-"execCCID"						$execCCID
+"OCSize"		$optionsCZ
+"OLDeco"		$optionsLS
+"OCNeed"		$optionsCN
+"OLDiff"		$optionsLD
+"OLType"		$optionsLT
+"OCStand"		$optionsCS
 }}
 
 {{if $retrieve := (dbGet 0 "collabConstants").Value}}
@@ -359,5 +287,5 @@
 	{{sendMessage nil "Configurable values changed."}}
 {{else}}
 	{{dbSet 0 "collabConstants" $collabConstants }}
-	{{sendMessage nil "Step 1 of setup complete. Proceed to step 2."}}
+	{{sendMessage nil "Database initialization complete. Proceed to next step."}}
 {{end}}

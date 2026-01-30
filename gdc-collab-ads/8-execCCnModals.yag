@@ -1,11 +1,13 @@
-{{$ED := .ExecData}}
-
+{{$d := "collabUserData"}}
+{{$u := "Collab Ads Form ("}}
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
-{{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
+{{$collabUserData := or (dbGet .User.ID $d).Value $collabConstants.collabUserData }}
 
-{{if $ED.HasKey "fireupdate"}}
-	{{$collabUserData = (dbGet $ED.fireupdate "collabUserData").Value}}
-{{end}}
+
+
+{{if .ExecData}}
+
+
 
 {{$flag := $collabUserData.flag}}
 {{$dbTimer := $collabConstants.dbTimer}}
@@ -16,19 +18,19 @@
 {{$logDel := $collabConstants.logDelete}}
 {{$fmID := $collabUserData.fmID}}
 
-
+{{$ED := .ExecData}}
 {{$t := $ED.t}}
 {{$m := $ED.m}}
 {{$a := $collabConstants.a}}
 {{$b := $collabConstants.b}}
 {{$c := $collabConstants.c}}
+{{$e := "emoji"}}
 {{$o := $collabConstants.d}}
 {{$p := $collabConstants.e}}
 {{$q := $collabConstants.f}}
 {{$r := $collabConstants.g}}
 {{$s := $collabConstants.h}}
 {{$z := $collabConstants.i}}
-{{$e := "emoji"}}
 
 
 {{$forumChannel := 0}}
@@ -192,12 +194,8 @@ $s $tempDetails ))
 		{{if $tempMedia}}
 			{{$tempPostDesc.Add $o (sdict $q $contForumMedia)}}
 		{{end}}
-		{{if or (and $fID (eq $collabUserData.AMod "false" "bypassed") (eq $collabUserData.AMo2 "false" "bypassed") (ne $ED.edit "manageMedia" "manageThumbnail" "deleteCollab" "abort")) ($ED.HasKey "fireupdate")}}
-			{{if $ED.HasKey "fireupdate"}}
-				{{$miniMsg.Add $s (print "<@" $ED.staff "> edited <@" $ED.fireupdate ">'s collab ad template:" ) }}
-			{{else}}
-				{{$miniMsg.Add $s (print .User.Mention " edited their collab:") }}
-			{{end}}
+		{{if and $fID (eq $collabUserData.AMod "false" "bypassed") (eq $collabUserData.AMo2 "false" "bypassed") (ne $ED.edit "manageMedia" "manageThumbnail" "deleteCollab" "abort")}}
+			{{$miniMsg.Add $s (print .User.Mention " edited their collab:") }}
 			{{$miniMsg.Merge $holdMsg}}
 			{{editThread $fID "tags" $tags}}
 			{{editMessage $fID $fID (complexMessageEdit $postForumMsg)}}
@@ -226,9 +224,7 @@ $s $tempDetails ))
 			{{sendMessage $logCH $tempPostDesc}}
 			{{editResponse $t nil $m}}
 		{{else}}
-			{{if not ($ED.HasKey "fireupdate")}}
-				{{editResponse $t nil $m}}
-			{{end}}
+			{{editResponse $t nil $m}}
 		{{end}}
 	{{end}}
 {{else if or ($ED.HasKey "post") ($ED.HasKey "bumpUp")}}
@@ -273,13 +269,124 @@ $s $tempDetails ))
 	{{sendMessage $logDel $tempPostDesc}}
 	{{$newData := $collabConstants.collabUserData}}
 	{{$newData.Set "time" $collabUserData.time}}
-	{{dbSetExpire .User.ID "collabUserData" $newData $collabConstants.collabCD}}
+	{{dbSetExpire .User.ID $d $newData $collabConstants.collabCD}}
 	{{deleteThread $tID}}
 	
 {{end}}
 
 {{if not ($ED.HasKey "destruct")}}
-	{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+	{{dbSetExpire .User.ID $d $collabUserData $dbTimer}}
 {{end}}
 
 {{dbSet 0 "execCCID" (add (dbGet 0 "execCCID").Value 1)}}
+
+
+
+{{else}}
+
+
+
+	{{$idprint := "collabs-"}}
+	{{$ccid := $collabConstants.execCCID}}
+	{{$isBlacklisted := 0}}
+	{{$dbTimer := $collabConstants.dbTimer}}
+	{{$errTxt := print "<@661882006719954953>, " .User.Mention $collabConstants.n6 .Channel.ID "\n-# User thread ID: " $collabUserData.tID}}
+	{{$a := .Interaction.Token}}
+
+{{$collabUserData.Set "staff" false}}
+{{range $collabConstants.staffRoles}}
+	{{if hasRoleID .}}
+		{{$collabUserData.Set "staff" true}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{$collabUserData.Set "boost" false}}
+{{if hasRoleID $collabConstants.boosterRole}}
+	{{$collabUserData.Set "boost" true}}
+{{end}}
+
+{{$collabUserData.Set "L20UP" false}}
+{{range $collabConstants.priorityRoles}}
+	{{if hasRoleID .}}
+		{{$collabUserData.Set "L20UP" true}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{range $collabConstants.blacklist}}
+	{{if hasRoleID .}}
+		{{$isBlacklisted = .}}
+		{{break}}
+	{{end}}
+{{end}}
+
+	{{if eq $isBlacklisted 0}}
+		{{if eq .Channel.ID $collabUserData.tID}}
+			{{if eq .CustomID "collabs-editDetails"}}
+				{{$modal := index .Values 0}}
+				{{$xa := cslice}}
+				{{$xb := cslice $collabConstants.TICTitle $collabConstants.TICDesc $collabConstants.TICHost $collabConstants.TICInv $collabConstants.TICContr}}
+				{{$xf := or $collabUserData.CC "Uploader of the collab"}}
+				{{$xc := cslice $collabUserData.CT $collabUserData.CP $collabUserData.CH $collabUserData.CI $xf}}
+				{{$xd := cslice $collabConstants.LCTitle $collabConstants.LCDesc $collabConstants.LCHost $collabConstants.LCInv $collabConstants.LCContr}}
+				{{$xe := 3}}
+				{{if eq $modal "modal-2"}}
+					{{$xa = cslice $collabConstants.OCNeed $collabConstants.OCSize $collabConstants.OCStand}}
+					{{$xb = cslice $collabUserData.CN $collabUserData.CZ $collabUserData.CS }}
+					{{$xc = cslice $collabConstants.MCNeed $collabConstants.MCSize $collabConstants.MCStand }}
+					{{$xd = cslice $collabConstants.LCNeed $collabConstants.LCSize $collabConstants.LCStand}}
+					{{$xe = 2}}
+				{{else if eq $modal "modal-1"}}
+					{{$xa = cslice $collabConstants.OLDeco $collabConstants.OLDiff $collabConstants.OLType}}
+					{{$xb = cslice $collabUserData.LS $collabUserData.LD $collabUserData.LT}}
+					{{$xc = cslice $collabConstants.MLDeco $collabConstants.MLDiff $collabConstants.MLType}}
+					{{$xd = cslice $collabConstants.LLDeco $collabConstants.LLDiff $collabConstants.LLType}}
+					{{$xe = 1}}
+				{{end}}
+				{{$ii := 0}}
+				{{if eq $modal "modal-1" "modal-2"}}
+					{{while lt $ii 3}}
+						{{$qa := index $xa $ii}}
+						{{$qc := index $xc $ii}}
+						{{range $qa}}
+							{{if eq .value (index $xb $ii)}}
+								{{.Set "default" true}}
+								{{break}}
+							{{end}}
+						{{end}}
+						{{$qc.Set "options" $qa}}
+						{{(index $xd $ii).Set "component" (cmenu $qc)}}
+						{{$ii = add $ii 1}}
+					{{end}}
+					{{if eq $xe 1}}
+						{{$md := $collabConstants.TILMusic}}
+						{{$md.Set "value" $collabUserData.LM}}
+						{{$me := $collabConstants.LLMusic}}
+						{{$me.Set "component" (ctextInput $md)}}
+						{{sendModal (modalBuilder (print $idprint $modal) (print $u $xe "/3)") (clabel (index $xd 0)) (clabel (index $xd 1)) (clabel (index $xd 2)) (clabel $me))}}
+					{{else if eq $xe 2}}
+						{{sendModal (modalBuilder (print $idprint $modal) (print $u $xe "/3)") (clabel (index $xd 0)) (clabel (index $xd 1)) (clabel (index $xd 2)))}}
+					{{end}}
+				{{else}}
+					{{while lt $ii 5}}
+						{{$qa := index $xb $ii}}
+						{{$qa.Set "value" (index $xc $ii)}}
+						{{(index $xd $ii).Set "component" (ctextInput $qa)}}
+						{{$ii = add $ii 1}}
+					{{end}}
+					{{sendModal (modalBuilder (print $idprint $modal) (print $u $xe "/3)") (clabel (index $xd 0)) (clabel (index $xd 1)) (clabel (index $xd 2)) (clabel (index $xd 3)) (clabel (index $xd 4)))}}
+				{{end}}
+			{{else}}
+				{{sendMessage $collabConstants.notifCH $errTxt}}
+			{{end}}
+		{{else}}
+			{{sendMessage $collabConstants.notifCH $errTxt}}
+		{{end}}
+	{{else}}
+		{{editResponse $a nil (print $collabConstants.r8 $isBlacklisted $collabConstants.r9)}}
+	{{end}}
+
+
+
+{{end}}

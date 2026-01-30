@@ -1,175 +1,162 @@
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
 {{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
-{{$errTxt := print "<@661882006719954953>, " .User.Mention " has found themselves in a weird position!\n-# Channel ID triggered: " .Channel.ID "\n-# User thread ID: " $collabUserData.threadID}}
+{{$errTxt := print "<@661882006719954953>, " .User.Mention $collabConstants.r6 .Channel.ID "\n-# User thread ID: " $collabUserData.tID}}
+{{$notifCH := $collabConstants.notifCH}}
 
 {{$a := .Interaction.Token}}
+{{$b := (getResponse $a nil).ID}}
 {{$idprint := "collabs-"}}
 {{$ccid := $collabConstants.execCCID}}
 {{$isBlacklisted := 0}}
 {{$dbTimer := $collabConstants.dbTimer}}
 {{$z := 0}}
 
+{{$collabUserData.Set "staff" false}}
 {{range $collabConstants.staffRoles}}
 	{{if hasRoleID .}}
-		{{$collabUserData.Set "isStaff" true}}
+		{{$collabUserData.Set "staff" true}}
 		{{break}}
 	{{end}}
 {{end}}
 
-{{$collabUserData.Set "userBoosted" false}}
+{{$collabUserData.Set "boost" false}}
 {{if hasRoleID $collabConstants.boosterRole}}
-	{{$collabUserData.Set "userBoosted" true}}
+	{{$collabUserData.Set "boost" true}}
 {{end}}
 
+{{$collabUserData.Set "L20UP" false}}
 {{range $collabConstants.priorityRoles}}
 	{{if hasRoleID .}}
-		{{$collabUserData.Set "userPrioritized" true}}
+		{{$collabUserData.Set "L20UP" true}}
 		{{break}}
 	{{end}}
 {{end}}
 
-{{range $collabConstants.blacklistRoles}}
-	{{if hasRole .}}
+{{range $collabConstants.blacklist}}
+	{{if hasRoleID .}}
 		{{$isBlacklisted = .}}
 		{{break}}
 	{{end}}
 {{end}}
 
-{{if eq $isBlacklisted 0}}
-	{{$weekly := add $collabUserData.postTime $collabConstants.collabCD}}
-	{{$currentTime := currentTime.Unix}}
-	{{if eq .Channel.ID $collabConstants.frontPage}}
-		{{if eq .StrippedID "initial"}}
-			{{if eq $collabUserData.threadID 0}}
-				{{if gt $currentTime $weekly}}
-					{{$templateThread := createThread $collabConstants.frontPage nil (print .User.Username "'s collab ad") true 1440 false}}
-					{{$collabUserData.Set "threadID" $templateThread.ID}}
-					{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
-					{{execCC $ccid nil 0 (sdict "firstSend" 1)}}
-					{{sendResponse $a (complexMessage "content" (print "Please head to https://discord.com/channels/" .Guild.ID "/" $templateThread.ID " to make your collaboration ad.") "ephemeral" true)}}
-				{{else}}
-					{{sendResponse $a (complexMessage "content" (print $collabConstants.noCreateCD (add $collabUserData.postTime $collabConstants.collabCD) ">.") "ephemeral" true)}}
-				{{end}}
-			{{else}}
-				{{try}} {{openThread $collabUserData.threadID}} {{catch}} {{end}}
-				{{$z = sendMessageRetID $collabUserData.threadID (print .User.Mention ", this is the thread template of your collab ad.")}}
-				{{sendResponse $a (complexMessage "content" (print $collabConstants.hasTemplate .Guild.ID "/" $collabUserData.threadID " to manage it.") "ephemeral" true)}}
-				{{deleteMessage $collabUserData.threadID $z 15}}
-			{{end}}
+{{define "clock"}}
+	{{if $db := (dbGet 0 "execCCID").Value}}
+		{{if eq 0 (toInt (mod $db 2))}}
+			{{execCC (dbGet 0 "collabConstants").Value.execCCID nil 0 .}}
 		{{else}}
-			{{sendResponse $a $errTxt}}
-		{{end}}
-	{{else if eq .Channel.ID $collabUserData.threadID}}
-		{{try}} {{deleteMessage nil $collabUserData.notifID 0}} {{catch}} {{end}}
-		{{if eq .StrippedID "manageMedia"}}
-			{{$z = sendResponseRetID $a $collabConstants.mediaBlurb}}
-			{{$collabUserData.Set "userFlag" "manageMedia"}}
-			{{execCC $ccid nil 0 (sdict "edit" 1)}}
-		{{else if eq .StrippedID "manageThumbnail"}}
-			{{if $collabUserData.userBoosted}}
-				{{$z = sendResponseRetID $a $collabConstants.thumbBlurb}}
-				{{$collabUserData.Set "userFlag" "manageThumbnail"}}
-			{{else}}
-				{{$z = sendResponseRetID $a $collabConstants.noBooster}}
-			{{end}}
-		{{else if eq .StrippedID "postCollab"}}
-			{{$z = sendResponseRetID $a "Please wait for your collab ad to be posted."}}
-			{{execCC $ccid nil 0 (sdict "post" 1)}}
-		{{else if eq .StrippedID "bumpUp"}}
-			{{if or (gt $currentTime $weekly) (and (eq (getThread $collabUserData.postForumID).ParentID $collabConstants.regularCH) (or $collabUserData.isStaff $collabUserData.userBoosted $collabUserData.userPrioritized))}}
-				{{$z = sendResponseRetID $a "Please wait for your collab ad to be bumped."}}
-				{{execCC $ccid nil 0 (sdict "bumpUp" 1)}}
-			{{else}}
-				{{$z = sendResponseRetID $a (print "There is a week of cooldown between posting and bumping up, so you may do it at <t:" $weekly ">.")}}
-			{{end}}
-		{{else if eq .StrippedID "deleteCollab"}}
-			{{$collabUserData.Set "userFlag" "deleteConfirm"}}
-			{{$compText := ""}}
-			{{if gt $currentTime $weekly}}
-				{{$compText = $collabConstants.confirmDelPostWarn}}
-			{{else if eq $weekly 0}}
-				{{$compText = $collabConstants.confirmDeleteTemp}}
-			{{else}}
-				{{$compText = print $collabConstants.confirmDeletePost "<t:" $weekly ">."}}
-			{{end}}
-			{{$z = sendResponseRetID $a (print $compText $collabConstants.confirmConfirm)}}
-		{{else if eq .StrippedID "editDetails"}}
-			{{$modal := index .Values 0}}
-			{{$xa := cslice}}
-			{{$xb := cslice $collabConstants.textInputCollabTitle $collabConstants.textInputCollabDescription $collabConstants.textInputCollabHost $collabConstants.textInputCollabInvite $collabConstants.textInputCollabContribution}}
-			{{$xc := cslice $collabUserData.collabTitle $collabUserData.collabDescription $collabUserData.collabHost $collabUserData.collabInvite $collabUserData.collabContribution}}
-			{{$xd := cslice $collabConstants.labelCollabTitle $collabConstants.labelCollabDescription $collabConstants.labelCollabHost $collabConstants.labelCollabInvite $collabConstants.labelCollabContribution}}
-			{{$xe := 3}}
-			{{if eq $modal "modal-2"}}
-				{{$xa = cslice $collabConstants.optionsCollabNeeds $collabConstants.optionsCollabSize $collabConstants.optionsCollabStandards}}
-				{{$xb = cslice $collabUserData.collabNeeds $collabUserData.collabSize $collabUserData.collabStandards }}
-				{{$xc = cslice $collabConstants.menuCollabNeeds $collabConstants.menuCollabSize $collabConstants.menuCollabStandards }}
-				{{$xd = cslice $collabConstants.labelCollabNeeds $collabConstants.labelCollabSize $collabConstants.labelCollabStandards}}
-				{{$xe = 2}}
-			{{else if eq $modal "modal-1"}}
-				{{$xa = cslice $collabConstants.optionsLevelDecoStyle $collabConstants.optionsLevelDifficulty $collabConstants.optionsLevelType}}
-				{{$xb = cslice $collabUserData.levelDecoStyle $collabUserData.levelDifficulty $collabUserData.levelType}}
-				{{$xc = cslice $collabConstants.menuLevelDecoStyle $collabConstants.menuLevelDifficulty $collabConstants.menuLevelType}}
-				{{$xd = cslice $collabConstants.labelLevelDecoStyle $collabConstants.labelLevelDifficulty $collabConstants.labelLevelType}}
-				{{$xe = 1}}
-			{{end}}
-			{{$ii := 0}}
-			{{if eq $modal "modal-1" "modal-2"}}
-				{{while lt $ii 3}}
-					{{$qa := index $xa $ii}}
-					{{$qc := index $xc $ii}}
-					{{range $qa}}
-						{{if eq .value (index $xb $ii)}}
-							{{.Set "default" true}}
-							{{break}}
-						{{end}}
-					{{end}}
-					{{$qc.Set "options" $qa}}
-					{{(index $xd $ii).Set "component" (cmenu $qc)}}
-					{{$ii = add $ii 1}}
-				{{end}}
-				{{$wa := clabel (index $xd 0)}}
-				{{$wb := clabel (index $xd 1)}}
-				{{$wc := clabel (index $xd 2)}}
-				{{sendModal (modalBuilder (print $idprint $modal) (print "Collab Ads Form (" $xe "/3)") $wa $wb $wc)}}
-			{{else}}
-				{{while lt $ii 5}}
-					{{$qa := index $xb $ii}}
-					{{$qa.Set "value" (index $xc $ii)}}
-					{{(index $xd $ii).Set "component" (ctextInput $qa)}}
-					{{$ii = add $ii 1}}
-				{{end}}
-				{{$wa := clabel (index $xd 0)}}
-				{{$wb := clabel (index $xd 1)}}
-				{{$wc := clabel (index $xd 2)}}
-				{{$wd := clabel (index $xd 3)}}
-				{{$we := clabel (index $xd 4)}}
-				{{sendModal (modalBuilder (print $idprint $modal) (print "Collab Ads Form (" $xe "/3)") $wa $wb $wc $wd $we)}}
-			{{end}}
-		{{else}}
-			{{sendResponse $a $errTxt}}
-		{{end}}
-		{{if eq .StrippedID "editDetails" "postCollab" "bumpUp" "manageThumbnail" "manageMedia" "deleteCollab"}}
-			{{$collabUserData.Set "notifID" $z}}
-			{{$collabUserData.Set "notifToken" $a}}
-			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
-		{{end}}
-	{{else if eq .Channel.ID $collabUserData.postForumID}}
-		{{if eq .StrippedID "recheck"}}
-			{{openThread $collabUserData.threadID}}
-			{{$z = sendMessageRetID $collabUserData.threadID (print .User.Mention ", this is your collab ad template.")}}
-			{{sendResponse $a (complexMessage "content" (print "Visit https://discord.com/channels/" .Guild.ID "/" $collabUserData.threadID "to take a look at your collab ad template.") "ephemeral" true)}}
-			{{deleteMessage $collabUserData.threadID $z 30}}
-		{{end}}
-	{{else if eq (getThread .Channel.ID).ParentID $collabConstants.regularCH $collabConstants.priorityCH}}
-		{{if eq .StrippedID "recheck"}}
-			{{sendResponse $a (complexMessage "content" $collabConstants.noOwner "ephemeral" true)}}
-		{{else}}
-			{{sendResponse $a $errTxt}}
+			{{execCC (dbGet 0 "collabConstants").Value.execCCID2 nil 0 .}}
 		{{end}}
 	{{else}}
-		{{sendResponse $a $errTxt}}
+		{{dbSet 0 "execCCID" 0}}
+		{{execCC (dbGet 0 "collabConstants").Value.execCCID nil 0 .}}
+	{{end}}
+{{end}}
+
+{{if not $isBlacklisted}}
+	{{$weekly := add $collabUserData.time $collabConstants.collabCD}}
+	{{$currentTime := currentTime.Unix}}
+	{{$r := sdict}}
+	{{$h := 0}}
+	{{try}}
+		{{$r = getThread .Channel.ID}}
+		{{$h = $r.ParentID}}
+	{{catch}}
+	{{end}}
+	{{if eq .Channel.ID $collabConstants.frontPage}}
+		{{if eq .CustomID "collabs-initial"}}
+			{{if eq $collabUserData.tID 0}}
+				{{if gt $currentTime $weekly}}
+					{{$templateThread := createThread $collabConstants.frontPage nil (print .User.Username "'s collab ad") true 1440 false}}
+					{{$tID := $templateThread.ID}}
+					{{$sID := sendMessageRetID $tID (print .User.Mention ", check this thread to add details to your collab ad template.")}}
+					{{$collabUserData.Set "tID" $tID}}
+					{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+					{{$xx := execTemplate "clock" (sdict "firstSend" 1 "t" $a "m" (print "Please head to https://discord.com/channels/" .Guild.ID "/" $templateThread.ID " to make your collaboration ad."))}}
+					{{deleteMessage $tID $sID 0}}
+				{{else}}
+					{{editResponse $a nil (print $collabConstants.noCreateCD (add $collabUserData.time $collabConstants.collabCD) ">.")}}
+				{{end}}
+			{{else}}
+				{{try}} {{openThread $collabUserData.tID}} {{catch}} {{end}}
+				{{$z = sendMessageRetID $collabUserData.tID (print .User.Mention ", this is the thread template of your collab ad.")}}
+				{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+				{{editResponse $a nil (print $collabConstants.hasTemplate .Guild.ID "/" $collabUserData.tID " to manage it.")}}
+				{{deleteMessage $collabUserData.tID $z 0}}
+			{{end}}
+		{{else}}
+			{{sendMessage $notifCH $errTxt}}
+		{{end}}
+	{{else if eq .Channel.ID $collabUserData.tID}}
+		{{try}} {{deleteInteractionResponse $collabUserData.nTok $collabUserData.nID 0}} {{catch}} {{end}}
+		{{try}} {{deleteMessage $collabUserData.tID $collabUserData.nmID 0}} {{catch}} {{end}}
+		{{if eq .CustomID "collabs-manageMedia"}}
+			{{$collabUserData.Set "flag" "manageMedia"}}
+			{{$collabUserData.Set "nID" $b}}
+			{{$collabUserData.Set "nTok" $a}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{$xx := execTemplate "clock" (sdict "edit" "manageMedia" "t" $a "m" $collabConstants.mediaBlurb)}}
+		{{else if eq .CustomID "collabs-manageThumbnail"}}
+			{{if or $collabUserData.boost $collabUserData.L20UP $collabUserData.staff}}
+				{{$collabUserData.Set "flag" "manageThumbnail"}}
+				{{$collabUserData.Set "nID" $b}}
+				{{$collabUserData.Set "nTok" $a}}
+				{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+				{{$xx := execTemplate "clock" (sdict "edit" "manageThumbnail" "t" $a "m" $collabConstants.thumbBlurb)}}
+			{{else}}
+				{{editResponse $a nil $collabConstants.noBooster}}
+			{{end}}
+		{{else if eq .CustomID "collabs-postCollab"}}
+			{{$collabUserData.Set "nID" $b}}
+			{{$collabUserData.Set "nTok" $a}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{$xx := execTemplate "clock" (sdict "post" 1 "t" $a)}}
+		{{else if eq .CustomID "collabs-bumpUp"}}
+			{{if or (gt $currentTime $weekly) (and (eq (getThread $collabUserData.fID).ParentID $collabConstants.regularCH) (or $collabUserData.staff $collabUserData.boost $collabUserData.L20UP))}}
+				{{$collabUserData.Set "nID" $b}}
+				{{$collabUserData.Set "nTok" $a}}
+				{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+				{{$xx := execTemplate "clock" (sdict "bumpUp" 1 "t" $a)}}
+			{{else}}
+				{{editResponse $a nil (print "There is a week of cooldown between posting and bumping up, so you may do it at <t:" $weekly ">.")}}
+			{{end}}
+		{{else if eq .CustomID "collabs-deleteCollab"}}
+			{{$collabUserData.Set "flag" "deleteConfirm"}}
+			{{$collabUserData.Set "nID" $b}}
+			{{$collabUserData.Set "nTok" $a}}
+			{{$compText := ""}}
+			{{if gt $currentTime $weekly}}
+				{{$compText = $collabConstants.conf2}}
+			{{else if eq $weekly 0}}
+				{{$compText = $collabConstants.conf3}}
+			{{else}}
+				{{$compText = print $collabConstants.conf1 "<t:" $weekly ">."}}
+			{{end}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{$xx := execTemplate "clock" (sdict "edit" "deleteCollab" "t" $a "m" (print $compText $collabConstants.conf4))}}
+		{{else}}
+			{{sendMessage $notifCH $errTxt}}
+		{{end}}
+	{{else if eq .Channel.ID $collabUserData.fID}}
+		{{if eq .CustomID "collabs-recheck"}}
+			{{try}} {{openThread $collabUserData.tID}} {{catch}} {{end}}
+			{{$z = sendMessageRetID $collabUserData.tID (print .User.Mention ", this is the thread template of your collab ad.")}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{editResponse $a nil (print $collabConstants.hasTemplate .Guild.ID "/" $collabUserData.tID " to manage it.")}}
+			{{deleteMessage $collabUserData.tID $z 0}}
+		{{else if eq .CustomID "collabs-report"}}
+			{{editResponse $a nil (print "To report this collab ad, please [create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) (<#1198065126780186665>).")}}
+		{{end}}
+	{{else if eq $h $collabConstants.regularCH $collabConstants.priorityCH}}
+		{{if eq .CustomID "collabs-recheck"}}
+			{{editResponse $a nil $collabConstants.noOwner}}
+		{{else if eq .CustomID "collabs-report"}}
+			{{editResponse $a nil (print "To report this collab ad, please [create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) (<#1198065126780186665>).")}}
+		{{else}}
+			{{sendMessage $notifCH $errTxt}}
+		{{end}}
+	{{else}}
+		{{sendMessage $notifCH $errTxt}}
 	{{end}}
 {{else}}
-	{{sendResponse $a (complexMessage "content" (print "You have the role <@&" $isBlacklisted ">, so you are not allowed to do this action.") "ephemeral" true)}}
+	{{editResponse $a nil (print $collabConstants.r8 $isBlacklisted $collabConstants.r9)}}
 {{end}}
