@@ -21,7 +21,7 @@
 	{{if eq $sub "help"}}
 		{{sendMessage nil (componentBuilder "container" (sdict "components" (componentBuilder "text" $collabConstants.helpP)))}}
 	{{else if eq $sub "show" "whitelist" "cdoff" "freeze" "unfreeze" "wand" "wandclear"}}
-		{{$user := ""}}
+		{{$user := 0}}
 		{{try}}
 			{{$user = toInt64 (reFind `\d{16,18}` (index $args 1))}}
 		{{catch}}
@@ -95,7 +95,8 @@
 					{{else}}
 						{{sendMessage nil "Invalid command:\n- `-ca wand <@user> remove <key>`\n- `-ca wand <@user> set <key> <value/s>`"}}
 					{{end}}
-				{{else if eq $sub "unfreeze"}}
+				{{else if eq $sub "show"}}
+					{{sendMessage nil (complexMessage "content" "Selecting keys is an upcoming feature, so here's the whole data." "file" (json $collabUserData true))}}
 				{{end}}
 			{{else}}
 				{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "No database found for <@" $user ">."))}}
