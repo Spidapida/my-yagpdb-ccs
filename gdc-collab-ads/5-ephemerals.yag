@@ -62,7 +62,7 @@
 		{{$h = $r.ParentID}}
 	{{catch}}
 	{{end}}
-	{{if eq .Channel.ID $collabConstants.frontPage}}
+	{{if eq .Channel.ID $collabConstants.frontPage $collabConstants.RGCH $collabConstants.PRCH}}
 		{{if eq .CustomID "collabs-initial"}}
 			{{if eq $collabUserData.tID 0}}
 				{{if gt $currentTime $weekly}}

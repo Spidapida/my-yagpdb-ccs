@@ -230,8 +230,18 @@
 	{{range $k, $v := $p}}
 		{{$collabConstants.Set $k $v}}
 	{{end}}
+	{{$msg := componentBuilder "container" (sdict "color" 0x5865f2 "components" (componentBuilder  "section" (sdict "text" "## To create a collab ad," "button" (sdict "label" "Click me!" "custom_id" "collabs-initial" "style" "blurple"))))}}
+	{{$msT := print "# Please check <#" $frontPage "> if you want to post your collab ad!"}}
+	{{$priority := createForumPost $priorityCH "Check #collab-info!" $msT}}
+	{{$PRCH := sendMessageRetID $priority.ID $msg}}
+	{{$regular := createForumPost $regularCH "Check #collab-info!" $msT}}
+	{{$RGCH := sendMessageRetID $regular.ID $msg}}
+	{{$collabConstants.Set "PRCH" $priority.ID}}
+	{{$collabConstants.Set "RGCH" $regular.ID}}
 	{{dbSet 0 "collabConstants" $collabConstants}}
 	{{sendMessage nil "Adding details finished. Proceed to next step."}}
 {{else}}
 	{{sendMessage nil "Adding failed because database previous step was not done. Please read the instructions."}}
 {{end}}
+
+{{/*  */}}
