@@ -78,6 +78,7 @@
 				{{end}}
 			{{else}}
 				{{try}} {{openThread $collabUserData.tID}} {{catch}} {{end}}
+				{{addThreadMember $collabUserData.tID .User.ID}}
 				{{$z = sendMessageRetID $collabUserData.tID (print .User.Mention ", this is the thread template of your collab ad.")}}
 				{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 				{{editResponse $a nil (print $collabConstants.hasTemplate .Guild.ID "/" $collabUserData.tID " to manage it.")}}
@@ -139,6 +140,7 @@
 	{{else if eq .Channel.ID $collabUserData.fID}}
 		{{if eq .CustomID "collabs-recheck"}}
 			{{try}} {{openThread $collabUserData.tID}} {{catch}} {{end}}
+			{{addThreadMember $collabUserData.tID .User.ID}}
 			{{$z = sendMessageRetID $collabUserData.tID (print .User.Mention ", this is the thread template of your collab ad.")}}
 			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 			{{editResponse $a nil (print $collabConstants.hasTemplate .Guild.ID "/" $collabUserData.tID " to manage it.")}}
