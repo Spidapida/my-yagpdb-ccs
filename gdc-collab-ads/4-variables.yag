@@ -74,7 +74,7 @@
 {{$noCreateCD := "As per the collaboration ad rules, you are not allowed to create a new collaboration ad template if you posted one within a week. You may create another one at <t:"}}
 {{$hasTemplate := "You already created your collaboration ad template, as seen by the mention. Go to https://discord.com/channels/"}}
 {{$mediaBlurb := "You may set media in your collab ad now by sending attachments or media links.\n- If you wish to clear the media, send `--clearmedia` without any attachments or media links.\n- By default, attachments will be ordered first before media links. To do the reverse, include the message `--urlfirst`.\n- While <@204255221017214977> can parse media in embeds, it cannot parse multiple media within an embed. Please copy the image link, and use that instead.\n- Forwarded media is currently not supported.\n- As usual, setting media must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
-{{$thumbBlurb := "As a <@&674754528381239330>, you may set a thumbnail in your collab ad. This will appear instead of the collab details in forums.\n- If you wish to clear the thumbnail, send `--clearthumbnail` without any attachment or media link.\n- Only one attachment or media link could be used for the thumbnail. If more than one is set, the first attachment or media link will be used.\n- As usual, setting a thumbnail must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
+{{$thumbBlurb := "As a <@&674754528381239330> or a <@&972856066809401396>**+**, you may set a thumbnail in your collab ad. This will appear instead of the collab details in forums.\n- If you wish to clear the thumbnail, send `--clearthumbnail` without any attachment or media link.\n- Only one attachment or media link could be used for the thumbnail. If more than one is set, the first attachment or media link will be used.\n- As usual, setting a thumbnail must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
 {{$AMNotice1 := ", which is not permitted in the server. If you wish to rectify this, please re-edit your details again, or if you still want to "}}
 {{$AMNotice2 := " your collab ad anyway, please [create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) and explain your reasoning."}}
 {{$noBooster := "You need <:Boost:1193034632359317545><@&674754528381239330> to set a thumbnail for your collab ad."}}
@@ -83,7 +83,7 @@
 {{$TSDel := "-# Confirm deletion by sending `CONFIRM`, or `CANCEL` to abort deletion."}}
 {{$TSFreeze := "-# A <@&643101579016273941> has freezed your template. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) to resolve it."}}
 {{$TSUploaded := "-# You can update the details of your collab using the menu and buttons below."}}
-{{$discordRegex := `(?:https?://)?(?:www.|ptb.|canary.)?(?:discord(?:app)?\.(?:(?:com|gg)/(?:invite|servers)/[a-z0-9\-_]+)|discord\.gg/[a-z0-9-_]+)`}}
+{{$discordRegex := `(?i)(?:https?://)?(?:www.|ptb.|canary.)?(?:discord(?:app)?\.(?:(?:com|gg)/(?:invite|servers)/[a-z0-9\-_]+)|discord\.gg/[a-z0-9-_]+)`}}
 {{$maskWarn := "\n- Some masked links are stripped to their regular links. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) if you want to add a website to a whitelist and reinstate the masked link."}}
 {{$noTitleEdit := " However, due to Discord API limits, the thread title has to stay as-is. Please try to edit the title again at least ten minutes from now."}}
 {{$noOwner := "You are not the owner of this ad. You may create your own collab in <#1411710934640099420>."}}
@@ -147,6 +147,7 @@
 "collabCD"		$collabCD
 "logChannel"	$logChannel
 "logSuccess"	$logSuccess
+"logDelete"		$logDelete
 "attachForward"	$attachForward
 "frontPage"		$frontPage
 "regularCH"		$regularCH
@@ -226,7 +227,7 @@
 "report"		$report
 }}
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
-{{if $collabConstants.helpK}}
+{{if $collabConstants.filterWildcards}}
 	{{range $k, $v := $p}}
 		{{$collabConstants.Set $k $v}}
 	{{end}}
