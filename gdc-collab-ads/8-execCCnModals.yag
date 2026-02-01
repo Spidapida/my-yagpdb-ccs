@@ -57,7 +57,7 @@ $collabConstants.t8 (or $collabUserData.LM $emptyText) }}
 {{$tempMedia := cslice }} {{range $collabUserData.CM}} {{$tempMedia = $tempMedia.Append (sdict "media" . )}} {{end}}
 {{$tempDescTL := $tempDesc}}
 {{if gt (len $tempDesc) 2000 }}
-	{{$tempDescTL = print (slice $tempDescTL 0 2500) " ••• (abridged)"}}
+	{{$tempDescTL = print (slice $tempDescTL 0 2000) " ••• (abridged)"}}
 {{end}}
 
 {{$thumbTitle := $collabConstants.n7}}
