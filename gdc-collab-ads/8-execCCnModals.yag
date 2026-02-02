@@ -287,7 +287,6 @@ $s $tempDetails ))
 
 
 	{{$idprint := "collabs-"}}
-	{{$ccid := $collabConstants.execCCID}}
 	{{$isBlacklisted := 0}}
 	{{$dbTimer := $collabConstants.dbTimer}}
 	{{$errTxt := print "<@661882006719954953>, " .User.Mention $collabConstants.n6 .Channel.ID "\n-# User thread ID: " $collabUserData.tID}}
@@ -324,6 +323,7 @@ $s $tempDetails ))
 	{{if eq $isBlacklisted 0}}
 		{{if eq .Channel.ID $collabUserData.tID}}
 			{{if eq .CustomID "collabs-editDetails"}}
+				{{$not := false}}
 				{{$modal := index .Values 0}}
 				{{$xa := cslice}}
 				{{$xb := cslice $collabConstants.TICTitle $collabConstants.TICDesc $collabConstants.TICHost $collabConstants.TICInv $collabConstants.TICContr}}
@@ -331,6 +331,7 @@ $s $tempDetails ))
 				{{$xc := cslice $collabUserData.CT $collabUserData.CP $collabUserData.CH $collabUserData.CI $xf}}
 				{{$xd := cslice $collabConstants.LCTitle $collabConstants.LCDesc $collabConstants.LCHost $collabConstants.LCInv $collabConstants.LCContr}}
 				{{$xe := 3}}
+				{{$masterModal := modalBuilder (print $idprint $modal) "Test title"}}
 				{{if eq $modal "modal-2"}}
 					{{$xa = cslice $collabConstants.OCNeed $collabConstants.OCSize $collabConstants.OCStand}}
 					{{$xb = cslice $collabUserData.CN $collabUserData.CZ $collabUserData.CS }}
@@ -364,9 +365,9 @@ $s $tempDetails ))
 						{{$md.Set "value" $collabUserData.LM}}
 						{{$me := $collabConstants.LLMusic}}
 						{{$me.Set "component" (ctextInput $md)}}
-						{{sendModal (modalBuilder (print $idprint $modal) (print $u $xe "/3)") (clabel (index $xd 0)) (clabel (index $xd 1)) (clabel (index $xd 2)) (clabel $me))}}
+						{{$masterModal = modalBuilder (print $idprint $modal) (print $u $xe "/3)") (clabel (index $xd 0)) (clabel (index $xd 1)) (clabel (index $xd 2)) (clabel $me)}}
 					{{else if eq $xe 2}}
-						{{sendModal (modalBuilder (print $idprint $modal) (print $u $xe "/3)") (clabel (index $xd 0)) (clabel (index $xd 1)) (clabel (index $xd 2)))}}
+						{{$masterModal = modalBuilder (print $idprint $modal) (print $u $xe "/3)") (clabel (index $xd 0)) (clabel (index $xd 1)) (clabel (index $xd 2))}}
 					{{end}}
 				{{else}}
 					{{while lt $ii 5}}
@@ -375,7 +376,19 @@ $s $tempDetails ))
 						{{(index $xd $ii).Set "component" (ctextInput $qa)}}
 						{{$ii = add $ii 1}}
 					{{end}}
-					{{sendModal (modalBuilder (print $idprint $modal) (print $u $xe "/3)") (clabel (index $xd 0)) (clabel (index $xd 1)) (clabel (index $xd 2)) (clabel (index $xd 3)) (clabel (index $xd 4)))}}
+					{{$masterModal = modalBuilder (print $idprint $modal) (print $u $xe "/3)") (clabel (index $xd 0)) (clabel (index $xd 1)) (clabel (index $xd 2)) (clabel (index $xd 3)) (clabel (index $xd 4))}}
+				{{end}}
+				{{try}}
+					{{sendModal $masterModal}}
+				{{catch}}
+					{{$not = true}}
+				{{end}}
+				{{if $not}}
+					{{try}} {{deleteInteractionResponse $collabUserData.nTok $collabUserData.nID 0}} {{catch}} {{end}}
+					{{try}} {{deleteMessage $collabUserData.tID $collabUserData.nmID 0}} {{catch}} {{end}}
+					{{$notif := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" $collabConstants.rd)}}
+					{{$collabUserData.Set "nmID" $notif}}
+					{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 				{{end}}
 			{{else}}
 				{{sendMessage $collabConstants.notifCH $errTxt}}
