@@ -131,7 +131,7 @@
 				{{editResponse $a nil (print "There is a week of cooldown between posting and bumping up, so you may do it at <t:" $weekly ">.")}}
 			{{end}}
 		{{else if eq .CustomID "collabs-deleteCollab"}}
-			{{$collabUserData.Set "flag" "deleteConfirm"}}
+			{{$collabUserData.Set "flag" "deleteCollab"}}
 			{{$collabUserData.Set "nID" $b}}
 			{{$collabUserData.Set "nTok" $a}}
 			{{$compText := ""}}

@@ -3,7 +3,7 @@
 -----------------------------------------------------------------
 tID   |  int64  | thread ID of collab ad template
 tmID  |  int64  | message ID of collab ad template
-flag  |  string | <neutral>, <manageMedia>, <manageThumbnail>, <deleteConfirm>, <freeze> = user status
+flag  |  string | <neutral>, <manageMedia>, <manageThumbnail>, <deleteCollab>, <freeze> = user status
 AMod  |  string | <true>, <false>, <bypassed> = AutoMod status for Collab Description
 term  |  string | what term got AutoModded for Collab Description
 
@@ -65,7 +65,9 @@ ter2  |  string | what term got AutoModded for Level Music` "```"}}
 {{$rk := "Your thumbnail has been cleared."}}
 {{$rl := "No thumbnail has been set due to absence of valid attachment or media link."}}
 {{$rm := "\n- You have more than one media, so only the first attachment/embed is chosen for the thumbail."}}
-{{$rn := "A minute had passed and setting media has been cancelled automatically."}}
+{{$rn := "Setting media has been cancelled automatically; one minute already passed."}}
+{{$ro := "Collab ad deletion has been aborted; one minute already passed."}}
+{{$rp := "Setting media has been cancelled automatically; one minute already passed."}}
 {{$e0 := "870823987016527922"}}
 {{$e1 := "870823962093969449"}}
 {{$a := "users"}}
@@ -106,6 +108,9 @@ ter2  |  string | what term got AutoModded for Level Music` "```"}}
 "rk"			$rk
 "rl"			$rl
 "rm"			$rm
+"rn"			$rn
+"ro"			$ro
+"rp"			$rp
 "e0"			$e0
 "e1"			$e1
 "a"				$a

@@ -187,7 +187,7 @@
 {{/* collab user data descriptors:
 	"tID"		int64, tempalte thread ID
 	"tmID"		int64, template message ID
-	"flag"		string, <neutral, manageMedia, manageThumbnail, deleteConfirm, freeze>, user flag status
+	"flag"		string, <neutral, manageMedia, manageThumbnail, deleteCollab, freeze>, user flag status
 	"AMod"		string, <true, bypassed, false>, automod status
 	"term"		string, what term got automodded
 	"staff"		boolean, if staff

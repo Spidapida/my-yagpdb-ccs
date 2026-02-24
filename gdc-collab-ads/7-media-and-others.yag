@@ -3,6 +3,7 @@
 {{$flag := $collabUserData.flag}}
 {{$ccid := $collabConstants.execCCID}}
 {{$dbTimer := $collabConstants.dbTimer}}
+{{$CH := $collabUserData.tID}}
 
 {{define "link"}}
 	{{$x := cslice}}
@@ -134,36 +135,43 @@
 {{if eq .Channel.ID $collabUserData.tID}}
 	{{$links := reFindAll .LinkRegex .Message.Content}}
 	{{$editMe := ""}}
-	{{if eq $flag "deleteConfirm" "manageMedia" "manageThumbnail"}}
+	{{if eq $flag "deleteCollab" "manageMedia" "manageThumbnail"}}
 		{{try}} {{deleteInteractionResponse $collabUserData.nTok $collabUserData.nID 0}} {{catch}} {{end}}
 		{{try}} {{deleteMessage $collabUserData.tID $collabUserData.nmID 0}} {{catch}} {{end}}
 	{{end}}
 	
 	{{if and (eq $flag "manageMedia" "manageThumbnail") (in .Message.Content "--notimer") }}
 		{{cancelScheduledUniqueCC $collabConstants.schedCC "SK"}}
-		{{$z := sendMessageRetID nil $collabConstants.ri}}
+		{{$z := sendMessageRetID $CH $collabConstants.ri}}
 		{{$collabUserData.Set "nmID" $z}}
 		{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 		{{return}}
 	{{end}}
 	{{if .ExecData}}
+		{{$z := 0}}
+		{{if eq $collabUserData.flag "manageMedia"}}
+			{{$z = sendMessageRetID $CH $collabConstants.rn}}
+		{{else if eq $collabUserData.flag "manageThumbnail"}}
+			{{$z = sendMessageRetID $CH $collabConstants.rp}}
+		{{else if eq $collabUserData.flag "deleteCollab"}}
+			{{$z = sendMessageRetID $CH $collabConstants.ro}}
+		{{end}}
 		{{$collabUserData.Set "flag" "neutral"}}
-		{{$z := sendMessageRetID nil $collabConstants.rn}}
 		{{$collabUserData.Set "nmID" $z}}
 		{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 		{{$xx := execTemplate "clock" (sdict "edit" "")}}
 		{{return}}
 	{{end}}
-	{{if eq $flag "deleteConfirm"}}
+	{{if eq $flag "deleteCollab"}}
 		{{if in .Message.Content "CONFIRM"}}
-			{{sendMessage nil (complexMessage "reply" .Message.ID "content" $collabConstants.rf)}}
-			{{execCC $ccid nil 0 (sdict "destruct" 1)}}
+			{{sendMessage $CH (complexMessage "reply" .Message.ID "content" $collabConstants.rf)}}
+			{{execCC $ccid $CH 0 (sdict "destruct" 1)}}
 			{{if $zz := $collabUserData.fID}}
 				{{deleteForumPost $zz}}
 			{{end}}
 		{{else}}
 			{{deleteTrigger 0}}
-			{{$z := sendMessageRetID nil (complexMessage "content" $collabConstants.re)}}
+			{{$z := sendMessageRetID $CH (complexMessage "content" $collabConstants.re)}}
 			{{$collabUserData.Set "flag" "neutral"}}
 			{{$collabUserData.Set "nmID" $z}}
 			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
@@ -173,9 +181,9 @@
 		{{$notif := 0}}
 		{{ cancelScheduledUniqueCC $collabConstants.schedCC "SK" }}
 		{{try}}
-			{{$notif = sendMessageRetID nil (complexMessage "reply" .Message.ID "content" $collabConstants.re)}}
+			{{$notif = sendMessageRetID $CH (complexMessage "reply" .Message.ID "content" $collabConstants.re)}}
 		{{catch}}
-			{{$notif = sendMessageRetID nil (print .User.Mention $collabConstants.rg )}}
+			{{$notif = sendMessageRetID $CH (print .User.Mention $collabConstants.rg )}}
 			{{$collabUserData.Set "nmID" $notif}}
 			{{$collabUserData.Set "flag" "neutral"}}
 			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
@@ -199,7 +207,7 @@
 			{{deleteTrigger 0}}
 		{{else}}
 			{{if $lol := $collabUserData.no4WM}}
-				{{try}} {{deleteMessage nil $lol 0}} {{catch}} {{end}}
+				{{try}} {{deleteMessage $CH $lol 0}} {{catch}} {{end}}
 				{{$collabUserData.Set "no4WM" 0}}
 			{{end}}
 			{{if $exec.noForward}}
@@ -226,9 +234,9 @@
 		{{$notif := 0}}
 		{{ cancelScheduledUniqueCC $collabConstants.schedCC "SK" }}
 		{{try}}
-			{{$notif = sendMessageRetID nil (complexMessage "reply" .Message.ID "content" $collabConstants.re)}}
+			{{$notif = sendMessageRetID $CH (complexMessage "reply" .Message.ID "content" $collabConstants.re)}}
 		{{catch}}
-			{{$notif = sendMessageRetID nil (print .User.Mention $collabConstants.rg )}}
+			{{$notif = sendMessageRetID $CH (print .User.Mention $collabConstants.rg )}}
 			{{$collabUserData.Set "nmID" $notif}}
 			{{$collabUserData.Set "flag" "neutral"}}
 			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
@@ -249,7 +257,7 @@
 			{{deleteTrigger 0}}
 		{{else}}
 			{{if $lol := $collabUserData.no4WF}}
-				{{try}} {{deleteMessage nil $lol 0}} {{catch}} {{end}}
+				{{try}} {{deleteMessage $CH $lol 0}} {{catch}} {{end}}
 				{{$collabUserData.Set "no4WF" 0}}
 			{{end}}
 			{{if $exec.noForward}}

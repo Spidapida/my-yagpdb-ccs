@@ -18,7 +18,7 @@
 {{$logDel := $collabConstants.logDelete}}
 {{$fmID := $collabUserData.fmID}}
 
-{{if eq (toString .ExecData.edit) "manageMedia" "manageThumbnail"}}
+{{if eq (toString .ExecData.edit) "manageMedia" "manageThumbnail" "deleteCollab"}}
 	{{scheduleUniqueCC $collabConstants.schedCC nil 60 "SK" "a"}}
 {{end}}
 
@@ -143,7 +143,7 @@ $s $tempDetails ))
 	{{$tempStatus = $collabConstants.TSMedia}}
 {{else if eq $flag "manageThumbnail"}}
 	{{$tempStatus = $collabConstants.TSThumbs}}
-{{else if eq $flag "deleteConfirm"}}
+{{else if eq $flag "deleteCollab"}}
 	{{$tempStatus = $collabConstants.TSDel}}
 {{else if eq $flag "freeze"}}
 	{{$tempStatus = $collabConstants.TSFreeze}}

@@ -71,7 +71,7 @@
 {{$confirmDeletePost := "Are you sure you want to delete this template, as well as your posted collab ad? Note that once you do this, you cannot create another new one until " }}
 {{$confirmDelPostWarn := "Are you sure you want to delete this template, as well as your posted collab ad?"}}
 {{$confirmDeleteTemp := "Are you sure you want to delete this template?"}}
-{{$confirmConfirm := " Send **`CONFIRM`** in ALL CAPS to confirm the deletion. Typing anything else would abort the deletion."}}
+{{$confirmConfirm := " Send **`CONFIRM`** in ALL CAPS to confirm the deletion. Typing anything else or not doing anything for a minute would abort the deletion."}}
 {{$noCreateCD := "As per the collaboration ad rules, you are not allowed to create a new collaboration ad template if you posted one within a week. You may create another one at <t:"}}
 {{$hasTemplate := "You already created your collaboration ad template, as seen by the mention. Go to https://discord.com/channels/"}}
 {{$mediaBlurb := "You may set media in your collab ad now by sending attachments or media links.\n- If you want to cancel setting media in your collab ad, wait for a minute or send any message.\n- - If you need more time in setting your media, send **`--notimer`**, then upload your media.\n- If you wish to clear the media, send `--clearmedia` without any attachments or media links.\n- By default, attachments will be ordered first before media links. To do the reverse, include the message `--urlfirst`.\n- While <@204255221017214977> can parse media in embeds, it cannot parse multiple media within an embed. Please copy the image link, and use that instead.\n- Forwarded media is currently not supported.\n- As usual, setting media must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
@@ -79,9 +79,9 @@
 {{$AMNotice1 := ", which is not permitted in the server. If you wish to rectify this, please re-edit your details again, or if you still want to "}}
 {{$AMNotice2 := " your collab ad anyway, please [create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) and explain your reasoning."}}
 {{$noBooster := "You need <:Boost:1193034632359317545><@&674754528381239330> or <@&972856066809401396>**+** to set a thumbnail for your collab ad."}}
-{{$TSMedia := "-# <a:arrow:1043755787773804654> Upload your media or paste your media links to set them in gallery.\n-# <a:arrow:1043755787773804654> **If you want to upload large media, send `--notimer`.**"}}
-{{$TSThumbs := "-# <a:arrow:1043755787773804654> Upload your media or paste your media link to set your thumbnail.\n-# <a:arrow:1043755787773804654> **If you want to upload large thumbnail, send `--notimer`.**"}}
-{{$TSDel := "-# <a:arrow:1043755787773804654> Confirm deletion by sending `CONFIRM`, or type anything else to abort deletion."}}
+{{$TSMedia := "-# <a:arrow:1043755787773804654> Upload your media or paste your media links to set them in gallery.\n-# <a:arrow:1043755787773804654> **If you want to remove the timer in uploading media, send `--notimer`.**"}}
+{{$TSThumbs := "-# <a:arrow:1043755787773804654> Upload your media or paste your media link to set your thumbnail.\n-# <a:arrow:1043755787773804654> **If you want to remove the timer in uploading a thumbnail, send `--notimer`.**"}}
+{{$TSDel := "-# <a:arrow:1043755787773804654> Confirm deletion by sending `CONFIRM`\n-# <a:arrow:1043755787773804654> Typing anything else or not doing anything for a minute aborts deletion."}}
 {{$TSFreeze := "-# <a:arrow:1043755787773804654> A <@&643101579016273941> has freezed your template. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) to resolve it."}}
 {{$TSUploaded := "-# <a:arrow:1043755787773804654> You can edit the details of your collab using the menu and buttons below.\n-# They will reflect on your posted collab ad as well."}}
 {{$discordRegex := `(?i)(?:https?://)?(?:www.|ptb.|canary.)?(?:discord(?:app)?\.(?:(?:com|gg)/(?:invite|servers)/[a-z0-9\-_]+)|discord\.gg/[a-z0-9-_]+)`}}
@@ -116,43 +116,6 @@
 - **My contribution to the collab:** `}}
 {{$t8 := `
 - **Level music:** `}}
-{{$r0 := "Please head to https://discord.com/channels/"}}
-{{$r1 := " to make your collaboration ad."}}
-{{$r2 := "There is a week of cooldown between posting and bumping up, so you may do it at <t:"}}
-{{$r3 := "to take a look at your collab ad template."}}
-{{$r4 := "You have the role <@&"}}
-{{$r5 := ">, so you are not allowed to do this action."}}
-{{$r6 := " has found themselves in a weird position!\n-# Channel ID triggered: "}}
-{{$r7 := "Your collab ad details has been modified."}}
-{{$r8 := "You have the role <@&"}}
-{{$r9 := ">, so you are not allowed to do this action."}}
-{{$ra := "Your collab ad details has been modified."}}
-{{$rb := " your collab ad due to the presence of a phishing link"}}
-{{$rc := " Due to Discord rate limiting channel name modifications, the forum thread of your collab ad can't be edited until <t:"}}
-{{$rd := "Due to Discord's implementation of interactions, once three seconds already passed and the interaction was not acknowledged, the modal cannot be send. Sorry for the inconvenience, please retry answering again."}}
-{{$re := "<a:loading:969202742100893716>  YAGPDB.xyz is thinking..."}}
-{{$rf := "<a:loading:969202742100893716>  YAGPDB.xyz is deleting your collab ad..."}}
-{{$rg := "Error: Could not fetch the message due to sudden deletion, aborting operation..."}}
-{{$rh := "\n- Due to Discord, the media attached is linked to your previous message. Please do not delete your message to ensure proper media playback when you posted your collab ad."}}
-{{$ri := "Timer for uploading has been removed. To cancel uploading, send any message."}}
-{{$rj := "Your media gallery has been cleared."}}
-{{$rk := "Your thumbnail has been cleared."}}
-{{$rl := "No thumbnail has been set due to absence of valid attachment or media link."}}
-{{$rm := "\n- You have more than one media, so only the first attachment/embed is chosen for the thumbail."}}
-{{$rn := "A minute had passed and setting media has been cancelled automatically."}}
-{{$e0 := "870823987016527922"}}
-{{$e1 := "870823962093969449"}}
-{{$a := "users"}}
-{{$b := " / 3 ] Details Filled"}}
-{{$c := "interactive_components"}}
-{{$d := "container"}}
-{{$e := "separator"}}
-{{$f := "components"}}
-{{$g := "allowed_mentions"}}
-{{$h := "text"}}
-{{$i := "placeholder"}}
-{{$j := " was flagged due to presence of `"}}
-{{$report :=  sdict "emoji" (sdict "name" "⚠") "label" "Report Collab" "custom_id" "collabs-report" "style" "danger"}}
 
 {{$p := sdict "safeSites" $safeSites
 "dbTimer"		$dbTimer
@@ -212,42 +175,6 @@
 "t6"			$t6
 "t7"			$t7
 "t8"			$t8
-"r0"			$r0
-"r1"			$r1
-"r2"			$r2
-"r3"			$r3
-"r4"			$r4
-"r5"			$r5
-"r6"			$r6
-"r7"			$r7
-"r8"			$r8
-"r9"			$r9
-"ra"			$ra
-"rb"			$rb
-"rc"			$rc
-"rd"			$rd
-"re"			$re
-"rf"			$rf
-"rg"			$rg
-"rh"			$rh
-"ri"			$ri
-"rj"			$rj
-"rk"			$rk
-"rl"			$rl
-"rm"			$rm
-"e0"			$e0
-"e1"			$e1
-"a"				$a
-"b"				$b
-"c"				$c
-"d"				$d
-"e"				$e
-"f"				$f
-"g"				$g
-"h"				$h
-"i"				$i
-"j"				$j
-"report"		$report
 }}
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
 {{if $collabConstants.filterWildcards}}
