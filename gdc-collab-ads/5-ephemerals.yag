@@ -4,12 +4,22 @@
 {{$notifCH := $collabConstants.notifCH}}
 
 {{$a := .Interaction.Token}}
-{{$b := (getResponse $a nil).ID}}
+{{$b := 0}}
 {{$idprint := "collabs-"}}
 {{$ccid := $collabConstants.execCCID}}
 {{$isBlacklisted := 0}}
 {{$dbTimer := $collabConstants.dbTimer}}
 {{$z := 0}}
+
+{{try}}
+	{{$bb := getResponse $a nil}}
+	{{$b = $bb.ID}}
+{{catch}}
+	{{if $collabUserData.tID}}
+		{{sendMessage $collabUserData.tID (print "Something went wrong, please try pressing the button again, " .User.Mention ".")}}
+	{{end}}
+	{{return}}
+{{end}}
 
 {{$collabUserData.Set "staff" false}}
 {{range $collabConstants.staffRoles}}

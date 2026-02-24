@@ -5,6 +5,7 @@
 
 {{$execCCID := 88}} {{/* 1-execCC.yag CCID */}}
 {{$execCCID2 := 97}} {{/* 8-execCCnModals.yag CCID */}}
+{{$schedCC := 101}} {{/* 7-media-and-others.yag CCID */}}
 
 {{$frontPage := 1465371831102865419}} {{/* Channel ID for posting the front page of the CC. This must be a regular text channel, not a thread. */}}
 {{$notifCH := 1272760764293185617}}
@@ -73,16 +74,16 @@
 {{$confirmConfirm := " Send **`CONFIRM`** in ALL CAPS to confirm the deletion. Typing anything else would abort the deletion."}}
 {{$noCreateCD := "As per the collaboration ad rules, you are not allowed to create a new collaboration ad template if you posted one within a week. You may create another one at <t:"}}
 {{$hasTemplate := "You already created your collaboration ad template, as seen by the mention. Go to https://discord.com/channels/"}}
-{{$mediaBlurb := "You may set media in your collab ad now by sending attachments or media links.\n- If you wish to clear the media, send `--clearmedia` without any attachments or media links.\n- By default, attachments will be ordered first before media links. To do the reverse, include the message `--urlfirst`.\n- While <@204255221017214977> can parse media in embeds, it cannot parse multiple media within an embed. Please copy the image link, and use that instead.\n- Forwarded media is currently not supported.\n- As usual, setting media must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
-{{$thumbBlurb := "As a <@&674754528381239330> or a <@&972856066809401396>**+**, you may set a thumbnail in your collab ad. This will appear instead of the collab details in forums.\n- If you wish to clear the thumbnail, send `--clearthumbnail` without any attachment or media link.\n- Only one attachment or media link could be used for the thumbnail. If more than one is set, the first attachment or media link will be used.\n- As usual, setting a thumbnail must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
+{{$mediaBlurb := "You may set media in your collab ad now by sending attachments or media links.\n- If you want to cancel setting media in your collab ad, wait for a minute or send any message.\n- - If you need more time in setting your media, send **`--notimer`**, then upload your media.\n- If you wish to clear the media, send `--clearmedia` without any attachments or media links.\n- By default, attachments will be ordered first before media links. To do the reverse, include the message `--urlfirst`.\n- While <@204255221017214977> can parse media in embeds, it cannot parse multiple media within an embed. Please copy the image link, and use that instead.\n- Forwarded media is currently not supported.\n- As usual, setting media must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
+{{$thumbBlurb := "As a <@&674754528381239330> or a <@&972856066809401396>**+**, you may set a thumbnail in your collab ad. This will appear instead of the collab details in forums.\n- If you want to cancel setting a thumbnail in your collab ad, wait for a minute or send any message.\n- - If you need more time in setting your thumbnail, send **`--notimer`**, then upload your thumbnail.\n- If you wish to clear the thumbnail, send `--clearthumbnail` without any attachment or media link.\n- Only one attachment or media link could be used for the thumbnail. If more than one is set, the first attachment or media link will be used.\n- As usual, setting a thumbnail must follow [GDC's rules](https://discord.com/channels/643089441463992340/988796169142558760)."}}
 {{$AMNotice1 := ", which is not permitted in the server. If you wish to rectify this, please re-edit your details again, or if you still want to "}}
 {{$AMNotice2 := " your collab ad anyway, please [create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) and explain your reasoning."}}
-{{$noBooster := "You need <:Boost:1193034632359317545><@&674754528381239330> to set a thumbnail for your collab ad."}}
-{{$TSMedia := "-# Upload your media or paste your media links to set them in gallery."}}
-{{$TSThumbs := "-# Upload your media or paste your media link to set your thumbnail."}}
-{{$TSDel := "-# Confirm deletion by sending `CONFIRM`, or `CANCEL` to abort deletion."}}
-{{$TSFreeze := "-# A <@&643101579016273941> has freezed your template. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) to resolve it."}}
-{{$TSUploaded := "-# You can update the details of your collab using the menu and buttons below."}}
+{{$noBooster := "You need <:Boost:1193034632359317545><@&674754528381239330> or <@&972856066809401396>**+** to set a thumbnail for your collab ad."}}
+{{$TSMedia := "-# <a:arrow:1043755787773804654> Upload your media or paste your media links to set them in gallery.\n-# <a:arrow:1043755787773804654> **If you want to upload large media, send `--notimer`.**"}}
+{{$TSThumbs := "-# <a:arrow:1043755787773804654> Upload your media or paste your media link to set your thumbnail.\n-# <a:arrow:1043755787773804654> **If you want to upload large thumbnail, send `--notimer`.**"}}
+{{$TSDel := "-# <a:arrow:1043755787773804654> Confirm deletion by sending `CONFIRM`, or type anything else to abort deletion."}}
+{{$TSFreeze := "-# <a:arrow:1043755787773804654> A <@&643101579016273941> has freezed your template. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) to resolve it."}}
+{{$TSUploaded := "-# <a:arrow:1043755787773804654> You can edit the details of your collab using the menu and buttons below.\n-# They will reflect on your posted collab ad as well."}}
 {{$discordRegex := `(?i)(?:https?://)?(?:www.|ptb.|canary.)?(?:discord(?:app)?\.(?:(?:com|gg)/(?:invite|servers)/[a-z0-9\-_]+)|discord\.gg/[a-z0-9-_]+)`}}
 {{$maskWarn := "\n- Some masked links are stripped to their regular links. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) if you want to add a website to a whitelist and reinstate the masked link."}}
 {{$noTitleEdit := " However, due to Discord API limits, the thread title has to stay as-is. Please try to edit the title again at least ten minutes from now."}}
@@ -91,7 +92,7 @@
 {{$n1 := " to avoid corrupting the thumbnail for other members of the server."}}
 {{$n2 := " to avoid corrupting the media gallery for other members of the server."}}
 {{$n3 := "### Relevant details about this collab:"}}
-{{$n4 := "Check out the menu `[ "}}
+{{$n4 := "-# <a:arrow:1043755787773804654> Check out the menu `[ "}}
 {{$n5 := " / 3 ] Details Filled` to enter details about your collab ad."}}
 {{$n6 := " has found themselves in a weird position!\n-# Channel ID triggered: "}}
 {{$n7 := "### <a:magicmod:879476331853783141>  Thumbnail for the post:"}}
@@ -129,6 +130,16 @@
 {{$rb := " your collab ad due to the presence of a phishing link"}}
 {{$rc := " Due to Discord rate limiting channel name modifications, the forum thread of your collab ad can't be edited until <t:"}}
 {{$rd := "Due to Discord's implementation of interactions, once three seconds already passed and the interaction was not acknowledged, the modal cannot be send. Sorry for the inconvenience, please retry answering again."}}
+{{$re := "<a:loading:969202742100893716>  YAGPDB.xyz is thinking..."}}
+{{$rf := "<a:loading:969202742100893716>  YAGPDB.xyz is deleting your collab ad..."}}
+{{$rg := "Error: Could not fetch the message due to sudden deletion, aborting operation..."}}
+{{$rh := "\n- Due to Discord, the media attached is linked to your previous message. Please do not delete your message to ensure proper media playback when you posted your collab ad."}}
+{{$ri := "Timer for uploading has been removed. To cancel uploading, send any message."}}
+{{$rj := "Your media gallery has been cleared."}}
+{{$rk := "Your thumbnail has been cleared."}}
+{{$rl := "No thumbnail has been set due to absence of valid attachment or media link."}}
+{{$rm := "\n- You have more than one media, so only the first attachment/embed is chosen for the thumbail."}}
+{{$rn := "A minute had passed and setting media has been cancelled automatically."}}
 {{$e0 := "870823987016527922"}}
 {{$e1 := "870823962093969449"}}
 {{$a := "users"}}
@@ -159,6 +170,7 @@
 "blacklist"		$blacklistRoles
 "execCCID"		$execCCID
 "execCCID2"		$execCCID2
+"schedCC"		$schedCC
 "notifCH"		$notifCH
 
 "conf1"			$confirmDeletePost
@@ -214,6 +226,15 @@
 "rb"			$rb
 "rc"			$rc
 "rd"			$rd
+"re"			$re
+"rf"			$rf
+"rg"			$rg
+"rh"			$rh
+"ri"			$ri
+"rj"			$rj
+"rk"			$rk
+"rl"			$rl
+"rm"			$rm
 "e0"			$e0
 "e1"			$e1
 "a"				$a

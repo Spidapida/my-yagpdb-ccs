@@ -10,8 +10,9 @@
 	{{$timer := .timer}}
 	{{$ccid := .ccid}}
 	{{$who := .who}}
+	{{$channel := .channel}}
 	{{dbSetExpire $user "collabUserData" $data $timer}}
-	{{execCC $ccid nil 0 (sdict "fireupdate" $user "staff" $who "edit" "")}}
+	{{execCC $ccid $channel 0 (sdict "fireupdate" $user "staff" $who "edit" "")}}
 {{end}}
 
 {{if not $args}}
@@ -38,24 +39,24 @@
 							{{if eq $collabUserData.AMo2 "true"}}
 								{{$collabUserData.Set "AMo2" "bypassed"}}
 							{{end}}
-							{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID)}}
+							{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
 							{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> can now post or bump up their collab ad."))}}
 						{{else if eq $sub "cdoff"}}
 							{{if $collabUserData.fID}}
 								{{$time := $collabUserData.time}}
 								{{$collabUserData.Set "time" (add $time (toInt64 $collabConstants.collabCD))}}
-								{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID)}}
+								{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
 								{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> can now bump up their collab ad."))}}
 							{{else}}
 								{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> has not posted their collab ad yet."))}}
 							{{end}}
 						{{else if eq $sub "freeze"}}
 							{{$collabUserData.Set "flag" "freeze"}}
-							{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID)}}
+							{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
 							{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user ">'s template is now frozen."))}}
 						{{else if eq $sub "unfreeze"}}
 							{{$collabUserData.Set "flag" "neutral"}}
-							{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID)}}
+							{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
 							{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user ">'s template is now unfrozen."))}}
 						{{end}}
 					{{else}}
@@ -80,7 +81,7 @@
 							{{range $keys}}
 								{{if eq . $sub1}}
 									{{$collabUserData.Set . ($collabConstants.collabUserData.Get .)}}
-									{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID)}}
+									{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
 									{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "Removed key `" . "` from <@" $user ">."))}}
 									{{$err = false}}
 									{{break}}

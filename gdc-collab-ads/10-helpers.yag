@@ -42,9 +42,83 @@ nmID  |  int64  | Notification Message ID, non-ephemeral
 AMo2  |  string | <true>, <false>, <bypassed> = AutoMod status for Level Music
 ter2  |  string | what term got AutoModded for Level Music` "```"}}
 
+{{$r0 := "Please head to https://discord.com/channels/"}}
+{{$r1 := " to make your collaboration ad."}}
+{{$r2 := "There is a week of cooldown between posting and bumping up, so you may do it at <t:"}}
+{{$r3 := "to take a look at your collab ad template."}}
+{{$r4 := "You have the role <@&"}}
+{{$r5 := ">, so you are not allowed to do this action."}}
+{{$r6 := " has found themselves in a weird position!\n-# Channel ID triggered: "}}
+{{$r7 := "Your collab ad details has been modified."}}
+{{$r8 := "You have the role <@&"}}
+{{$r9 := ">, so you are not allowed to do this action."}}
+{{$ra := "Your collab ad details has been modified."}}
+{{$rb := " your collab ad due to the presence of a phishing link"}}
+{{$rc := " Due to Discord rate limiting channel name modifications, the forum thread of your collab ad can't be edited until <t:"}}
+{{$rd := "Due to Discord's implementation of interactions, once three seconds already passed and the interaction was not acknowledged, the modal cannot be send. Sorry for the inconvenience, please retry answering again."}}
+{{$re := "<a:loading:969202742100893716>  YAGPDB.xyz is thinking..."}}
+{{$rf := "<a:loading:969202742100893716>  YAGPDB.xyz is deleting your collab ad..."}}
+{{$rg := "Error: Could not fetch the message due to sudden deletion, aborting operation..."}}
+{{$rh := "\n- Due to Discord, the media attached is linked to your previous message. Please do not delete your message to ensure proper media playback when you posted your collab ad."}}
+{{$ri := "Timer for uploading has been removed. To cancel uploading, send any message."}}
+{{$rj := "Your media gallery has been cleared."}}
+{{$rk := "Your thumbnail has been cleared."}}
+{{$rl := "No thumbnail has been set due to absence of valid attachment or media link."}}
+{{$rm := "\n- You have more than one media, so only the first attachment/embed is chosen for the thumbail."}}
+{{$rn := "A minute had passed and setting media has been cancelled automatically."}}
+{{$e0 := "870823987016527922"}}
+{{$e1 := "870823962093969449"}}
+{{$a := "users"}}
+{{$b := " / 3 ] Details Filled"}}
+{{$c := "interactive_components"}}
+{{$d := "container"}}
+{{$e := "separator"}}
+{{$f := "components"}}
+{{$g := "allowed_mentions"}}
+{{$h := "text"}}
+{{$i := "placeholder"}}
+{{$j := " was flagged due to presence of `"}}
+{{$report :=  sdict "emoji" (sdict "name" "⚠") "label" "Report Collab" "custom_id" "collabs-report" "style" "danger"}}
+
 {{$p := sdict
 "helpP" $help1
-"helpK" $help2}}
+"helpK" $help2
+"r0"			$r0
+"r1"			$r1
+"r2"			$r2
+"r3"			$r3
+"r4"			$r4
+"r5"			$r5
+"r6"			$r6
+"r7"			$r7
+"r8"			$r8
+"r9"			$r9
+"ra"			$ra
+"rb"			$rb
+"rc"			$rc
+"rd"			$rd
+"re"			$re
+"rf"			$rf
+"rg"			$rg
+"rh"			$rh
+"ri"			$ri
+"rj"			$rj
+"rk"			$rk
+"rl"			$rl
+"rm"			$rm
+"e0"			$e0
+"e1"			$e1
+"a"				$a
+"b"				$b
+"c"				$c
+"d"				$d
+"e"				$e
+"f"				$f
+"g"				$g
+"h"				$h
+"i"				$i
+"j"				$j
+"report"		$report}}
 {{if $collabConstants := (dbGet 0 "collabConstants").Value}}
 	{{range $k, $v := $p}}
 		{{$collabConstants.Set $k $v}}
