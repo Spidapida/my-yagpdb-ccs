@@ -132,29 +132,56 @@
 {{end}}
 
 {{if eq .Channel.ID $collabUserData.tID}}
-	{{$urlFirst := inFold .Message.Content "--urlfirst"}}
 	{{$links := reFindAll .LinkRegex .Message.Content}}
 	{{$editMe := ""}}
 	{{if eq $flag "deleteConfirm" "manageMedia" "manageThumbnail"}}
 		{{try}} {{deleteInteractionResponse $collabUserData.nTok $collabUserData.nID 0}} {{catch}} {{end}}
 		{{try}} {{deleteMessage $collabUserData.tID $collabUserData.nmID 0}} {{catch}} {{end}}
 	{{end}}
+	
+	{{if and (eq $flag "manageMedia" "manageThumbnail") (in .Message.Content "--notimer") }}
+		{{cancelScheduledUniqueCC $collabConstants.schedCC "SK"}}
+		{{$z := sendMessageRetID nil $collabConstants.ri}}
+		{{$collabUserData.Set "nmID" $z}}
+		{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+		{{return}}
+	{{end}}
+	{{if .ExecData}}
+		{{$collabUserData.Set "flag" "neutral"}}
+		{{$z := sendMessageRetID nil $collabConstants.rn}}
+		{{$collabUserData.Set "nmID" $z}}
+		{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+		{{$xx := execTemplate "clock" (sdict "edit" "")}}
+		{{return}}
+	{{end}}
 	{{if eq $flag "deleteConfirm"}}
 		{{if in .Message.Content "CONFIRM"}}
-			{{sendMessage nil (complexMessage "reply" .Message.ID "content" "<a:loading:969202742100893716>  YAGPDB.xyz is deleting your collab ad...")}}
+			{{sendMessage nil (complexMessage "reply" .Message.ID "content" $collabConstants.rf)}}
 			{{execCC $ccid nil 0 (sdict "destruct" 1)}}
 			{{if $zz := $collabUserData.fID}}
 				{{deleteForumPost $zz}}
 			{{end}}
 		{{else}}
-			{{$z := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" "<a:loading:969202742100893716>  YAGPDB.xyz is thinking...")}}
+			{{deleteTrigger 0}}
+			{{$z := sendMessageRetID nil (complexMessage "content" $collabConstants.re)}}
 			{{$collabUserData.Set "flag" "neutral"}}
 			{{$collabUserData.Set "nmID" $z}}
 			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 			{{$xx := execTemplate "clock" (sdict "edit" "editMedia" "t" $z "m" "Cancelled the collab ad deletion.")}}
 		{{end}}
 	{{else if eq $flag "manageMedia"}}
-		{{$notif := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" "<a:loading:969202742100893716>  YAGPDB.xyz is thinking...")}}
+		{{$notif := 0}}
+		{{ cancelScheduledUniqueCC $collabConstants.schedCC "SK" }}
+		{{try}}
+			{{$notif = sendMessageRetID nil (complexMessage "reply" .Message.ID "content" $collabConstants.re)}}
+		{{catch}}
+			{{$notif = sendMessageRetID nil (print .User.Mention $collabConstants.rg )}}
+			{{$collabUserData.Set "nmID" $notif}}
+			{{$collabUserData.Set "flag" "neutral"}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{$xx := execTemplate "clock" (sdict "edit" "")}}
+			{{return}}
+		{{end}}
 		{{$exec := execTemplate "media" (sdict "message" .Message "links" $links "urlFirst" (inFold .Message.Content "--urlfirst") "nID" $notif)}}
 		{{$totalMedia := add (len $links) (len .Message.Attachments)}}
 		{{$successCount := sub $totalMedia $exec.successAdd}}
@@ -165,7 +192,7 @@
 		{{if eq (len $mediaLinks) 0}}
 			{{if in .Message.Content "--clearmedia"}}
 				{{$collabUserData.Set "CM" (cslice)}}
-				{{$editMe = "Your media gallery has been cleared."}}
+				{{$editMe = $collabConstants.rj}}
 			{{else}}
 				{{$editMe = print "No media has been set in the gallery. Out of " $totalMedia ", no media has been set."}}
 			{{end}}
@@ -177,7 +204,7 @@
 			{{end}}
 			{{if $exec.noForward}}
 				{{$collabUserData.Set "no4WM" .Message.ID}}
-				{{$editMe = print $editMe "\n- Due to Discord, the media attached is linked to your previous message. Please do not delete your message to ensure proper media playback when you posted your collab ad."}}
+				{{$editMe = print $editMe $collabConstants.rh}}
 			{{else}}
 				{{$collabUserData.Set "no4WM" 0}}
 				{{deleteTrigger 0}}
@@ -196,7 +223,18 @@
 		{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 		{{$xx := execTemplate "clock" (sdict "edit" "editMedia" "m" $editMe "t" $notif)}}
 	{{else if eq $flag "manageThumbnail"}}
-		{{$notif := sendMessageRetID nil (complexMessage "reply" .Message.ID "content" "<a:loading:969202742100893716>  YAGPDB.xyz is thinking...")}}
+		{{$notif := 0}}
+		{{ cancelScheduledUniqueCC $collabConstants.schedCC "SK" }}
+		{{try}}
+			{{$notif = sendMessageRetID nil (complexMessage "reply" .Message.ID "content" $collabConstants.re)}}
+		{{catch}}
+			{{$notif = sendMessageRetID nil (print .User.Mention $collabConstants.rg )}}
+			{{$collabUserData.Set "nmID" $notif}}
+			{{$collabUserData.Set "flag" "neutral"}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{$xx := execTemplate "clock" (sdict "edit" "")}}
+			{{return}}
+		{{end}}
 		{{$exec := execTemplate "media" (sdict "message" .Message "links" $links "urlFirst" false "nID" $notif)}}
 		{{$collabUserData.Set "flag" "neutral"}}
 		{{$editMe = "Thumbnail has been set successfully."}}
@@ -204,9 +242,9 @@
 		{{if eq (len $exec.attachments) 0}}
 			{{if in .Message.Content "--clearthumbnail"}}
 				{{$collabUserData.Set "CF" ""}}
-				{{$editMe = "Your media gallery has been cleared."}}
+				{{$editMe = $collabConstants.rk}}
 			{{else}}
-				{{$editMe = "No thumbnail has been set due to absence of valid attachment or media link."}}
+				{{$editMe = $collabConstants.rl}}
 			{{end}}
 			{{deleteTrigger 0}}
 		{{else}}
@@ -216,14 +254,14 @@
 			{{end}}
 			{{if $exec.noForward}}
 				{{$collabUserData.Set "no4WF" .Message.ID}}
-				{{$editMe = print $editMe "\n- Due to Discord, the media attached is linked to your previous message. Please do not delete your message to ensure proper media playback when you posted your collab ad."}}
+				{{$editMe = print $editMe $collabConstants.rh}}
 			{{else}}
 				{{deleteTrigger 0}}
 				{{$collabUserData.Set "no4WF" 0}}
 			{{end}}
 			{{$mediaLinks := index $exec.attachments 0}}
 			{{if gt (len $exec.attachments) 1}}
-				{{$editMe = print "\n- You have more than one media, so only the first attachment/embed is chosen for the thumbail."}}
+				{{$editMe = $collabConstants.rm}}
 			{{end}}
 			{{$collabUserData.Set "CF" $mediaLinks}}
 		{{end}}

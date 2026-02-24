@@ -1,10 +1,15 @@
 {{$ED := .ExecData}}
 
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
-{{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
-
+{{$user := .User.ID}}
+{{$collabUserData := or (dbGet $user "collabUserData").Value $collabConstants.collabUserData }}
 {{if $ED.HasKey "fireupdate"}}
 	{{$collabUserData = (dbGet $ED.fireupdate "collabUserData").Value}}
+	{{$user = $ED.fireupdate}}
+{{end}}
+
+{{if eq (toString $ED.edit) "manageMedia" "manageThumbnail"}}
+	{{scheduleUniqueCC $collabConstants.schedCC nil 60 "SK" "a"}}
 {{end}}
 
 {{$flag := $collabUserData.flag}}
@@ -17,17 +22,17 @@
 {{$fmID := $collabUserData.fmID}}
 
 
-{{$t := $ED.t}}
-{{$m := $ED.m}}
-{{$a := $collabConstants.a}}
-{{$b := $collabConstants.b}}
-{{$c := $collabConstants.c}}
-{{$o := $collabConstants.d}}
-{{$p := $collabConstants.e}}
-{{$q := $collabConstants.f}}
-{{$r := $collabConstants.g}}
-{{$s := $collabConstants.h}}
-{{$z := $collabConstants.i}}
+{{$t := $ED.t}} {{/* token or message id*/}}
+{{$m := $ED.m}} {{/* message */}}
+{{$a := $collabConstants.a}} {{/*users*/}}
+{{$b := $collabConstants.b}} {{/* / 3 ] Details Filled*/}}
+{{$c := $collabConstants.c}} {{/*interactive_components*/}}
+{{$o := $collabConstants.d}} {{/*container*/}}
+{{$p := $collabConstants.e}} {{/*separator*/}}
+{{$q := $collabConstants.f}} {{/*components*/}}
+{{$r := $collabConstants.g}} {{/*allowed_mentions*/}}
+{{$s := $collabConstants.h}} {{/*text*/}}
+{{$z := $collabConstants.i}} {{/*placeholder*/}}
 {{$e := "emoji"}}
 
 
@@ -192,13 +197,14 @@ $s $tempDetails ))
 		{{if $tempMedia}}
 			{{$tempPostDesc.Add $o (sdict $q $contForumMedia)}}
 		{{end}}
-		{{if or (and $fID (eq $collabUserData.AMod "false" "bypassed") (eq $collabUserData.AMo2 "false" "bypassed") (ne $ED.edit "manageMedia" "manageThumbnail" "deleteCollab" "abort")) ($ED.HasKey "fireupdate")}}
+		{{if or (and $fID (eq $collabUserData.AMod "false" "bypassed") (eq $collabUserData.AMo2 "false" "bypassed") (ne $ED.edit "manageMedia" "manageThumbnail" "deleteCollab" "abort")) (and $fID ($ED.HasKey "fireupdate"))}}
 			{{if $ED.HasKey "fireupdate"}}
 				{{$miniMsg.Add $s (print "<@" $ED.staff "> edited <@" $ED.fireupdate ">'s collab ad template:" ) }}
 			{{else}}
 				{{$miniMsg.Add $s (print .User.Mention " edited their collab:") }}
 			{{end}}
 			{{$miniMsg.Merge $holdMsg}}
+			{{try}} {{openThread $fID}} {{catch}} {{end}}
 			{{editThread $fID "tags" $tags}}
 			{{editMessage $fID $fID (complexMessageEdit $postForumMsg)}}
 			{{editMessage $fID $fmID $tempPostDesc}}
@@ -210,7 +216,7 @@ $s $tempDetails ))
 					{{$collabUserData.Set "CTTM" currentTime.Unix}}
 				{{end}}
 			{{else}}
-				{{$m = print $m $collabConstants.rc $k ">."}}
+				{{$m = print $m $collabConstants.rc $k ":T>."}}
 			{{end}}
 			{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
 			{{sendMessage $logSuccess $miniMsg}}
@@ -227,7 +233,7 @@ $s $tempDetails ))
 			{{editResponse $t nil $m}}
 		{{else}}
 			{{if not ($ED.HasKey "fireupdate")}}
-				{{editResponse $t nil $m}}
+				{{try}} {{editResponse $t nil $m}} {{catch}} {{end}}
 			{{end}}
 		{{end}}
 	{{end}}
@@ -273,13 +279,13 @@ $s $tempDetails ))
 	{{sendMessage $logDel $tempPostDesc}}
 	{{$newData := $collabConstants.collabUserData}}
 	{{$newData.Set "time" $collabUserData.time}}
-	{{dbSetExpire .User.ID "collabUserData" $newData $collabConstants.collabCD}}
+	{{dbSetExpire $user "collabUserData" $newData $collabConstants.collabCD}}
 	{{deleteThread $tID}}
 	
 {{end}}
 
 {{if not ($ED.HasKey "destruct")}}
-	{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+	{{dbSetExpire $user "collabUserData" $collabUserData $dbTimer}}
 {{end}}
 
 {{dbSet 0 "execCCID" (add (dbGet 0 "execCCID").Value 1)}}

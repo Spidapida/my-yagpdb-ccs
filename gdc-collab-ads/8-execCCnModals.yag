@@ -18,19 +18,23 @@
 {{$logDel := $collabConstants.logDelete}}
 {{$fmID := $collabUserData.fmID}}
 
+{{if eq (toString .ExecData.edit) "manageMedia" "manageThumbnail"}}
+	{{scheduleUniqueCC $collabConstants.schedCC nil 60 "SK" "a"}}
+{{end}}
+
 {{$ED := .ExecData}}
-{{$t := $ED.t}}
-{{$m := $ED.m}}
-{{$a := $collabConstants.a}}
-{{$b := $collabConstants.b}}
-{{$c := $collabConstants.c}}
+{{$t := $ED.t}} {{/* token or message id*/}}
+{{$m := $ED.m}} {{/* message */}}
+{{$a := $collabConstants.a}} {{/*users*/}}
+{{$b := $collabConstants.b}} {{/* / 3 ] Details Filled*/}}
+{{$c := $collabConstants.c}} {{/*interactive_components*/}}
 {{$e := "emoji"}}
-{{$o := $collabConstants.d}}
-{{$p := $collabConstants.e}}
-{{$q := $collabConstants.f}}
-{{$r := $collabConstants.g}}
-{{$s := $collabConstants.h}}
-{{$z := $collabConstants.i}}
+{{$o := $collabConstants.d}} {{/*container*/}}
+{{$p := $collabConstants.e}} {{/*separator*/}}
+{{$q := $collabConstants.f}} {{/*components*/}}
+{{$r := $collabConstants.g}} {{/*allowed_mentions*/}}
+{{$s := $collabConstants.h}} {{/*text*/}}
+{{$z := $collabConstants.i}} {{/*placeholder*/}}
 
 
 {{$forumChannel := 0}}
@@ -197,6 +201,7 @@ $s $tempDetails ))
 		{{if and $fID (eq $collabUserData.AMod "false" "bypassed") (eq $collabUserData.AMo2 "false" "bypassed") (ne $ED.edit "manageMedia" "manageThumbnail" "deleteCollab" "abort")}}
 			{{$miniMsg.Add $s (print .User.Mention " edited their collab:") }}
 			{{$miniMsg.Merge $holdMsg}}
+			{{try}} {{openThread $fID}} {{catch}} {{end}}
 			{{editThread $fID "tags" $tags}}
 			{{editMessage $fID $fID (complexMessageEdit $postForumMsg)}}
 			{{editMessage $fID $fmID $tempPostDesc}}
@@ -208,7 +213,7 @@ $s $tempDetails ))
 					{{$collabUserData.Set "CTTM" currentTime.Unix}}
 				{{end}}
 			{{else}}
-				{{$m = print $m $collabConstants.rc $k ">."}}
+				{{$m = print $m $collabConstants.rc $k ":T>."}}
 			{{end}}
 			{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
 			{{sendMessage $logSuccess $miniMsg}}
@@ -224,7 +229,7 @@ $s $tempDetails ))
 			{{sendMessage $logCH $tempPostDesc}}
 			{{editResponse $t nil $m}}
 		{{else}}
-			{{editResponse $t nil $m}}
+			{{try}} {{editResponse $t nil $m}} {{catch}} {{end}}
 		{{end}}
 	{{end}}
 {{else if or ($ED.HasKey "post") ($ED.HasKey "bumpUp")}}
