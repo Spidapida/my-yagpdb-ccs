@@ -10,13 +10,19 @@
 	{{- range . -}}
 		{{- $link := "" -}}
 		{{- if eq .Type "image" "video" -}}
-			{{- $link = .URL -}}	
+			{{- if eq .Provider.Name "YouTube" -}}
+				{{- $link = .Thumbnail.URL -}}
+			{{- else -}}
+				{{- $link = .URL -}}
+			{{- end -}}
 		{{- else if eq .Type "rich" -}}
 			{{- if .Thumbnail -}}
 				{{- $link = .Video.URL -}}
 			{{- else if .Image -}}
 				{{- $link = .Image.URL -}}
 			{{- end -}}
+		{{- else if eq .Type "article" -}}
+			{{- $link = .Thumbnail.URL -}}
 		{{- else if eq .Type "gifv" -}}
 			{{- if $a := reFindAllSubmatches `https:\/\/media.tenor.com\/(.+)\/(.+).png` .Thumbnail.URL -}}
 				{{- $id := index $a 0 1 -}}
