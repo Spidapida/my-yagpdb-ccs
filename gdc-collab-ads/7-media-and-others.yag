@@ -10,7 +10,7 @@
 	{{- range . -}}
 		{{- $link := "" -}}
 		{{- if eq .Type "image" "video" -}}
-			{{- if eq .Provider.Name "YouTube" -}}
+			{{- if .Provider -}}
 				{{- $link = .Thumbnail.URL -}}
 			{{- else -}}
 				{{- $link = .URL -}}
