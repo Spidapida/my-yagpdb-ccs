@@ -208,7 +208,7 @@ $s $tempDetails ))
 			{{editThread $fID "tags" $tags}}
 			{{editMessage $fID $fID (complexMessageEdit $postForumMsg)}}
 			{{editMessage $fID $fmID $tempPostDesc}}
-			{{$k := add $collabUserData.CTTM 300}}
+			{{$k := add $collabUserData.CTTM 600}}
 			{{if gt currentTime.Unix $k}}
 				{{$threadName := (getThread $fID).Name}}
 				{{if ne $threadName $tempTitle}}
