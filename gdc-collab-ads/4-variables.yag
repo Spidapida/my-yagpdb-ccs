@@ -83,7 +83,7 @@
 {{$TSThumbs := "-# <a:arrow:1043755787773804654> Upload your media or paste your media link to set your thumbnail.\n-# <a:arrow:1043755787773804654> **If you want to remove the timer in uploading a thumbnail, send `--notimer`.**"}}
 {{$TSDel := "-# <a:arrow:1043755787773804654> Confirm deletion by sending `CONFIRM`\n-# <a:arrow:1043755787773804654> Typing anything else or not doing anything for a minute aborts deletion."}}
 {{$TSFreeze := "-# <a:arrow:1043755787773804654> A <@&643101579016273941> has freezed your template. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) to resolve it."}}
-{{$TSUploaded := "-# <a:arrow:1043755787773804654> You can edit the details of your collab using the menu and buttons below.\n-# They will reflect on your posted collab ad as well."}}
+{{$TSUploaded := "-# <a:arrow:1043755787773804654> You can edit the details of your collab using the menu and buttons below.\n-# <a:arrow:1043755787773804654> They will reflect on your posted collab ad as well."}}
 {{$discordRegex := `(?i)(?:https?://)?(?:www.|ptb.|canary.)?(?:discord(?:app)?\.(?:(?:com|gg)/(?:invite|servers)/[a-z0-9\-_]+)|discord\.gg/[a-z0-9-_]+)`}}
 {{$maskWarn := "\n- Some masked links are stripped to their regular links. [Create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) if you want to add a website to a whitelist and reinstate the masked link."}}
 {{$noTitleEdit := " However, due to Discord API limits, the thread title has to stay as-is. Please try to edit the title again at least ten minutes from now."}}
