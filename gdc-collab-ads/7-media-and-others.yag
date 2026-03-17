@@ -10,8 +10,13 @@
 	{{- range . -}}
 		{{- $link := "" -}}
 		{{- if eq .Type "image" "video" -}}
+			{{- $y := "" -}} {{- try -}} {{- $y = .Video.ProxyURL -}} {{- catch -}} {{- end -}}
 			{{- if .Provider -}}
-				{{- $link = .Thumbnail.URL -}}
+				{{- if $y -}}
+					{{- $link = .Video.URL -}}
+				{{- else -}}
+					{{- $link = .Thumbnail.URL -}}
+				{{- end -}}
 			{{- else -}}
 				{{- $link = .URL -}}
 			{{- end -}}
