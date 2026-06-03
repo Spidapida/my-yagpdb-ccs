@@ -10,7 +10,7 @@
 	{{- range . -}}
 		{{- $link := "" -}}
 		{{- if eq .Type "image" "video" -}}
-			{{- $y := "" -}} {{- try -}} {{- $y = .Video.ProxyURL -}} {{- catch -}} {{- end -}}
+			{{- $y := "" -}} {{- if .Video -}} {{- $y = .Video.ProxyURL -}} {{- end -}}
 			{{- if .Provider -}}
 				{{- if $y -}}
 					{{- $link = .Video.URL -}}
@@ -87,7 +87,6 @@
 	{{end}}
 
 	{{if $linkTemp}}
-		{{$sleepCount := 0}}
 		{{$hasEmbed := false}}
 		{{try}} {{openThread $channel}} {{catch}} {{end}}
 		{{if gt (len $linkTemp) 5}}
@@ -96,7 +95,7 @@
 			{{$linkMsg1 := sendMessageRetID $channel (joinStr " " $linkTemp1)}}
 			{{$linkMsg2 := sendMessageRetID $channel (joinStr " " $linkTemp2)}}
 			{{range $ID := cslice $linkMsg1 $linkMsg2}}
-				{{range 10}}
+				{{range 2}}
 					{{sleep 1}}
 					{{$testEmbed := getMessage $channel $ID}}
 					{{if $testEmbed.Embeds}}
@@ -108,7 +107,7 @@
 			{{end}}
 		{{else}}
 			{{$linkMsg1 := sendMessageRetID $channel (joinStr " " $linkTemp)}}
-			{{range 10}}
+			{{range 4}}
 				{{sleep 1}}
 				{{$testEmbed := getMessage $channel $linkMsg1}}
 				{{if $testEmbed.Embeds}}
@@ -152,7 +151,7 @@
 	{{end}}
 	
 	{{if and (eq $flag "manageMedia" "manageThumbnail") (in .Message.Content "--notimer") }}
-		{{cancelScheduledUniqueCC $collabConstants.schedCC "SK"}}
+		{{cancelScheduledUniqueCC $collabConstants.schedCC .User.ID}}
 		{{$z := sendMessageRetID $CH $collabConstants.ri}}
 		{{$collabUserData.Set "nmID" $z}}
 		{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
@@ -190,7 +189,7 @@
 		{{end}}
 	{{else if eq $flag "manageMedia"}}
 		{{$notif := 0}}
-		{{ cancelScheduledUniqueCC $collabConstants.schedCC "SK" }}
+		{{ cancelScheduledUniqueCC $collabConstants.schedCC .User.ID }}
 		{{try}}
 			{{$notif = sendMessageRetID $CH (complexMessage "reply" .Message.ID "content" $collabConstants.re)}}
 		{{catch}}
@@ -243,7 +242,7 @@
 		{{$xx := execTemplate "clock" (sdict "edit" "editMedia" "m" $editMe "t" $notif)}}
 	{{else if eq $flag "manageThumbnail"}}
 		{{$notif := 0}}
-		{{ cancelScheduledUniqueCC $collabConstants.schedCC "SK" }}
+		{{ cancelScheduledUniqueCC $collabConstants.schedCC .User.ID }}
 		{{try}}
 			{{$notif = sendMessageRetID $CH (complexMessage "reply" .Message.ID "content" $collabConstants.re)}}
 		{{catch}}
