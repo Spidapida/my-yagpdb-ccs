@@ -267,7 +267,7 @@ $s $tempDetails ))
 	{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
 	{{sendMessage $logSuccess $miniMsg}}
 	{{sendMessage $logSuccess $tempPostDesc}}
-	{{editResponse $t nil (print "Your collab ad is now " $act " in <#" $forumID ">.")}}
+	{{try}} {{editResponse $t nil (print "Your collab ad is now " $act " in <#" $forumID ">.")}} {{catch}} {{end}}
 {{else if $ED.HasKey "destruct"}}
 	{{$miniMsg.Add $s (print .User.Mention " deleted their collab:") }}
 	{{$miniMsg.Merge $holdMsg}}
