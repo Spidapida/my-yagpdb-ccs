@@ -24,15 +24,16 @@
 	{{else if eq $sub "show" "whitelist" "cdoff" "freeze" "unfreeze" "wand" "wandclear"}}
 		{{$user := 0}}
 		{{try}}
-			{{$user = toInt64 (reFind `\d{16,18}` (index $args 1))}}
+			{{$user = toInt64 (reFind `\d{16,19}` (index $args 1))}}
 		{{catch}}
 			{{sendMessage nil (print "Invalid user upon executing `-ca " $sub "`.")}}
+			{{return}}
 		{{end}}
-		{{if $user}}
-			{{if $collabUserData := (dbGet $user "collabUserData").Value}}
-				{{if eq $sub "whitelist" "cdoff" "freeze" "unfreeze"}}
-					{{if $collabUserData.tID}}
-						{{if eq $sub "whitelist"}}
+		{{if $collabUserData := (dbGet $user "collabUserData").Value}}
+			{{if eq $sub "whitelist" "cdoff" "freeze" "unfreeze"}}
+				{{if $collabUserData.tID}}
+					{{if eq $sub "whitelist"}}
+						{{if eq "true" $collabUserData.AMod $collabUserData.AMo2}}
 							{{if eq $collabUserData.AMod "true"}}
 								{{$collabUserData.Set "AMod" "bypassed"}}
 							{{end}}
@@ -40,68 +41,73 @@
 								{{$collabUserData.Set "AMo2" "bypassed"}}
 							{{end}}
 							{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
-							{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> can now post or bump up their collab ad."))}}
-						{{else if eq $sub "cdoff"}}
-							{{if $collabUserData.fID}}
-								{{$time := $collabUserData.time}}
-								{{$collabUserData.Set "time" (add $time (toInt64 $collabConstants.collabCD))}}
-								{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
-								{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> can now bump up their collab ad."))}}
-							{{else}}
-								{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> has not posted their collab ad yet."))}}
-							{{end}}
-						{{else if eq $sub "freeze"}}
-							{{$collabUserData.Set "flag" "freeze"}}
+							{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> is now whitelisted due to Automod."))}}
+						{{else}}
+							{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> is not blacklisted."))}}
+						{{end}}
+					{{else if eq $sub "cdoff"}}
+						{{$time := $collabUserData.time}}
+						{{$bumpTime := add $time (toInt64 $collabConstants.collabCD)}}
+						{{if and $collabUserData.fID (lt currentTime $bumpTime)}}
+							{{$collabUserData.Set "time" $bumpTime}}
 							{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
-							{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user ">'s template is now frozen."))}}
-						{{else if eq $sub "unfreeze"}}
-							{{$collabUserData.Set "flag" "neutral"}}
-							{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
-							{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user ">'s template is now unfrozen."))}}
+							{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> can now bump up their collab ad."))}}
+						{{else}}
+							{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> has not posted their collab ad yet, or they can bump up their collab ad just fine."))}}
 						{{end}}
-					{{else}}
-						{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> has no template, therefore command execution failed."))}}
+					{{else if eq $sub "freeze"}}
+						{{$collabUserData.Set "flag" "freeze"}}
+						{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
+						{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user ">'s template is now frozen."))}}
+					{{else if eq $sub "unfreeze"}}
+						{{$collabUserData.Set "flag" "neutral"}}
+						{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
+						{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user ">'s template is now unfrozen."))}}
 					{{end}}
-				{{else if eq $sub "wand"}}
-					{{$sub0 := ""}}
-					{{try}}
-						{{$sub0 = index $args 2}}
-					{{catch}}
-						{{sendMessage nil "Invalid command:\n- `-ca wand <@user> remove <key>`\n- `-ca wand <@user> set <key> <value/s>`"}}
-					{{end}}
-					{{$sub1 := ""}}
-					{{if eq $sub0 "remove"}}
-						{{try}}
-							{{$sub1 = index $args 3}}
-						{{catch}}
-							{{sendMessage nil "No key provided, `-ca wand <@user> remove <key>`"}}
-						{{end}}
-						{{if $sub1}}
-							{{$err := true}}
-							{{range $keys}}
-								{{if eq . $sub1}}
-									{{$collabUserData.Set . ($collabConstants.collabUserData.Get .)}}
-									{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
-									{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "Removed key `" . "` from <@" $user ">."))}}
-									{{$err = false}}
-									{{break}}
-								{{end}}
-							{{end}}
-							{{if $err}}
-								{{sendMessage nil "No valid key provided, use `-ca wandterms` to see what keys are valid. **The keys are case sensitive**."}}
-							{{end}}
-						{{end}}
-					{{else if eq $sub0 "set"}}
-						{{sendMessage nil "Coming soon!"}}
-					{{else}}
-						{{sendMessage nil "Invalid command:\n- `-ca wand <@user> remove <key>`\n- `-ca wand <@user> set <key> <value/s>`"}}
-					{{end}}
-				{{else if eq $sub "show"}}
-					{{sendMessage nil (complexMessage "content" "Selecting keys is an upcoming feature, so here's the whole data." "file" (json $collabUserData true))}}
+				{{else}}
+					{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> has no template, therefore command execution failed."))}}
 				{{end}}
-			{{else}}
-				{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "No database found for <@" $user ">."))}}
+			{{else if eq $sub "wand"}}
+				{{$sub0 := ""}}
+				{{try}}
+					{{$sub0 = index $args 2}}
+				{{catch}}
+					{{sendMessage nil "Invalid command:\n- `-ca wand <@user> remove <key>`\n- `-ca wand <@user> set <key> <value/s>`"}}
+				{{end}}
+				{{$sub1 := ""}}
+				{{if eq $sub0 "remove"}}
+					{{try}}
+						{{$sub1 = index $args 3}}
+					{{catch}}
+						{{sendMessage nil "No key provided, `-ca wand <@user> remove <key>`"}}
+					{{end}}
+					{{if $sub1}}
+						{{$err := true}}
+						{{range $keys}}
+							{{if eq . $sub1}}
+								{{$collabUserData.Set . ($collabConstants.collabUserData.Get .)}}
+								{{$NOPQ := execTemplate "update" (sdict "user" $user "data" $collabUserData "timer" $timer "ccid" $ccid "who" .User.ID "channel" $collabUserData.tID)}}
+								{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "Removed key `" . "` from <@" $user ">."))}}
+								{{$err = false}}
+								{{break}}
+							{{end}}
+						{{end}}
+						{{if $err}}
+							{{sendMessage nil "No valid key provided, use `-ca wandterms` to see what keys are valid. **The keys are case sensitive**."}}
+						{{end}}
+					{{end}}
+				{{else if eq $sub0 "set"}}
+					{{sendMessage nil "Coming soon!"}}
+				{{else if eq $sub0 "wandclear"}}
+					{{sendMessage nil (complexMessage "content" (print "Are you sure you want to clear <@" $user ">'s collab ad data, as well as its post (if applicable)?" "buttons" (cbutton "custom_id" (print "collabs-nuke-" $user) "label" "Yes!" "style" "danger")))}}
+				{{else}}
+					{{sendMessage nil "Invalid command:\n- `-ca wand <@user> remove <key>`\n- `-ca wand <@user> set <key> <value/s>`"}}
+				{{end}}
+			{{else if eq $sub "show"}}
+				{{sendMessage nil (complexMessage "content" "Selecting keys is an upcoming feature, so here's the whole data." "file" (json $collabUserData true))}}
 			{{end}}
+		{{else}}
+			{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "No database found for <@" $user ">."))}}
 		{{end}}
 	{{else if eq $sub "wandterms" "wandlist"}}
 		{{sendMessage nil (componentBuilder "container" (sdict "components" (componentBuilder "text" $collabConstants.helpK) ) )}}
