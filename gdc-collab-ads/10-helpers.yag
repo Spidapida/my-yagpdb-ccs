@@ -56,7 +56,7 @@ ter2  |  string | what term got AutoModded for Level Music` "```"}}
 {{$rb := " your collab ad due to the presence of a phishing link"}}
 {{$rc := " Due to Discord rate limiting channel name modifications, the forum thread of your collab ad can't be edited until <t:"}}
 {{$rd := "Due to Discord's implementation of interactions, once three seconds already passed and the interaction was not acknowledged, the modal cannot be send. Sorry for the inconvenience, please retry answering again."}}
-{{$re := "<a:loading:969202742100893716>  YAGPDB.xyz is thinking..."}}
+{{$re := "<a:loading:969202742100893716>  Setting media in process...\n# **Do not send another message while this operation is in the process.**"}}
 {{$rf := "<a:loading:969202742100893716>  YAGPDB.xyz is deleting your collab ad..."}}
 {{$rg := "Error: Could not fetch the message due to sudden deletion, aborting operation..."}}
 {{$rh := "\n- Due to Discord, the media attached is linked to your previous message. Please do not delete your message to ensure proper media playback when you posted your collab ad."}}
