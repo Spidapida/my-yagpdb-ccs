@@ -4,10 +4,9 @@
 {{$sites := $collabConstants.safeSites}}
 
 {{$a := .Interaction.Token}}
-{{$b := (getResponse $a nil).ID}}
+{{$b := sdict }}
+{{try}} {{$b = (getResponse $a nil).ID}} {{catch}} {{$b = sendMessageRetID nil (print $.User.Mention ", your collab ad details has been set.")}} {{end}}
 {{$notifCH := $collabConstants.notifCH}}
-{{$idprint := "collabs-"}}
-{{$ccid := $collabConstants.execCCID}}
 {{$isBlacklisted := 0}}
 {{$dbTimer := $collabConstants.dbTimer}}
 
@@ -91,7 +90,7 @@
 		{{- $maskedLinks = true -}}
 		{{- $ifToReplace := cslice -}}
 		{{- range $masked -}}
-			{{- $baseurl := reFind `[A-Za-z0-9\+\-]+\.[A-Za-z0-9\+\-]+$` (reFind $domainX (index $data 1)) -}}
+			{{- $baseurl := reFind `[A-Za-z0-9\+\-]+\.[A-Za-z0-9\+\-]+$` (reFind $domainX $data) -}}
 			{{- $toReplace := true -}}
 			{{- range $sites -}}
 				{{- if eq . $baseurl -}}
@@ -248,7 +247,6 @@
 			{{$xx := execTemplate "clock" (sdict "edit" "" "t" $a "m" "Level details has been set.")}}
 		{{else if eq .StrippedID "modal-3"}}
 			{{$discordRegex := $collabConstants.discordRegex}}
-			{{$maskRegex := `\[[^\]]+\]\(([^)]+)\)`}}
 
 			{{$CN := execTemplate "formatMe" (sdict "data" .ModalValues.CT.value "dr" $discordRegex "sites" $sites "dom" .DomainRegex "max" 100 "noFormat" true)}}
 			{{$CD :=  execTemplate "formatMe" (sdict "data" .ModalValues.CP.value "dr" $discordRegex "sites" $sites "dom" .DomainRegex "max" 3900 "noNewlines" false)}}
@@ -301,7 +299,6 @@
 				{{- end -}}
 			{{- end -}}
 
-			{{$a1 := "Collab details has been set."}}
 			{{$a2 := ""}}
 			{{$a3 := ""}}
 			{{$a4 := ""}}
