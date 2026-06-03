@@ -15,18 +15,10 @@
 	{{$bb := getResponse $a nil}}
 	{{$b = $bb.ID}}
 {{catch}}
-	{{if $collabUserData.tID}}
-		{{sendMessage $collabUserData.tID (print "Something went wrong, please try pressing the button again, " .User.Mention ".")}}
+	{{if eq $.Channel.ID $collabUserData.tID}}
+		{{sendMessage $collabUserData.tID (print "Something went wrong, please try pressing the button again, " $.User.Mention ".")}}
 	{{end}}
 	{{return}}
-{{end}}
-
-{{$collabUserData.Set "staff" false}}
-{{range $collabConstants.staffRoles}}
-	{{if hasRoleID .}}
-		{{$collabUserData.Set "staff" true}}
-		{{break}}
-	{{end}}
 {{end}}
 
 {{$collabUserData.Set "boost" false}}
@@ -45,6 +37,15 @@
 {{range $collabConstants.blacklist}}
 	{{if hasRoleID .}}
 		{{$isBlacklisted = .}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{$collabUserData.Set "staff" false}}
+{{range $collabConstants.staffRoles}}
+	{{if hasRoleID .}}
+		{{$collabUserData.Set "staff" true}}
+		{{$isBlacklisted = 0}}
 		{{break}}
 	{{end}}
 {{end}}
@@ -78,9 +79,11 @@
 				{{if gt $currentTime $weekly}}
 					{{$templateThread := createThread $collabConstants.frontPage nil (print .User.Username "'s collab ad") true 1440 false}}
 					{{$tID := $templateThread.ID}}
+					{{editThread $tID (sdict "slowmode" 5)}}
 					{{$sID := sendMessageRetID $tID (print .User.Mention ", check this thread to add details to your collab ad template.")}}
 					{{$collabUserData.Set "tID" $tID}}
 					{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+					{{sleep 1}}
 					{{$xx := execTemplate "clock" (sdict "firstSend" 1 "t" $a "m" (print "Please head to https://discord.com/channels/" .Guild.ID "/" $templateThread.ID " to make your collaboration ad."))}}
 					{{deleteMessage $tID $sID 0}}
 				{{else}}
@@ -167,7 +170,11 @@
 			{{sendMessage $notifCH $errTxt}}
 		{{end}}
 	{{else}}
-		{{sendMessage $notifCH $errTxt}}
+		{{$str := "collabs-nuke-"}}
+		{{if inFold .CustomID $str}}
+		{{else}}
+			{{sendMessage $notifCH $errTxt}}
+		{{end}}
 	{{end}}
 {{else}}
 	{{editResponse $a nil (print $collabConstants.r8 $isBlacklisted $collabConstants.r9)}}
