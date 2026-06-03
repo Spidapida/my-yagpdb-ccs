@@ -19,7 +19,7 @@
 {{$fmID := $collabUserData.fmID}}
 
 {{if eq (toString .ExecData.edit) "manageMedia" "manageThumbnail" "deleteCollab"}}
-	{{scheduleUniqueCC $collabConstants.schedCC nil 60 "SK" "a"}}
+	{{scheduleUniqueCC $collabConstants.schedCC nil 60 .User.ID "a"}}
 {{end}}
 
 {{$ED := .ExecData}}
@@ -262,7 +262,7 @@ $s $tempDetails ))
 	{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
 	{{sendMessage $logSuccess $miniMsg}}
 	{{sendMessage $logSuccess $tempPostDesc}}
-	{{editResponse $t nil (print "Your collab ad is now " $act " in <#" $forumID ">.")}}
+	{{try}} {{editResponse $t nil (print "Your collab ad is now " $act " in <#" $forumID ">.")}} {{catch}} {{end}}
 {{else if $ED.HasKey "destruct"}}
 	{{$miniMsg.Add $s (print .User.Mention " deleted their collab:") }}
 	{{$miniMsg.Merge $holdMsg}}
@@ -402,7 +402,7 @@ $s $tempDetails ))
 			{{sendMessage $collabConstants.notifCH $errTxt}}
 		{{end}}
 	{{else}}
-		{{editResponse $a nil (print $collabConstants.r8 $isBlacklisted $collabConstants.r9)}}
+		{{try}} {{editResponse $a nil (print $collabConstants.r8 $isBlacklisted $collabConstants.r9)}} {{catch}} {{end}}
 	{{end}}
 
 
