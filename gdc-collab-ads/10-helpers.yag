@@ -1,10 +1,32 @@
-{{$help1 := "## Collab Ad Staff Commands:\n### Staff commands:\n- `-ca help` - bring this help panel\n- `-ca show <@user> [key/all]` - displays the user's collab ad template data\n- - if no optional argument is supplied, values not viewable on user's template will be shown\n- - you can supply the `key` to only show that key value; run `-ca wandterms` or `-ca wandlist` for the valid keys\n- - passing `all` would display all of user's data in a text file\n- `-ca whitelist <@user>` - give bypass to the user if blocked by AutoMod\n- `-ca cdoff <@user>` - removes the user's cooldown on bumping up or creating another collab ad template\n- `-ca freeze <@user>` - freeze the user's collab ad\n-  `-ca unfreeze <@user>` - unfreeze the user's template; this command is also applicable if buttons and menus are disabled due to unfinished execution of the system \n- `-ca wand <@user> remove <key>` - reset a value from the user's collab ad database to initial or empty state\n- `-ca wand <@user> set <key> <value/s>` - set a value from the user's collab ad database; run `-ca wandterms` or `-ca wandlist` for the valid keys\n- `-ca wandterms` or `-ca wandlist` - see the valid keys used for `-ca wand` and `-ca show` commands\n- `-ca wandclear <@user>` - nuke user's database, template, and posted collab ad (if applicable)\n- `-ca website list` - bring up websites allowed to be mask linked\n- `-ca website add <url>` - adds a website allowed to be mask linked\n- `-ca website remove <url>` - removes a website allowed to be mask linked\n- `-ca automod list {nonlatin/basic/websites}` - bring up AutoMod terms disallowed for collab ads\n- `-ca automod checkit <string>` - see if submitted string is in AutoMod\n### Admin and head staff commands:\n- `-ca automod add {nonlatin/basic/websites} <term>` - adds a term to AutoMod\n- `-ca automod remove {nonlatin/basic/websites} <term>` - removes a term from AutoMod"}}
+{{$help1 := print "## Collab Ad Staff Commands:\n"
+"### Staff commands:\n"
+"- `-ca help` - bring this help panel\n"
+"- `-ca show <@user> [key]` - displays the user's collab ad template data\n"
+"- - you can supply the `key` to only show that key value; run `-ca wandterms` or `-ca wandlist` for the valid keys\n"
+"- - if no `key` argument is supplied, all values will be printed in JSON through a text file\n"
+"- `-ca whitelist <@user>` - give bypass to the user if blocked by AutoMod\n"
+"- `-ca cdoff <@user>` - removes the user's cooldown on bumping up or creating another collab ad template\n"
+"- `-ca freeze <@user>` - freeze the user's collab ad\n"
+"- `-ca unfreeze <@user>` - unfreeze the user's template; this command is also applicable if buttons and menus are disabled due to unfinished execution of the system\n"
+"- `-ca rempost <@user>` - removes the user's collab ad post in their respective collab ad channels; this will also allow them to repost their collab ad\n"
+"- `-ca wand <@user> remove <key>` - reset a value from the user's collab ad database to initial or empty state\n"
+"- `-ca wand <@user> set <key> <value/s>` - set a value from the user's collab ad database; run `-ca wandterms` or `-ca wandlist` for the valid keys\n"
+"- `-ca wandterms` or `-ca wandlist` - see the valid keys used for `-ca wand` and `-ca show` commands\n"
+"- `-ca wandclear <@user>` - nuke user's database, template, and posted collab ad (if applicable)\n"
+"- `-ca website list` - bring up websites allowed to be mask linked\n"
+"- `-ca website add <url>` - adds a website allowed to be mask linked\n"
+"- `-ca website remove <url>` - removes a website allowed to be mask linked\n"
+"- `-ca automod list {nonlatin/basic/websites}` - bring up AutoMod terms disallowed for collab ads\n"
+"- `-ca automod checkit <string>` - see if submitted string is in AutoMod\n"
+"### Admin and head staff commands:\n"
+"- `-ca automod add {nonlatin/basic/websites} <term>` - adds a term to AutoMod\n"
+"- `-ca automod remove {nonlatin/basic/websites} <term>` - removes a term from AutoMod"}}
 {{$help2 := print "```" ` Key  |Data Type|                  Description
 -----------------------------------------------------------------
 tID   |  int64  | thread ID of collab ad template
 tmID  |  int64  | message ID of collab ad template
-flag  |  string | <neutral>, <manageMedia>, <manageThumbnail>, <deleteCollab>, <freeze> = user status
-AMod  |  string | <true>, <false>, <bypassed> = AutoMod status for Collab Description
+flag  |  string | <neutral>, <manageMedia>, <manageThumbnail>, <deleteCollab>, <freeze> => user status
+AMod  |  string | <true>, <false>, <bypassed> => AutoMod status for Collab Description
 term  |  string | what term got AutoModded for Collab Description
 
 staff | boolean | :d
@@ -15,18 +37,18 @@ CP    |  string | [3900 characters] Collab Description
 
 CI    |  string | [255 characters] Discord Invite
 CC    |  string | [200 characters] Collab Contribution
-CZ    |  string | <Small Scale Collab>, <Megacollab>, <Ultracollab>, Collab Size
-LS    |  string | <Modern>, <Glow>, <Effect>, <Core>, <Art>, <Minigame>, <Neodesign>, <Layouts>, <Other> = Level Deco Style
-CN    |  string | <Decoration Only>, <Gameplay Only>, <Decoration & Gameplay>, <Other> = Collab Needs
+CZ    |  string | <Small Scale Collab>, <Megacollab>, <Ultracollab> => Collab Size
+LS    |  string | <Modern>, <Glow>, <Effect>, <Core>, <Art>, <Minigame>, <Neodesign>, <Layouts>, <Other> => Level Deco Style
+CN    |  string | <Decoration Only>, <Gameplay Only>, <Decoration & Gameplay>, <Other> => Collab Needs
 
-LD    |  string | <Non-Demon>, <Easy-Medium Demon>, <Hard-Insane Demon>, <Extreme Demon +> = Level Difficulty
-LT    |  string | <Classic Mode>, <Platformer Mode> = Level Type
-CS    |  string | <Low Standards>, <Medium Standards>, <High Standards> = Collab Standards
+LD    |  string | <Non-Demon>, <Easy-Medium Demon>, <Hard-Insane Demon>, <Extreme Demon +> => Level Difficulty
+LT    |  string | <Classic Mode>, <Platformer Mode> => Level Type
+CS    |  string | <Low Standards>, <Medium Standards>, <High Standards> => Collab Standards
 CH    |  string | [32 characters] Collab Host
 LM    |  string | [500 characters] Level Music
 
-CF    |  string | Collab Thumbnail, cannot set through attachment
-CM    |  array  | [each element is string] Collab Media, cannot set through attachment
+CF    |  string | Collab Thumbnail, only media links are supported
+CM    |  array  | Collab Media, each element is a string, each is separated by a space, only media links are supported
 nID   |  int64  | Notification Message ID, ephemeral
 nTok  |  string | Notification Token
 fID   |  int64  | Forum ID of Posted Collab Ad
@@ -38,7 +60,7 @@ no4WF |  int64  | Message ID of Non-Forwarded Thumbnail
 msk   | boolean | If whether Collab Description has masked links
 
 CTTM  |  int64  | [Unix] Timestamp when Collab Title was changed
-nmID  |  int64  | Notification Message ID, non-ephemeral
+nmID  |  int64  | Message ID For setting media and thumbnail
 AMo2  |  string | <true>, <false>, <bypassed> = AutoMod status for Level Music
 ter2  |  string | what term got AutoModded for Level Music` "```"}}
 
@@ -82,9 +104,45 @@ ter2  |  string | what term got AutoModded for Level Music` "```"}}
 {{$j := " was flagged due to presence of `"}}
 {{$report :=  sdict "emoji" (sdict "name" "⚠") "label" "Report Collab" "custom_id" "collabs-report" "style" "danger"}}
 
+{{$keyMethods := sdict "tID" (sdict "name" "(template) thread ID" "type" "int64")
+"tmID" (sdict "name" "(template) message ID" "type" "int64")
+"flag" (sdict "name" "user flag" "type" "string" "choice" (cslice "neutral" "manageMedia" "manageThumbnail" "deleteCollab" "freeze"))
+"AMod" (sdict "name" "AutoMod status" "type" "tfb")
+"term" (sdict "name" "AutoMod string flagged" "type" "string")
+"staff" (sdict "name" "staff status" "type" "bool")
+"boost" (sdict "name" "booster status" "type" "bool")
+"L20UP" (sdict "name" "priority status (Level 20, QC, Event Winner)" "type" "bool")
+"CT" (sdict "name" "collab title" "type" "string" "limit" 100)
+"CP" (sdict "name" "collab description" "type" "string" "limit" 3900)
+"CI" (sdict "name" "Discord invite" "type" "string" "limit" 255)
+"CC" (sdict "name" "collab contribution" "type" "string" "limit" 200)
+"CZ" (sdict "name" "collab size" "type" "string" "choice" (cslice "Small Scale Collab" "Megacollab" "Ultracollab"))
+"LS" (sdict "name" "level decoration style" "type" "string" "choice" (cslice "Modern" "Glow Design" "Effect" "Core" "Art" "Minigame" "Neodesign" "Layouts" "Other"))
+"CN" (sdict "name" "collab needs" "type" "string" "choice" (cslice "Decoration Only" "Gameplay Only" "Decoration & Gameplay" "Other"))
+"LD" (sdict "name" "level difficulty" "type" "string" "choice" (cslice "Non-Demon" "Easy-Medium Demon" "Hard-Insane Demon" "Extreme Demon"))
+"LT" (sdict "name" "level type" "type" "string" "choice" (cslice "Classic" "Platformer"))
+"CS" (sdict "name" "collab standards" "type" "string" "choice" (cslice "Low Standards" "Medium Standards" "High Standards"))
+"CH" (sdict "name" "collab host" "type" "string" "limit" 33)
+"LM" (sdict "name" "level music" "type" "string" "limit" 500)
+"CF" (sdict "name" "collab thumbnail" "type" "thumb")
+"CM" (sdict "name" "collab media" "type" "slice")
+"nID" (sdict "name" "message ID for notifications" "type" "int64")
+"nTok" (sdict "name" "interaction token for ephemeral notifications" "type" "string")
+"fID" (sdict "name" "thread ID for posted collab ad" "type" "int64")
+"fmID" (sdict "name" "second message ID for posted collab ad" "type" "int64")
+"time" (sdict "name" "timestamp of posted collab ad" "type" "int64")
+"no4WM" (sdict "name" "message ID of media gallery not forwarded" "type" "int64")
+"no4WF" (sdict "name" "message ID of thumbnail not forwarded" "type" "int64")
+"msk" (sdict "name" "masked link status" "type" "bool")
+"CTTM" (sdict "name" "collab title timestamp edit" "type" "int64")
+"nmID" (sdict "name" "message ID from setting media/thumbnail" "type" "int64")
+"AMo2" (sdict "name" "AutoMod status for Level Music" "type" "tfb")
+"ter2" (sdict "name" "AutoMod string flagged for Level Music" "type" "string")}}
+
 {{$p := sdict
 "helpP" $help1
 "helpK" $help2
+"keyMethods"	$keyMethods
 "r0"			$r0
 "r1"			$r1
 "r2"			$r2
