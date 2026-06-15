@@ -27,7 +27,11 @@
 				{{- $link = .Image.URL -}}
 			{{- end -}}
 		{{- else if eq .Type "article" -}}
-			{{- $link = .Thumbnail.URL -}}
+			{{- if .Thumbnail -}}
+				{{- $link = .Thumbnail.URL -}}
+			{{- else if .Image -}}
+				{{- $link = .Image.URL -}}
+			{{- end -}}
 		{{- else if eq .Type "gifv" -}}
 			{{- if $a := reFindAllSubmatches `https:\/\/media.tenor.com\/(.+)\/(.+).png` .Thumbnail.URL -}}
 				{{- $id := index $a 0 1 -}}
