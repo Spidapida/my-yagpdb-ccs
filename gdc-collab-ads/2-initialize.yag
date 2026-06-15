@@ -219,13 +219,14 @@
 	"msk"		boolean, if masked link is/are present in visible details of collab
 
 	"CTTM"		int64, timestamp of collab title edit
-	"nmID"		int64, message ID of setting media/thumbnail
+	"nmID"		int64, message ID from setting media/thumbnail
 	"AMo2"		boolean, <true>, <false>, <bypassed> = AutoMod status for Level Music
 	"ter2"		string, what term got AutoModded for Level Music
 */}}
 
 {{$collabConstants := sdict	
-"collabUserData"				$collabUserData
+"collabUserData" $collabUserData
+"errorBtn"		$errorBtn
 
 "opts1"			$opts1
 "opts2"			$opts2
