@@ -10,6 +10,7 @@
 {{$isBlacklisted := 0}}
 {{$dbTimer := $collabConstants.dbTimer}}
 {{$z := 0}}
+{{$staff := false}}
 
 {{try}}
 	{{$bb := getResponse $a nil}}
@@ -44,6 +45,7 @@
 {{$collabUserData.Set "staff" false}}
 {{range $collabConstants.staffRoles}}
 	{{if hasRoleID .}}
+		{{$staff = true}}
 		{{$collabUserData.Set "staff" true}}
 		{{$isBlacklisted = 0}}
 		{{break}}
@@ -61,6 +63,29 @@
 		{{dbSet 0 "execCCID" 0}}
 		{{execCC (dbGet 0 "collabConstants").Value.execCCID nil 0 .}}
 	{{end}}
+{{end}}
+
+{{if and (in .CustomID "collabs-nuke-") $staff}}
+	{{$userID := toInt64 (reFind `\d{16,18}` .CustomID)}}
+	{{$collabUserData = (dbGet $userID "collabUserData").Value}}
+	{{$txt0 := ", thread template"}}
+	{{$txt1 := ", collab post"}}
+	{{try}}
+		{{$o := getThread $collabUserData.tID}}
+		{{deleteThread $o.ID}}
+	{{catch}}
+		{{$txt0 = ""}}
+	{{end}}
+	{{try}}
+		{{$o := getThread $collabUserData.fID}}
+		{{deleteThread $o.ID}}
+	{{catch}}
+		{{$txt1 = ""}}
+	{{end}}
+	{{dbDel $userID "collabUserData"}}
+	{{deleteTrigger 0}}
+	{{editResponse nil nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $userID ">'s collab ad data" " has been deleted."))}}
+	{{return}}
 {{end}}
 
 {{if not $isBlacklisted}}
@@ -166,12 +191,6 @@
 			{{editResponse $a nil $collabConstants.noOwner}}
 		{{else if eq .CustomID "collabs-report"}}
 			{{editResponse $a nil (print "To report this collab ad, please [create a ticket](https://discord.com/channels/643089441463992340/1198065126780186665) (<#1198065126780186665>).")}}
-		{{else}}
-			{{sendMessage $notifCH $errTxt}}
-		{{end}}
-	{{else}}
-		{{$str := "collabs-nuke-"}}
-		{{if inFold .CustomID $str}}
 		{{else}}
 			{{sendMessage $notifCH $errTxt}}
 		{{end}}
