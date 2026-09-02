@@ -12,6 +12,10 @@
 
 {{$noticeCC := 19}}
 
+{{$topOne := 1544507399681998898}}
+{{$topTwo := 1544507457777438841}}
+{{$topThree := 1544507511221129287}}
+
 */}}
 
 {{$restricted := cslice 1235737941800910858 643105838483111936 882643861393010739}}
@@ -29,8 +33,8 @@
 {{$topTwo := 2}}
 {{$topThree := 3}}
 
-{{$deadline := 2592000}} {{/* 2592000 seconds = 30 days */}}
 {{$noticeCC := 69}}
+{{$deadline := 2592000}} {{/* 2592000 seconds = 30 days */}}
 
 {{$formats := cslice "webm" "mp4" "mov"}}
 
@@ -74,7 +78,8 @@
 1. The level requested must be your work, or a level you are part of in a level collaboration.
 2. The level must be uploaded in the game publicly. This will be checked automatically.
 3. Only one level and recording request per user is allowed at any given time.
-4. The level should be substantial enough to warrant a recording. At the same time, levels that are unreasonably hard to make a recording of is subject to deletion.
+> **-** This means that you cannot make two footage requests in the same request i.e., a normal showcase, and another with hitboxes turned on in the same level.
+4. The level should be substantial enough to warrant a recording. In addition, levels that are unreasonably hard to make a recording of is subject to deletion.
 5. Recording requests are **not verification requests**.
 6. If the level uses a "not on Newgrounds" (NONG) song and requires offset, mention it in additional notes.
 7. Any requests older than 30 days that does not have submissions will be deleted automatically.`}}

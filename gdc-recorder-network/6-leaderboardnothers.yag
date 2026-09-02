@@ -1,0 +1,105 @@
+{{/* Regex: \A(\-|<@!?204255221017214977>\s*)(record(ing)?|rc)stats? */}}
+
+{{$recConst := (dbGet 0 "recConst").Value}}
+
+{{define "recRank"}}
+	{{$footageRecords := toInt (dbGet .user "footageRecords").Value}}
+	{{if not $footageRecords}}
+		{{return (componentBuilder "text" (print "<@" .user "> does not have any recorded footages yet!"))}}
+	{{end}}
+	{{$rankGlobal := dbRank (sdict "pattern" "footageRecords") .user "footageRecords"}}
+	{{$monthRecord := toInt (dbGet .user .dbName).Value}}
+	{{$textExt := ""}}
+	{{if $monthRecord}}
+		{{$textExt = print "\n**Monthly Rank:** `" (dbRank (sdict "pattern" .dbName) .user .dbName) "`"}}
+	{{end}}
+	{{return (componentBuilder "text" (print "**Total Recorded Footages:** `" $footageRecords "`\n" "**Rank:** `" $rankGlobal "`") "separator" true "text" (print "**Current Month Footages:** `" (or $monthRecord "none!") "`" $textExt))}}
+{{end}}
+
+{{define "setLB"}}
+	{{/*
+	data: . = dbName
+	return: pageLB, component
+	*/}}
+	{{$leaderboard := cslice}}
+	{{$extraText := ":("}}
+	{{if eq . "footageRecords"}}
+		{{$leaderboard = dbTopEntries "footageRecords" 10 0}}
+	{{else}}
+		{{$leaderboard = dbTopEntries . 10 0}}
+		{{$extraText = "this month :("}}
+	{{end}}
+	{{if not $leaderboard}}
+		{{return (sdict "pageLB" 0 "component" (componentBuilder "text" (print "## No recordings fulfilled " $extraText)))}}
+	{{end}}
+	{{$maxPage := roundCeil (fdiv (dbCount .) 10)}}
+	{{$tally := ""}}
+	{{$num := 1}}
+	{{range $leaderboard}}
+		{{$tally = print $tally $num ". `" .Value "` **-** <@" .User.ID ">\n"}}
+		{{$num = add $num 1}}
+	{{end}}
+	{{return (sdict "pageLB" (toInt $maxPage) "component" (componentBuilder "text" $tally))}}
+{{end}}
+
+{{$data := sdict "dbName" $recConst.dbName}}
+{{$toSend := componentBuilder "reply" .Message.ID "allowed_mentions" (sdict "users" (cslice .User.ID))}}
+{{$help := print "Usage: `-recordingstats`/`-recordstats`/`-rcstat` [`me`/`@user`/`userid`/`leaderboard`/`lb`/`monthly`/`mo`/`m`]\n"
+"- `-recordingstats` - Bring up this help message\n"
+"- `-recordingstats me` - Your own recording stats\n"
+"- `-recordingstats @user` / `-rcstats userid` - someone's recording stats\n"
+"- `-recordingstats leaderboard` / `-rcstats lb` - Overall leaderboard for recording footages\n"
+"- `-recordingstats monthly` / `-rcstats m` - Monthly leaderboard for recording footages"}}
+
+{{if not .CmdArgs}}
+	{{sendMessage nil $help}}
+{{else}}
+	{{$initial := index .CmdArgs 0}}
+	{{$template := sdict}}
+	{{if $user := reFind `\d{17,19}` $initial}}
+		{{$data.Set "user" (toInt64 $user)}}
+		{{$toSend.Add "container" (sdict "components" (execTemplate "recRank" $data))}}
+		{{sendMessageNoEscape nil $toSend}}
+		{{return}}
+	{{else if eq $initial "me"}}
+		{{$data.Set "user" .User.ID}}
+		{{$toSend.Add "container" (sdict "components" (execTemplate "recRank" $data))}}
+		{{sendMessageNoEscape nil $toSend}}
+		{{return}}
+	{{else if eq $initial "lb" "leaderboard"}}
+		{{$template = execTemplate "setLB" "footageRecords"}}
+		{{$toSend.Add "text" "## Recording Leaderboard"}}
+	{{else if eq $initial "m" "mo" "month" "monthly"}}
+		{{$template = execTemplate "setLB" $recConst.dbName}}
+		{{$toSend.Add "text" (print "## " $recConst.posterMonthName " Recording Leaderboard")}}
+	{{else}}
+		{{sendMessage nil $help}}
+		{{return}}
+	{{end}}
+
+	{{if $pageLB := $template.pageLB}}
+		{{$navFirst := $recConst.navFirst}}
+		{{$navPrev := $recConst.navPrev}}
+		{{$navJump := $recConst.navJump}}
+		{{$navNext := $recConst.navNext}}
+		{{$navLast := $recConst.navLast}}
+
+		{{$navFirst.Set "disabled" true}}
+		{{$navPrev.Set "disabled" true}}
+		{{if gt $pageLB 1}}
+			{{$navNext.Set "custom_id" "record-lbNav 2"}}
+			{{if gt $pageLB 2}}
+				{{$navLast.Set "custom_id" (print "record-lbNav " $pageLB)}}
+			{{end}}
+		{{else}}
+			{{$navJump.Set "disabled" true}}
+			{{$navNext.Set "disabled" true}}
+			{{$navLast.Set "disabled" true}}
+		{{end}}
+
+		{{$toSend.Merge (componentBuilder "container" (sdict "components" $template.component) "container" (sdict "components" (componentBuilder "buttons" (cslice (cbutton $navFirst) (cbutton $navPrev) (cbutton $navJump) (cbutton $navNext) (cbutton $navLast)) "text" (print "Page `1 / " $pageLB "`"))))}}
+	{{else}}
+		{{$toSend.Add "container" (sdict "components" $template.component)}}
+	{{end}}
+	{{sendMessageNoEscape nil $toSend}}
+{{end}}

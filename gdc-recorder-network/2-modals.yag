@@ -17,6 +17,59 @@ PLS SANITIZE EVERY TEXTS TO AVOID THE BIG HOOPLA HOPLA HOOP OF PEOPLE BREAKING T
 	{{end}}
 {{end}}
 
+{{if eq .CustomID "record-lbNavJump"}}
+	{{$title := (index .Message.Components 0).Content}}
+	{{$page := toInt .ModalValues.page.value}}
+	{{$leaderboard := cslice}}
+	{{$dbName := $recConst.dbName}}
+	{{if eq $title "## Recording Leaderboard"}}
+		{{$dbName = "footageRecords"}}
+	{{else}}
+		{{$title = print "## " $recConst.posterMonthName " Recording Leaderboard"}}
+	{{end}}
+	{{$maxPage := toInt (roundCeil (fdiv (dbCount $dbName) 10))}}
+	{{if lt $page 1}}
+		{{$page = 1}}
+	{{else if gt $page $maxPage}}
+		{{$page = $maxPage}}
+	{{end}}
+	{{$leaderboard = dbTopEntries $dbName 10 (mult (sub $page 1) 10)}}
+	
+	{{$navFirst := $recConst.navFirst}}
+	{{$navPrev := $recConst.navPrev}}
+	{{$navJump := $recConst.navJump}}
+	{{$navNext := $recConst.navNext}}
+	{{$navLast := $recConst.navLast}}
+	{{if gt $page 1}}
+		{{$navPrev.Set "custom_id" (print "record-lbNav " (sub $page 1))}}
+	{{else}}
+		{{$navPrev.Set "disabled" true}}
+	{{end}}
+	{{if le $page 2}}
+		{{$navFirst.Set "custom_id" (print "record-lbNavFirst")}}
+		{{$navFirst.Set "disabled" true}}
+	{{end}}
+	{{if lt $page $maxPage}}
+		{{$navNext.Set "custom_id" (print "record-lbNav " (add $page 1))}}
+	{{else}}
+		{{$navNext.Set "disabled" true}}
+	{{end}}
+	{{if gt (add $page 2) $maxPage}}
+		{{$navLast.Set "disabled" true}}
+	{{else}}
+		{{$navLast.Set "custom_id" (print "record-lbNav " $maxPage)}}
+	{{end}}
+	
+	{{$tally := ""}}
+	{{$num := add (mult (sub $page 1) 10) 1}}
+	{{range $leaderboard}}
+		{{$tally = print $tally $num ". `" .Value "` **-** <@" .User.ID ">\n"}}
+		{{$num = add $num 1}}
+	{{end}}
+	{{updateMessageNoEscape (componentBuilder "allowed_mentions" (sdict "users" (cslice .User.ID)) "text" $title "container" (sdict "components" (componentBuilder "text" $tally)) "container" (sdict "components" (componentBuilder "buttons" (cslice (cbutton $navFirst) (cbutton $navPrev) (cbutton $navJump) (cbutton $navNext) (cbutton $navLast)) "text" (print "Page `" $page " / " $maxPage "`"))))}}
+	{{return}}
+{{end}}
+
 {{range $recConst.restricted}}
 	{{if and (hasRoleID .) (not $council)}}
 		{{sendResponse nil (complexMessage "ephemeral" true "content" (print "You are not allowed to perform this action due to presence of <@&" . ">."))}}
@@ -44,7 +97,7 @@ PLS SANITIZE EVERY TEXTS TO AVOID THE BIG HOOPLA HOPLA HOOP OF PEOPLE BREAKING T
 			{{break}}
 		{{end}}
 	{{end}}
-	{{$msg := $recConst.data.lastID}}
+	{{$msg := $recConst.lastID}}
 	{{$Z := 0}}
 	{{$lvlName := ""}}
 	{{$creator := ""}}
@@ -102,7 +155,7 @@ PLS SANITIZE EVERY TEXTS TO AVOID THE BIG HOOPLA HOPLA HOOP OF PEOPLE BREAKING T
 			"`\n- **Downloads:** " $download
 			"\n- **Level Type:** " $kind) "separator" true "text" (print
 			"### Recording Info:"
-			"\n- **Level Difficulty:** " (index .ModalValues.lvlDiff.value 0)
+			"\n- **Level Difficulty:** " $inDiff
 			"\n- **Level Length Completion:** " (index .ModalValues.lvlLen.value 0)
 			"\n- **Level Music" $str0 (or $songDisp $inSong)
 			"\n- **Additional Notes:** " $notes )))}}
@@ -117,21 +170,24 @@ PLS SANITIZE EVERY TEXTS TO AVOID THE BIG HOOPLA HOPLA HOOP OF PEOPLE BREAKING T
 		"\n- **Additional Notes:** " $notes)))}}
 	{{end}}
 	{{$V := sdict "rID" .User.ID "date" currentTime.Unix "lvlID" $lvlID "lvlLen" $inLen "lvlDiff" $inDiff "lvlSong" $inSong "notes" $notes "lvlName" $lvlName "lvlCreator" $creator "lvlDL" $download "kind" $kind "submissions" (dict)}}
-	{{$Z.Merge (componentBuilder "container" (sdict "components" (componentBuilder "buttons" (cslice (cbutton $recConst.subBtn3) (cbutton $recConst.subBtn4)))))}}
+	{{$subBtn4 := $recConst.subBtn4}}
+	{{$subBtn4.Set "custom_id" (print "record-requestDelete " .User.ID)}}
+	{{$Z.Merge (componentBuilder "container" (sdict "components" (componentBuilder "buttons" (cslice (cbutton $recConst.subBtn3) (cbutton $subBtn4)))))}}
 	{{$msgID := or ($userMesID.Get .User.ID) 1}}
 	{{$data := $userReq.Get $msgID}}
 	{{if $data}}
+		{{editResponse $IT nil "Your request has been edited."}}
 		{{editMessage nil $msgID $Z}}
 		{{$V.Set "submissions" $data.submissions}}
 		{{$userReq.Set $msgID $V}}
-		{{editResponse $IT nil "Your request has been edited."}}
 	{{else}}
+		{{editResponse $IT nil "Your request has been submitted."}}
 		{{editMessage nil $msg $Z}}
 		{{$msg = (createThread nil $msg (print .User.Username "'s request submissions")).ID}}
 		{{editThread $msg (sdict "slowmode" 60)}}
+		{{sendMessage $msg "## To make a submission, simply send a message containing a video attachment, or video link."}}
 		{{$new := sendMessageRetID nil (componentBuilder "container" (sdict "components" (componentBuilder "text" $recConst.desc01 "separator" true "text" $recConst.desc02 "separator" true "section" (sdict "text" $recConst.desc03 "button" (cbutton $recConst.reqBtn)) "separator" true "section" (sdict "text" $recConst.desc04 "button" (cbutton $recConst.scrollTop)))))}}
-		{{$recConst.data.Set "lastID" $new}}
-		{{editResponse $IT nil "Your request has been submitted."}}
+		{{$recConst.Set "lastID" $new}}
 		{{$userReq.Set $msg $V}}
 		{{$userMesID.Set .User.ID $msg}}
 	{{end}}

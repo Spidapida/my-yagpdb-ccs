@@ -58,23 +58,19 @@
 			{{sleep 1}}
 			{{$emb = getMessage $CH_dump $msgId}}
 			{{if $emb.Embeds}}
-				{{$emb = index $emb 0}}
+				{{$emb = index $emb.Embeds 0}}
 				{{$hand = $link}}
 				{{if eq $emb.Type "video"}}
-					{{$y := ""}}
-					{{if $emb.Video}}
-						{{$y = .Video.ProxyURL}}
-					{{end}}
-					{{if and $emb.Provider $y}}
-						{{$vidCon = $emb.Video.URL}}
+					{{if eq $emb.Provider.Name "Streamable"}}
+						{{$vidCon = $emb.Video.ProxyURL}}
 					{{else}}
-						{{$vidCon = .URL}}
+						{{$vidCon = $emb.URL}}
 					{{end}}
 					{{$Hdim = $emb.Video.Height}}
 					{{$Wdim = $emb.Video.Width}}
 				{{else if eq $emb.Type "rich"}}
 					{{if $emb.Thumbnail}}
-						{{$vidCon = .Video.URL}}
+						{{$vidCon = $emb.Video.URL}}
 						{{$Hdim = $emb.Video.Height}}
 						{{$Wdim = $emb.Video.Width}}
 					{{end}}

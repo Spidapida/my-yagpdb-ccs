@@ -4,7 +4,11 @@
 {{$userReq := $recConst.userReq}}
 {{$userMesID := $recConst.userMesID}}
 
-{{/* $CCID := 67 */}}
+{{/* $CCID := 67
+(clabel "label" "Level ID" "description" "Only one level is allowed per request."
+			"component" (ctextInput "value" "YOUR_DEFAULT_VALUE_HERE" "custom_id" "lvlID" "placeholder" "i.e., 104187415" "required" true "max_length" 9 "min_length" 1 "style" 1)
+
+*/}}
 {{$council := false}}
 
 {{range $recConst.council}}
@@ -12,6 +16,68 @@
 		{{$council = true}}
 		{{break}}
 	{{end}}
+{{end}}
+
+{{if in .CustomID "record-lbNav"}}
+	{{$title := (index .Message.Components 0).Content}}
+	{{if eq .CustomID "record-lbNavJump"}}
+		{{$count := 0}}
+		{{if eq $title "## Recording Leaderboard"}}
+			{{$title = "Recording Leaderboard"}}
+			{{$count = dbCount "footageRecords"}}
+		{{else}}
+			{{$title = "Monthly Leaderboard"}}
+			{{$count = dbCount $recConst.dbName}}
+		{{end}}
+		{{$YYY := toInt (roundCeil (fdiv $count 10))}}
+		{{$ZZZ := modalBuilder "record-lbNavJump" $title (clabel "label" "Page #" "description" (print "From 1 to " $YYY) "component" (ctextInput "style" 1 "custom_id" "page" "required" true "min_length" 1 "max_length" (len (toString $YYY))))}}
+		{{sendModal $ZZZ}}
+		{{return}}
+	{{end}}
+	{{$page := toInt (reFind `\d{1,}$` .CustomID)}}
+	{{$leaderboard := cslice}}
+	{{$dbName := $recConst.dbName}}
+	{{if eq $title "## Recording Leaderboard"}}
+		{{$dbName = "footageRecords"}}
+	{{else}}
+		{{$title = print "## " $recConst.posterMonthName " Recording Leaderboard"}}
+	{{end}}
+	{{$leaderboard = dbTopEntries $dbName 10 (mult (sub $page 1) 10)}}
+	{{$maxPage := toInt (roundCeil (fdiv (dbCount $dbName) 10))}}
+	
+	{{$navFirst := $recConst.navFirst}}
+	{{$navPrev := $recConst.navPrev}}
+	{{$navJump := $recConst.navJump}}
+	{{$navNext := $recConst.navNext}}
+	{{$navLast := $recConst.navLast}}
+	{{if gt $page 1}}
+		{{$navPrev.Set "custom_id" (print "record-lbNav " (sub $page 1))}}
+	{{else}}
+		{{$navPrev.Set "disabled" true}}
+	{{end}}
+	{{if le $page 2}}
+		{{$navFirst.Set "custom_id" (print "record-lbNavFirst")}}
+		{{$navFirst.Set "disabled" true}}
+	{{end}}
+	{{if lt $page $maxPage}}
+		{{$navNext.Set "custom_id" (print "record-lbNav " (add $page 1))}}
+	{{else}}
+		{{$navNext.Set "disabled" true}}
+	{{end}}
+	{{if gt (add $page 2) $maxPage}}
+		{{$navLast.Set "disabled" true}}
+	{{else}}
+		{{$navLast.Set "custom_id" (print "record-lbNav " $maxPage)}}
+	{{end}}
+	
+	{{$tally := ""}}
+	{{$num := add (mult (sub $page 1) 10) 1}}
+	{{range $leaderboard}}
+		{{$tally = print $tally $num ". `" .Value "` **-** <@" .User.ID ">\n"}}
+		{{$num = add $num 1}}
+	{{end}}
+	{{updateMessageNoEscape (componentBuilder "allowed_mentions" (sdict "users" (cslice .User.ID)) "text" $title "container" (sdict "components" (componentBuilder "text" $tally)) "container" (sdict "components" (componentBuilder "buttons" (cslice (cbutton $navFirst) (cbutton $navPrev) (cbutton $navJump) (cbutton $navNext) (cbutton $navLast)) "text" (print "Page " $page " / " $maxPage))))}}
+	{{return}}
 {{end}}
 
 {{range $recConst.restricted}}
@@ -44,16 +110,21 @@
 		{{end}}
 		{{sendMessage $recConst.recFinCH (componentBuilder "allowed_mentions" (sdict "users" (cslice $data.rID $submitter)) "container" (sdict "components" $Z))}}
 
-		{{$recMoLB := $recConst.recMoLB}}
-		{{$recMoLB.Set $submitter (or (add 1 ($recMoLB.Get $submitter)) 1)}}
+		{{$dbName := $recConst.dbName}}
+		{{$Q := dbGet $submitter $dbName}}
+		{{if $Q}}
+			{{$Q = dbIncr $submitter $dbName 1}}
+		{{else}}
+			{{dbSetExpire $submitter $dbName 1 2764800}} {{/* 2764800 seconds = 32 days */}}
+		{{end}}
+
 		{{$userReq.Del .Channel.ID}}
 		{{$userMesID.Del $data.rID}}
 
 		{{$recConst.Set "userMesID" $userMesID}}
-		{{$recConst.Set "recMoLB" $recMoLB}}
 		{{$recConst.Set "userReq" $userReq}}
 		{{dbSet 0 "recConst" $recConst}}
-		{{$P := dbIncr .User.ID "recordings" 1}}
+		{{$P := dbIncr $submitter "footageRecords" 1}}
 		{{$P = 0}}
 	{{else if in .CustomID "record-videoDelete"}}
 		{{$submitter := toInt64 (reFind `\d{17,19}$` .CustomID)}}
@@ -68,17 +139,18 @@
 		{{end}}
 	{{else if in .CustomID "record-confirmVideoDelete"}}
 		{{$submitter := toInt64 (reFind `\d{17,19}$` .CustomID)}}
-		{{deleteMessage .Channel.ID $submitter.msgID 0}}
+		{{deleteMessage .Channel.ID ($data.submissions.Get $submitter).msgID 0}}
 		{{$data.submissions.Del $submitter}}
 		{{$userReq.Set .Channel.ID $data}}
-		{{$recConst.data.Set "userReq" $userReq}}
+		{{$recConst.Set "userReq" $userReq}}
 		{{dbSet 0 "recConst" $recConst}}
-		{{updateMessage (complexMessage "content" "Your submission has been deleted." "ephemeral" true)}}
+		{{updateMessage (complexMessage "content" "Your submission has been deleted.")}}
 	{{end}}
 {{else}}
 	{{$msgID := $userMesID.Get .User.ID}}
 	{{$data := $userReq.Get $msgID}}
-	{{if eq .CustomID "record-Request"}}
+	
+	{{if eq .CustomID "record-Request"}}	
 		{{$CTI := cslice $recConst.TILvlID $recConst.TILM $recConst.TINote}}
 		{{$CL1 := cslice $recConst.LLvlID $recConst.LLM $recConst.LNote}}
 		{{$Opts := cslice $recConst.OLen $recConst.ODiff}}
@@ -117,9 +189,59 @@
 			{{$k.Set "options" $j}}
 			{{(index $CL2 $i).Set "component" (cmenu $k)}}
 		{{end}}
-		{{sendModal (modalBuilder "record-requestSubmit" $MT (clabel (index $CL1 0)) (clabel (index $CL2 1)) (clabel (index $CL2 0)) (clabel (index $CL1 1)) (clabel (index $CL1 2)) )}} {{/*level id, difficulty, level length, level music, notes */}}
-	{{else if eq .CustomID "record-requestDelete"}}
-		{{if eq .User.ID $data.rID}}
+		{{if or (eq .Message.ID $recConst.lastID) (eq .User.ID (or $data.rID 1))}}
+			{{sendModal (modalBuilder "record-requestSubmit" $MT (clabel (index $CL1 0)) (clabel (index $CL2 1)) (clabel (index $CL2 0)) (clabel (index $CL1 1)) (clabel (index $CL1 2)) )}} {{/*level id, difficulty, level length, level music, notes */}}
+		{{else}}
+			{{sendResponse nil (complexMessage "content" "Only the one who submitted the request can make changes." "ephemeral" true)}}
+		{{end}}
+		
+		{{/* Sorry if the above code is unreadable, this is how it would look like if it is written normally:
+
+		{{$modalBuilder := modalBuilder "record-requestSubmit" "YOUR_TITLE_HERE"
+		(clabel "label" "Level ID" "description" "Only one level is allowed per request."
+			"component" (ctextInput "value" "YOUR_DEFAULT_VALUE_HERE" "custom_id" "lvlID" "placeholder" "i.e., 104187415" "required" true "max_length" 9 "min_length" 1 "style" 1)
+		)
+		(clabel "label" "Level Difficulty" "description" "Select the level difficulty"
+			"component" (cmenu "custom_id" "lvlDiff" "type" "text" "placeholder" "Select one here" "required" true
+			"options" (cslice
+				(sdict "default" true "emoji" (sdict "id" "1198512511188738058") "label" "Auto" "value" "Auto") <=== Notice this is set to default
+				(sdict "emoji" (sdict "id" "1198512542008483860") "label" "Easy" "value" "Easy")
+				(sdict "emoji" (sdict "id" "1173796642168770610") "label" "Normal" "value" "Normal")
+				(sdict "emoji" (sdict "id" "1198512568449380392") "label" "Hard" "value" "Hard")
+				(sdict "emoji" (sdict "id" "1198512605426368513") "label" "Harder" "value" "Harder")
+				(sdict "emoji" (sdict "id" "1198512625659678730") "label" "Insane" "value" "Insane")
+				(sdict "emoji" (sdict "id" "1146327594342559795") "label" "Easy Demon" "value" "Easy Demon")
+				(sdict "emoji" (sdict "id" "1198512651706302484") "label" "Medium Demon" "value" "Medium Demon")
+				(sdict "emoji" (sdict "id" "1146327635937480785") "label" "Hard Demon" "value" "Hard Demon")
+				(sdict "emoji" (sdict "id" "1198512672585547917") "label" "Insane Demon" "value" "Insane Demon")
+				(sdict "emoji" (sdict "id" "1146327674965467266") "label" "Extreme Demon" "value" "Extreme Demon")
+				(sdict "emoji" (sdict "id" "1198512479467220992") "label" "Impossible" "value" "Impossible")
+				)
+			)
+		)
+		(clabel "label" "Level Length Completion" "description" "How long to complete the level?"
+			"component" (cmenu "custom_id" "lvlLen" "type" "text" "placeholder" "Select one here" "required" true
+			"options" (cslice
+				(sdict "default" true "label" "Tiny (0 - 10 seconds)" "value" "Tiny (0 - 10 seconds)") <=== Notice this is set to default
+				(sdict "label" "Short (10 - 30 seconds)" "value" "Short (10 - 30 seconds)")
+				(sdict "label" "Medium (30 - 60 seconds)" "value" "Medium (30 - 60 seconds)")
+				(sdict "label" "Long (1 - 2 minutes)" "value" "Long (1 - 2 minutes)")
+				(sdict "label" "Extra Long (2 - 5 minutes)" "value" "Extra Long (2 - 5 minutes)")
+				(sdict "label" "XL+ (5 - 15 minutes)" "value" "XL+ (5 - 15 minutes)")
+				(sdict "label" "XL+++ (longer than 15 minutes)" "value" "XL+++ (longer than 15 minutes)")
+				)
+			)
+		)
+		(clabel "label" "Level Music (NONGs)" "description" "Separate multiple song links with space. Leave this blank if the song is included the level."
+			"component" (ctextInput "default" "YOUR_DEFAULT_VALUE_HERE" "custom_id" "lvlSong" "style" 2 "required" false "placeholder" "https://www.youtube.com/watch?v=dQw4w9WgXcQ" "max_length" 200)
+		)
+		(clabel "label" "Additional Notes" "description" "Additional requests for recording (for example, no coin collection)"
+			"component" (ctextInput "default" "YOUR_DEFAULT_VALUE_HERE" "custom_id" "notes" "placeholder" "i.e., no coins" "required" false "max_length" 200 "min_length" 1 "style" 2)
+		)
+		}}
+		*/}}
+	{{else if in .CustomID "record-requestDelete"}}
+		{{if eq .User.ID (or $data.rID 1)}}
 			{{$btn0 := cbutton "style" "danger" "label" "Yes" "custom_id" "record-confirmRequestDelete"}}
 			{{if $data.submissions}}
 				{{sendResponse nil (complexMessage "content" "## There is at least one submission in your request. Maliciously deleting then requesting another can result in <@&882643861393010739>. If you only want to edit your request, press \"Edit Details\".\nOnly delete your request if you are fully sure. Press \"Yes\" to confirm." "buttons" $btn0 "ephemeral" true)}}
@@ -127,11 +249,11 @@
 				{{sendResponse nil (complexMessage "content" "## If you only want to edit your request, press \"Edit Details\".\nPress \"Yes\" to confirm your request deletion." "buttons" $btn0 "ephemeral" true)}}
 			{{end}}
 		{{else if $council}}
-			{{sendModal (modalBuilder (print "record-noticeRequest " $userReq.rID) "Delete With Optional Notice"
+			{{sendModal (modalBuilder (print "record-noticeRequest " (reFind `\d{16,19}` .CustomID)) "Delete With Optional Notice"
 			(clabel "label" "Reason" "description" "Leave this blank if you only want to delete the request and manually issue a notice."
 			"component" (ctextInput "custom_id" "reason" "required" false "max_length" 2000 "style" 2)))}}
 		{{else}}
-			{{sendResponse nil (complexMessage "content" (print "Only <@&870432686064414750>, <@&643101579016273941>, and <@" $userReq.rID "> can delete this request.") "ephemeral" true)}}
+			{{sendResponse nil (complexMessage "content" "Only <@&870432686064414750>, <@&643101579016273941>, and the one who submitted the request can delete this request." "ephemeral" true)}}
 		{{end}}
 	{{else if eq .CustomID "record-confirmRequestDelete"}}
 		{{deleteMessage .Channel.ID $msgID 0}}
@@ -142,3 +264,29 @@
 		{{updateMessage (complexMessage "content" "Your submission has been deleted." "ephemeral" true)}}
 	{{end}}
 {{end}}
+
+{{/* 31 - 28 + 1
+		{{$recMoLB := $recConst.recMoLB}}
+		{{$userRecord := $recMoLB.Get $submitter}}
+		{{if $userRecord}}
+			{{$userRecord.Set "count" (add $userRecord.count 1)}}
+		{{else}}
+			{{$userRecord.Set "name" (userArg $submitter).String}}
+			{{$userRecord.Set "count" 1}}
+		{{end}}
+		{{$recMoLB.Set $submitter $userRecord}}
+		{{$recConst.Set "recMoLB" $recMoLB}}
+
+		IN CONSTRUCTION!
+
+		{{$month := formatTime currentTime "1"}}
+		{{$day := toInt (formatTime currentTime "2")}}
+		{{$dbName := print "monthlyRecord" (toInt (mod (toInt $month) 2))}}
+		{{if $monthly := dbGet .User.ID  $dbName}}
+			{{$monthly = dbIncr .User.ID $dbName 1}}
+		{{else}}
+			{{dbSetExpire .User.ID $dbName 1 (add (sub ($recConst.monthDays.Get $month) $day) 1)}}
+		{{end}}
+		*/}}
+
+		
