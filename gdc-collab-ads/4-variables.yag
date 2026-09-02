@@ -21,8 +21,9 @@
 {{$priorityCH := 1465371900527251636}} {{/* Forum channel, priority channel */}}
 
 {{/* Staff roles, so they can interact with the system with an elevation. */}}
-{{$staffRoles := cslice 856869462569254912 1343014642309529620 643101579016273941 859731598706475010 }}
-{{/*						administrator		head staff			staff					trial staff */}}
+{{$staffRoles := cslice 856869462569254912 862159023914876978 1343014642309529620 1379802796441862235 643101579016273941 1245871625748877444 859731598706475010 }}
+{{/*						administrator			++			head staff					+-				staff					+			trial staff */}}
+{{$admin := cslice 856869462569254912 862159023914876978 1343014642309529620 1379802796441862235}}
 
 {{/* Booster role ID */}}
 {{$boosterRole := 674754528381239330}}
@@ -128,6 +129,7 @@
 "regularCH"		$regularCH
 "priorityCH"	$priorityCH
 "staffRoles"	$staffRoles
+"admin"			$admin
 "boosterRole"	$boosterRole
 "priorityRoles"	$priorityRoles
 "blacklist"		$blacklistRoles

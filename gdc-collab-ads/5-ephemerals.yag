@@ -1,3 +1,8 @@
+{{if $k := .ExecData}}
+	{{deleteThread $k}}
+	{{return}}
+{{end}}
+
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
 {{$collabUserData := or (dbGet .User.ID "collabUserData").Value $collabConstants.collabUserData }}
 {{$errTxt := print "<@661882006719954953>, " .User.Mention $collabConstants.r6 .Channel.ID "\n-# User thread ID: " $collabUserData.tID}}
@@ -78,12 +83,12 @@
 	{{end}}
 	{{try}}
 		{{$o := getThread $collabUserData.fID}}
-		{{deleteThread $o.ID}}
+		{{execCC .CCID nil 0 $o.ID}}
 	{{catch}}
 		{{$txt1 = ""}}
 	{{end}}
 	{{dbDel $userID "collabUserData"}}
-	{{deleteTrigger 0}}
+	{{try}}{{deleteTrigger 0}}{{catch}}{{end}}
 	{{editResponse nil nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $userID ">'s collab ad data" " has been deleted."))}}
 	{{return}}
 {{end}}
@@ -102,9 +107,10 @@
 		{{if eq .CustomID "collabs-initial"}}
 			{{if eq $collabUserData.tID 0}}
 				{{if gt $currentTime $weekly}}
-					{{$templateThread := createThread $collabConstants.frontPage nil (print .User.Username "'s collab ad") true 1440 false}}
+					{{$templateThread := createThread $collabConstants.frontPage nil (print .User.Username "'s collab ad") true 60 false}}
 					{{$tID := $templateThread.ID}}
 					{{editThread $tID (sdict "slowmode" 5)}}
+					{{addThreadMember $tID .User.ID}}
 					{{$sID := sendMessageRetID $tID (print .User.Mention ", check this thread to add details to your collab ad template.")}}
 					{{$collabUserData.Set "tID" $tID}}
 					{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}

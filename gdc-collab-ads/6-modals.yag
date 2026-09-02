@@ -56,7 +56,6 @@
 	{{$discordRegex := .dr}}
 	{{$sites := .sites}}
 	{{$noForm := .noFormat}}
-	{{$domainX := .dom}}
 	{{$max := .max}}
 	{{$reFR := `[\*_~\x60\|\n]`}}
 
@@ -90,7 +89,9 @@
 		{{- $maskedLinks = true -}}
 		{{- $ifToReplace := cslice -}}
 		{{- range $masked -}}
-			{{- $baseurl := reFind `[A-Za-z0-9\+\-]+\.[A-Za-z0-9\+\-]+$` (reFind $domainX $data) -}}
+			{{- $bsu := reFindAllSubmatches `(?i)([a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)+([a-z\d][a-z\d-]{0,61}[a-z\d])` $data -}}
+			{{- $baseurl := print (index $bsu 0 1) (index $bsu 0 2) -}}
+			{{/*- $baseurl := reFind `[A-Za-z0-9\+\-]+\.[A-Za-z0-9\+\-]+$` (reFind $domainX $data) -*/}}
 			{{- $toReplace := true -}}
 			{{- range $sites -}}
 				{{- if eq . $baseurl -}}
@@ -112,11 +113,11 @@
 			{{- if eq $i $count -}}
 				{{- $tempTxt = print $tempTxt (index $split $i) -}}
 			{{- else -}}
-				{{if (index $ifToReplace $i)}}
+				{{- if (index $ifToReplace $i) -}}
 					{{- $tempTxt = print $tempTxt (index $split $i) (index $masked $i 1) -}}
-				{{else}}
+				{{- else -}}
 					{{- $tempTxt = print $tempTxt (index $split $i) (index $masked $i 0) -}}
-				{{end}}
+				{{- end -}}
 			{{- end -}}
 			{{- $i = add $i 1 -}}
 		{{- end -}}
@@ -248,10 +249,10 @@
 		{{else if eq .StrippedID "modal-3"}}
 			{{$discordRegex := $collabConstants.discordRegex}}
 
-			{{$CN := execTemplate "formatMe" (sdict "data" .ModalValues.CT.value "dr" $discordRegex "sites" $sites "dom" .DomainRegex "max" 100 "noFormat" true)}}
-			{{$CD :=  execTemplate "formatMe" (sdict "data" .ModalValues.CP.value "dr" $discordRegex "sites" $sites "dom" .DomainRegex "max" 3900 "noNewlines" false)}}
-			{{$CK := execTemplate "formatMe" (sdict "data" .ModalValues.CH.value "dr" $discordRegex "sites" $sites "dom" .DomainRegex "max" 33 "noFormat" true)}}
-			{{$CC := execTemplate "formatMe" (sdict "data" .ModalValues.CC.value "dr" $discordRegex "sites" $sites "dom" .DomainRegex "max" 200 "noFormat" true)}}
+			{{$CN := execTemplate "formatMe" (sdict "data" .ModalValues.CT.value "dr" $discordRegex "sites" $sites "max" 100 "noFormat" true)}}
+			{{$CD :=  execTemplate "formatMe" (sdict "data" .ModalValues.CP.value "dr" $discordRegex "sites" $sites "max" 3900 "noNewlines" false)}}
+			{{$CK := execTemplate "formatMe" (sdict "data" .ModalValues.CH.value "dr" $discordRegex "sites" $sites "max" 33 "noFormat" true)}}
+			{{$CC := execTemplate "formatMe" (sdict "data" .ModalValues.CC.value "dr" $discordRegex "sites" $sites "max" 200 "noFormat" true)}}
 			{{$maskedLinks := false}}
 			{{if or $CN.masked $CD.masked $CK.masked $CC.masked}}
 				{{$maskedLinks = true}}
@@ -285,6 +286,9 @@
 								{{- break -}}
 							{{- end -}}
 						{{- end -}}
+					{{- end -}}
+					{{- if $flagged -}}
+						{{- break -}}
 					{{- end -}}
 				{{- end -}}
 			{{- end -}}

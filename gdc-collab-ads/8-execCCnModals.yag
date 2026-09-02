@@ -19,7 +19,7 @@
 {{$fmID := $collabUserData.fmID}}
 
 {{if eq (toString .ExecData.edit) "manageMedia" "manageThumbnail" "deleteCollab"}}
-	{{scheduleUniqueCC $collabConstants.schedCC nil 60 .User.ID "a"}}
+	{{scheduleUniqueCC $collabConstants.schedCC nil 60 .User.ID (sdict "act" "return")}}
 {{end}}
 
 {{$ED := .ExecData}}
@@ -194,6 +194,7 @@ $s $tempDetails ))
 		{{$collabUserData.Set "tmID" $msgID}}
 		{{editResponse $t nil $m}}
 	{{else if $ED.HasKey "edit"}}
+		{{editThread $collabUserData.tID (sdict "auto_archive_duration" 60)}} {{/* TEMPORARY */}}
 		{{editMessage $tID $collabUserData.tmID $megaMsg}}
 		{{if $tempMedia}}
 			{{$tempPostDesc.Add $o (sdict $q $contForumMedia)}}

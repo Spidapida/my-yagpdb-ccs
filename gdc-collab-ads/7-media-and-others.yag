@@ -7,7 +7,7 @@
 
 {{define "link"}}
 	{{$x := cslice}}
-	{{- range . -}}
+	{{- range . -}} {{/* .Message.Embeds, cslice */}}
 		{{- $link := "" -}}
 		{{- if eq .Type "image" "video" -}}
 			{{- $y := "" -}} {{- if .Video -}} {{- $y = .Video.ProxyURL -}} {{- end -}}
@@ -67,10 +67,7 @@
 
 {{define "media"}}
 	{{$msg := .message}}
-	{{$user := $msg.Author.ID}}
 	{{$linkTemp := .links}}
-	{{$nID := .nID}}
-	{{$db := (dbGet $user "collabUserData").Value}}
 	{{$const := (dbGet 0 "collabConstants").Value}}
 	{{$channel := $const.attachForward}}
 	{{$imgAttach := cslice}}
@@ -81,6 +78,7 @@
 	{{if $msg.Attachments}}
 		{{try}} {{openThread $channel}} {{catch}} {{end}}
 		{{$msgID := 0}}
+		{{/* The reason for this try-catch is that previously Discord does not allow forwarding if the user exceeds the file size they're usually allowed forwarding to, but the behavior has been changed. It will remain here as-is for now. */}}
 		{{try}}
 			{{$msgID = sendMessageRetID $channel (complexMessage "forward" (sdict "channel" $msg.ChannelID "message" $msg.ID ))}}
 			{{$imgAttach = execTemplate "file" (index (getMessage $channel $msgID).MessageSnapshots 0).Message.Attachments}}
@@ -91,7 +89,6 @@
 	{{end}}
 
 	{{if $linkTemp}}
-		{{$hasEmbed := false}}
 		{{try}} {{openThread $channel}} {{catch}} {{end}}
 		{{if gt (len $linkTemp) 5}}
 			{{$linkTemp1 := slice $linkTemp 0 5}}
@@ -136,23 +133,21 @@
 {{define "clock"}}
 	{{if $db := (dbGet 0 "execCCID").Value}}
 		{{if eq 0 (toInt (mod $db 2))}}
-			{{execCC (dbGet 0 "collabConstants").Value.execCCID nil 0 .}}
+			{{execCC (dbGet 0 "collabConstants").Value.execCCID nil 1 .}}
 		{{else}}
-			{{execCC (dbGet 0 "collabConstants").Value.execCCID2 nil 0 .}}
+			{{execCC (dbGet 0 "collabConstants").Value.execCCID2 nil 1 .}}
 		{{end}}
 	{{else}}
 		{{dbSet 0 "execCCID" 0}}
-		{{execCC (dbGet 0 "collabConstants").Value.execCCID nil 0 .}}
+		{{execCC (dbGet 0 "collabConstants").Value.execCCID nil 1 .}}
 	{{end}}
 {{end}}
 
+
+
 {{if eq .Channel.ID $collabUserData.tID}}
-	{{$links := reFindAll .LinkRegex .Message.Content}}
-	{{$editMe := ""}}
-	{{if eq $flag "deleteCollab" "manageMedia" "manageThumbnail"}}
-		{{try}} {{deleteInteractionResponse $collabUserData.nTok $collabUserData.nID 0}} {{catch}} {{end}}
-		{{try}} {{deleteMessage $collabUserData.tID $collabUserData.nmID 0}} {{catch}} {{end}}
-	{{end}}
+	{{/* Whole logic is now outside to prepare for cobbling .* or \A triggers */}}
+{{end}}
 	
 	{{if and (eq $flag "manageMedia" "manageThumbnail") (in .Message.Content "--notimer") }}
 		{{cancelScheduledUniqueCC $collabConstants.schedCC .User.ID}}
@@ -162,24 +157,37 @@
 		{{return}}
 	{{end}}
 	{{if .ExecData}}
-		{{$z := 0}}
-		{{if eq $collabUserData.flag "manageMedia"}}
-			{{$z = sendMessageRetID $CH $collabConstants.rn}}
-		{{else if eq $collabUserData.flag "manageThumbnail"}}
-			{{$z = sendMessageRetID $CH $collabConstants.rp}}
-		{{else if eq $collabUserData.flag "deleteCollab"}}
-			{{$z = sendMessageRetID $CH $collabConstants.ro}}
+		{{if eq .ExecData.act "use"}}
+			{{dbSet 0 "tempMedia" (execTemplate "media" .ExecData)}}
+			{{return}}
+		{{else if eq .ExecData.act "return"}}
+			{{$z := 0}}
+			{{if eq $collabUserData.flag "manageMedia"}}
+				{{$z = sendMessageRetID $CH $collabConstants.rn}}
+			{{else if eq $collabUserData.flag "manageThumbnail"}}
+				{{$z = sendMessageRetID $CH $collabConstants.rp}}
+			{{else if eq $collabUserData.flag "deleteCollab"}}
+				{{$z = sendMessageRetID $CH $collabConstants.ro}}
+			{{end}}
+			{{$collabUserData.Set "flag" "neutral"}}
+			{{$collabUserData.Set "nmID" $z}}
+			{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
+			{{$xx := execTemplate "clock" (sdict "edit" "")}}
+			{{return}}
 		{{end}}
-		{{$collabUserData.Set "flag" "neutral"}}
-		{{$collabUserData.Set "nmID" $z}}
-		{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
-		{{$xx := execTemplate "clock" (sdict "edit" "")}}
-		{{return}}
 	{{end}}
+	
+	{{$links := reFindAll .LinkRegex .Message.Content}}
+	{{$editMe := ""}}
+	{{if eq $flag "deleteCollab" "manageMedia" "manageThumbnail"}}
+		{{try}} {{deleteInteractionResponse $collabUserData.nTok $collabUserData.nID 0}} {{catch}} {{end}}
+		{{try}} {{deleteMessage $collabUserData.tID $collabUserData.nmID 0}} {{catch}} {{end}}
+	{{end}}
+
 	{{if eq $flag "deleteCollab"}}
 		{{if in .Message.Content "CONFIRM"}}
 			{{sendMessage $CH (complexMessage "reply" .Message.ID "content" $collabConstants.rf)}}
-			{{execCC $ccid $CH 0 (sdict "destruct" 1)}}
+			{{execCC $ccid $CH 1 (sdict "destruct" 1)}}
 			{{if $zz := $collabUserData.fID}}
 				{{deleteForumPost $zz}}
 			{{end}}
@@ -204,7 +212,7 @@
 			{{$xx := execTemplate "clock" (sdict "edit" "")}}
 			{{return}}
 		{{end}}
-		{{$exec := execTemplate "media" (sdict "message" .Message "links" $links "urlFirst" (inFold .Message.Content "--urlfirst") "nID" $notif)}}
+		{{$exec := execTemplate "media" (sdict "message" .Message "links" $links "urlFirst" (inFold .Message.Content "--urlfirst"))}}
 		{{$totalMedia := add (len $links) (len .Message.Attachments)}}
 		{{$successCount := sub $totalMedia $exec.successAdd}}
 		{{$mediaLinks := $exec.attachments}}
@@ -257,7 +265,7 @@
 			{{$xx := execTemplate "clock" (sdict "edit" "")}}
 			{{return}}
 		{{end}}
-		{{$exec := execTemplate "media" (sdict "message" .Message "links" $links "urlFirst" false "nID" $notif)}}
+		{{$exec := execTemplate "media" (sdict "message" .Message "links" $links "urlFirst" false)}}
 		{{$collabUserData.Set "flag" "neutral"}}
 		{{$editMe = "Thumbnail has been set successfully."}}
 
@@ -292,4 +300,3 @@
 		{{dbSetExpire .User.ID "collabUserData" $collabUserData $dbTimer}}
 		{{$xx := execTemplate "clock" (sdict "edit" "editMedia" "m" $editMe "t" $notif)}}
 	{{end}}
-{{end}}

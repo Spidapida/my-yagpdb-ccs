@@ -13,56 +13,58 @@
 "- `-ca wand <@user> set <key> <value/s>` - set a value from the user's collab ad database; run `-ca wandterms` or `-ca wandlist` for the valid keys\n"
 "- `-ca wandterms` or `-ca wandlist` - see the valid keys used for `-ca wand` and `-ca show` commands\n"
 "- `-ca wandclear <@user>` - nuke user's database, template, and posted collab ad (if applicable)\n"
+"### The following commands are not operational due to the space constraints of the custom command... collab ads v4 is underway... \n"
 "- `-ca website list` - bring up websites allowed to be mask linked\n"
 "- `-ca website add <url>` - adds a website allowed to be mask linked\n"
 "- `-ca website remove <url>` - removes a website allowed to be mask linked\n"
 "- `-ca automod list {nonlatin/basic/websites}` - bring up AutoMod terms disallowed for collab ads\n"
-"- `-ca automod checkit <string>` - see if submitted string is in AutoMod\n"
+"- `-ca automod checkit <string>` - see if submitted string is in AutoMod; only the first result of flagged keyword will be returned\n"
 "### Admin and head staff commands:\n"
-"- `-ca automod add {nonlatin/basic/websites} <term>` - adds a term to AutoMod\n"
-"- `-ca automod remove {nonlatin/basic/websites} <term>` - removes a term from AutoMod"}}
-{{$help2 := print "```" ` Key  |Data Type|                  Description
+"- `-ca automod add <term>` - adds a term to AutoMod\n"
+"- `-ca automod remove <term>` - removes a term from AutoMod"}}
+{{$help2 := print "```" ` Key   |Data Type|                  Description
 -----------------------------------------------------------------
-tID   |  int64  | thread ID of collab ad template
-tmID  |  int64  | message ID of collab ad template
-flag  |  string | <neutral>, <manageMedia>, <manageThumbnail>, <deleteCollab>, <freeze> => user status
-AMod  |  string | <true>, <false>, <bypassed> => AutoMod status for Collab Description
-term  |  string | what term got AutoModded for Collab Description
+tID   #|  int64  | thread ID of collab ad template
+tmID  #|  int64  | message ID of collab ad template
+flag   |  string | <neutral>, <manageMedia>, <manageThumbnail>, <deleteCollab>, <freeze> => user status
+AMod   |  string | <true>, <false>, <bypassed> => AutoMod status for Collab Description
+term   |  string | what term got AutoModded for Collab Description
 
-staff | boolean | :d
-boost | boolean | :d
-L20UP | boolean | Level 20+, Quality Control, Contributor, GD Mod, Event Winner, Legacy Leaderboard
-CT    |  string | [100 characters] Collab Title
-CP    |  string | [3900 characters] Collab Description
+staff  | boolean | :d
+boost  | boolean | :d
+L20UP  | boolean | Level 20+, Quality Control, Contributor, GD Mod, Event Winner, Legacy Leaderboard
+CT     |  string | [100 characters] Collab Title
+CP     |  string | [3900 characters] Collab Description
 
-CI    |  string | [255 characters] Discord Invite
-CC    |  string | [200 characters] Collab Contribution
-CZ    |  string | <Small Scale Collab>, <Megacollab>, <Ultracollab> => Collab Size
-LS    |  string | <Modern>, <Glow>, <Effect>, <Core>, <Art>, <Minigame>, <Neodesign>, <Layouts>, <Other> => Level Deco Style
-CN    |  string | <Decoration Only>, <Gameplay Only>, <Decoration & Gameplay>, <Other> => Collab Needs
+CI     |  string | [255 characters] Discord Invite
+CC     |  string | [200 characters] Collab Contribution
+CZ     |  string | <Small Scale Collab>, <Megacollab>, <Ultracollab> => Collab Size
+LS     |  string | <Modern>, <Glow>, <Effect>, <Core>, <Art>, <Minigame>, <Neodesign>, <Layouts>, <Other> => Level Deco Style
+CN     |  string | <Decoration Only>, <Gameplay Only>, <Decoration & Gameplay>, <Other> => Collab Needs
 
-LD    |  string | <Non-Demon>, <Easy-Medium Demon>, <Hard-Insane Demon>, <Extreme Demon +> => Level Difficulty
-LT    |  string | <Classic Mode>, <Platformer Mode> => Level Type
-CS    |  string | <Low Standards>, <Medium Standards>, <High Standards> => Collab Standards
-CH    |  string | [32 characters] Collab Host
-LM    |  string | [500 characters] Level Music
+LD     |  string | <Non-Demon>, <Easy-Medium Demon>, <Hard-Insane Demon>, <Extreme Demon +> => Level Difficulty
+LT     |  string | <Classic Mode>, <Platformer Mode> => Level Type
+CS     |  string | <Low Standards>, <Medium Standards>, <High Standards> => Collab Standards
+CH     |  string | [32 characters] Collab Host
+LM     |  string | [500 characters] Level Music
 
-CF    |  string | Collab Thumbnail, only media links are supported
-CM    |  array  | Collab Media, each element is a string, each is separated by a space, only media links are supported
-nID   |  int64  | Notification Message ID, ephemeral
-nTok  |  string | Notification Token
-fID   |  int64  | Forum ID of Posted Collab Ad
+CF     |  string | Collab Thumbnail, only media links are supported
+CM     |  array  | Collab Media, each element is a string, each is separated by a space, only media links are supported
+nID   #|  int64  | Notification Message ID, ephemeral
+nTok  #|  string | Notification Token
+fID   #|  int64  | Forum ID of Posted Collab Ad
 
-fmID  |  int64  | Message ID of Posted Colab Ad
-time  |  int64  | [Unix] Timestamp of Collab Ad Post
-no4WM |  int64  | Message ID of Non-Forwarded Media
-no4WF |  int64  | Message ID of Non-Forwarded Thumbnail
-msk   | boolean | If whether Collab Description has masked links
+fmID  #|  int64  | Message ID of Posted Colab Ad
+time   |  int64  | [Unix] Timestamp of Collab Ad Post
+no4WM #|  int64  | Message ID of Non-Forwarded Media
+no4WF #|  int64  | Message ID of Non-Forwarded Thumbnail
+msk    | boolean | If whether Collab Description has masked links
 
-CTTM  |  int64  | [Unix] Timestamp when Collab Title was changed
-nmID  |  int64  | Message ID For setting media and thumbnail
-AMo2  |  string | <true>, <false>, <bypassed> = AutoMod status for Level Music
-ter2  |  string | what term got AutoModded for Level Music` "```"}}
+CTTM  #|  int64  | [Unix] Timestamp when Collab Title was changed
+nmID  #|  int64  | Message ID For setting media and thumbnail
+AMo2  #|  string | <true>, <false>, <bypassed> = AutoMod status for Level Music
+ter2  #|  string | what term got AutoModded for Level Music
+# - only an admin or head staff can modify` "```"}}
 
 {{$r0 := "Please head to https://discord.com/channels/"}}
 {{$r1 := " to make your collaboration ad."}}
@@ -104,8 +106,8 @@ ter2  |  string | what term got AutoModded for Level Music` "```"}}
 {{$j := " was flagged due to presence of `"}}
 {{$report :=  sdict "emoji" (sdict "name" "⚠") "label" "Report Collab" "custom_id" "collabs-report" "style" "danger"}}
 
-{{$keyMethods := sdict "tID" (sdict "name" "(template) thread ID" "type" "int64")
-"tmID" (sdict "name" "(template) message ID" "type" "int64")
+{{$keyMethods := sdict "tID" (sdict "up" 1 "name" "(template) thread ID" "type" "int64")
+"tmID" (sdict "up" 1 "name" "(template) message ID" "type" "int64")
 "flag" (sdict "name" "user flag" "type" "string" "choice" (cslice "neutral" "manageMedia" "manageThumbnail" "deleteCollab" "freeze"))
 "AMod" (sdict "name" "AutoMod status" "type" "tfb")
 "term" (sdict "name" "AutoMod string flagged" "type" "string")
@@ -126,18 +128,18 @@ ter2  |  string | what term got AutoModded for Level Music` "```"}}
 "LM" (sdict "name" "level music" "type" "string" "limit" 500)
 "CF" (sdict "name" "collab thumbnail" "type" "thumb")
 "CM" (sdict "name" "collab media" "type" "slice")
-"nID" (sdict "name" "message ID for notifications" "type" "int64")
-"nTok" (sdict "name" "interaction token for ephemeral notifications" "type" "string")
-"fID" (sdict "name" "thread ID for posted collab ad" "type" "int64")
-"fmID" (sdict "name" "second message ID for posted collab ad" "type" "int64")
+"nID" (sdict "up" 1 "name" "message ID for notifications" "type" "int64")
+"nTok" (sdict "up" 1 "name" "interaction token for ephemeral notifications" "type" "string")
+"fID" (sdict "up" 1 "name" "thread ID for posted collab ad" "type" "int64")
+"fmID" (sdict "up" 1 "name" "second message ID for posted collab ad" "type" "int64")
 "time" (sdict "name" "timestamp of posted collab ad" "type" "int64")
-"no4WM" (sdict "name" "message ID of media gallery not forwarded" "type" "int64")
-"no4WF" (sdict "name" "message ID of thumbnail not forwarded" "type" "int64")
+"no4WM" (sdict "up" 1 "name" "message ID of media gallery not forwarded" "type" "int64")
+"no4WF" (sdict "up" 1 "name" "message ID of thumbnail not forwarded" "type" "int64")
 "msk" (sdict "name" "masked link status" "type" "bool")
-"CTTM" (sdict "name" "collab title timestamp edit" "type" "int64")
-"nmID" (sdict "name" "message ID from setting media/thumbnail" "type" "int64")
-"AMo2" (sdict "name" "AutoMod status for Level Music" "type" "tfb")
-"ter2" (sdict "name" "AutoMod string flagged for Level Music" "type" "string")}}
+"CTTM" (sdict "up" 1 "name" "collab title timestamp edit" "type" "int64")
+"nmID" (sdict "up" 1 "name" "message ID from setting media/thumbnail" "type" "int64")
+"AMo2" (sdict "up" 1 "name" "AutoMod status for Level Music" "type" "tfb")
+"ter2" (sdict "up" 1 "name" "AutoMod string flagged for Level Music" "type" "string")}}
 
 {{$p := sdict
 "helpP" $help1

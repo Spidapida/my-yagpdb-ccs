@@ -1,12 +1,16 @@
 {{$collabConstants := (dbGet 0 "collabConstants").Value}}
 {{$args := .CmdArgs }}
-{{/*Note: tbf is string, limited to true/false/bypassed*/}}
 {{$keyMethods := $collabConstants.keyMethods}}
-{{$boolTxt := cslice true (cslice "true" "t" "yes" "y") false (cslice "false" "f" "no" "n")}}
-{{$tfb := cslice "true" (cslice "true" "t" "yes" "y") "false" (cslice "false" "f" "no" "n") "bypassed" (cslice "bypassed" "bypass" "b")}}
-{{$timer := $collabConstants.dbTimer}}
-{{$ccid := $collabConstants.execCCID}}
 {{$err := ""}}
+{{$admin := false}}
+{{$r := `(?i)([a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)+([a-z\d][a-z\d-]{0,61}[a-z\d])`}}
+
+{{range $collabConstants.admin}}
+	{{if hasRoleID .}}
+		{{$admin = true}}
+		{{break}}
+	{{end}}
+{{end}}
 
 {{define "SK"}}
 	{{$user := .us}}
@@ -19,182 +23,295 @@
 	{{execCC $ccid $channel 0 (sdict "fireupdate" $user "staff" $who "edit" "")}}
 {{end}}
 
+{{define "CH"}}
+	{{$a := (dbGet 0 "collabConstants").Value}}
+	{{$b := ""}}
+	{{$c := $a.filterNonLatin}}
+	{{$f := $a.filterWildcards}}
+	{{$g := $a.filterBasic}}
+	{{$h := .s}}
+	{{$r := .r}}
+	{{$A := cslice}}
+	{{$B := cslice}}
+	{{$C := cslice}}
+	{{- range $c -}}
+		{{- $D := inFold $h . -}}
+		{{- if .m -}}
+			{{- if $D -}}
+				{{- $b = . -}}
+				{{- continue -}}
+			{{- else -}}
+				{{$A = $A.Append .}}
+			{{- end -}}
+		{{- else -}}
+			{{- if $D -}}
+				{{- $b = . -}}
+				{{- break -}}
+			{{- end -}}
+		{{- end -}}
+	{{- end -}}
+	{{- if not $b -}}
+		{{- range $d := cslice " " "\n" "-" -}}
+			{{- range $e := cslice " " "\n" "-" -}}
+				{{- range $g -}}
+					{{- $E := inFold (sanitizeText $h) (print $d . $e) -}}
+					{{- if .m -}}
+						{{- if $E -}}
+							{{- $b = . -}}
+							{{- continue -}}
+						{{- else -}}
+							{{- $B = $B.Append . -}}
+						{{- end -}}
+					{{- else -}}
+						{{- if $E -}}
+							{{- $b = . -}}
+							{{- break -}}
+						{{- end -}}
+					{{- end -}}
+				{{- end -}}
+			{{- end -}}
+			{{- if $b -}}
+				{{- break -}}
+			{{- end -}}
+		{{- end -}}
+	{{- end -}}
+	{{- $i := reFindAllSubmatches $r $h -}}
+	{{- if and (not $b) $i -}}
+		{{- range $f -}}
+			{{- $F := inFold (print (index $i 0 1) (index $i 0 2)) . -}}
+			{{- if .m -}}
+				{{- if $F -}}
+					{{- $b = . -}}
+					{{- continue -}}
+				{{- else -}}
+					{{- $C = $C.Append . -}}
+				{{- end -}}
+			{{- else -}}
+				{{- if $F -}}
+					{{- $b = . -}}
+					{{- break -}}
+				{{- end -}}
+			{{- end -}}
+		{{- end -}}
+	{{- end -}}
+	{{if .m}}
+		{{$a.Set "filterNonLatin" $A}}
+		{{$a.Set "filterWildcards" $C}}
+		{{$a.Set "filterBasic" $B}}
+		{{dbSet 0 "collabConstants" $a}}
+		{{return $b}}
+	{{else}}
+		{{return $b}}
+	{{end}}
+{{end}}
+
+{{$Aa := "show"}}
+{{$Ab := "whitelist"}}
+{{$Ac := "cdoff"}}
+{{$Ad := "freeze"}}
+{{$Ae := "unfreeze"}}
+{{$Af := "rempost"}}
+{{$Ag := "wandclear"}}
+{{$Ah := "wand"}}
+{{$Ai := "string"}}
+{{$Aj := "subcommand"}}
+{{$Ak := "userid"}}
+{{$Al := "user ID"}}
+{{$Am := "option"}}
+{{$An := "allowed_mentions"}}
+{{$Ao := "content"}}
+{{$Ap := "container"}}
+{{$Aq := "text"}}
+{{$Ar := "components"}}
+
+{{$A0 := componentBuilder $Ap (sdict $Ar (componentBuilder $Aq $collabConstants.helpP))}}
+{{$A1 := componentBuilder $Aq "No such command exists."}}
+{{$A1.Merge $A0}}
+{{$A2 := "No key named `"}}
+{{$A3 := "`, use `-ca wandterms` or `-ca wandlist`to see what keys are valid. **The keys are case sensitive**."}}
+{{$A4 := "` is locked for modification, as this can break someone's template if modified incorrectly. Please contact an admin or head staff."}}
+{{$A5 := "`. Accepted values:\n- **true**: true, t, yes, y, 1\n- **false**: false, f, no, n, 0\n"}}
+
 {{if not $args}}
-	{{sendMessage nil (componentBuilder "container" (sdict "components" (componentBuilder "text" $collabConstants.helpP)))}}
+	{{sendMessage nil $A0}}
 {{else}}
 	{{$sub := index $args 0}}
 	{{if eq $sub "help"}}
-		{{sendMessage nil (componentBuilder "container" (sdict "components" (componentBuilder "text" $collabConstants.helpP)))}}
-	{{else if eq $sub "show" "whitelist" "cdoff" "freeze" "unfreeze" "rempost" "wandclear" "wand"}}
-		{{$args0 := parseArgs 2 "" (carg "string" "subcommand") (carg "userid" "user ID") (carg "string" "option")}}
+		{{sendMessage nil $A0}}
+	{{else if eq $sub $Aa $Ab $Ac $Ad $Ae $Af $Ag $Ah}}
+		{{$args0 := parseArgs 2 "" (carg $Ai $Aj) (carg $Ak $Al) (carg $Ai $Am)}}
 		{{$user := $args0.Get 1}}
 		{{if $collabUserData := (dbGet $user "collabUserData").Value}}
-			{{$SL := sdict "us" $user "da" $collabUserData "ti" $timer "cc" $ccid "who" .User.ID "ch" $collabUserData.tID}}
-			{{if eq $sub "show" "wandclear" "wand"}}
-				{{if eq $sub "wandclear"}}
-					{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "Are you sure you want to clear <@" $user ">'s (`" $user "`) collab ad data, as well as their template and collab post (if applicable)?") "buttons" (cbutton "custom_id" (print "collabs-nuke-" $user) "label" "Yes!" "style" "danger"))}}
-				{{else if eq $sub "show"}}
+			{{$SL := sdict "us" $user "da" $collabUserData "ti" $collabConstants.dbTimer "cc" $collabConstants.execCCID "who" .User.ID "ch" $collabUserData.tID}}
+			{{if eq $sub $Aa $Ag $Ah}}
+				{{if eq $sub $Ag}}
+					{{$q := sendMessageRetID nil (complexMessage $An (sdict) $Ao (print "Are you sure you want to clear <@" $user ">'s (`" $user "`) collab ad data, as well as their template and collab post (if applicable)?") "buttons" (cbutton "custom_id" (print "collabs-nuke-" $user) "label" "Yes!" "style" "danger"))}}
+					{{deleteMessage nil $q 15}}
+				{{else if eq $sub $Aa}}
 					{{if $args0.IsSet 2}}
 						{{$sub0 := $args0.Get 2}}
-						{{$err := print "No key named `" $sub0 "`, use `-ca wandterms` or `-ca wandlist`to see what keys are valid. **The keys are case sensitive**."}}
-						{{range $k, $v := $keyMethods}}
-							{{if eq $k $sub0}}
-								{{$sent := componentBuilder "allowed_mentions" (sdict "users" (cslice)) "text" (print "<@" $user ">'s (`" $user "`) " $v.name ":")}}
-								{{$TH := $collabUserData.Get $k}}
-								{{$nope := componentBuilder "container" (sdict "components" (componentBuilder "text" "*empty*"))}}
-								{{if eq $v.type "thumb"}}
-									{{if $TH}}
-										{{$sent.Add "container" (sdict "components" (componentBuilder "gallery" (sdict "media" $TH)))}}
-									{{else}}
-										{{$sent.Merge $nope}}
-									{{end}}
-									{{sendMessage nil $sent}}
-								{{else if eq $v.type "slice"}}
-									{{if $TH}}
-										{{$THI := cslice}}
-										{{range $TH}}
-											{{$THI = $THI.Append (sdict "media" .)}}
-										{{end}}
-										{{$sent.Add "container" (sdict "components" (componentBuilder "gallery" $THI))}}
-										{{sendMessage nil $sent}}
-									{{else}}
-										{{$sent.Merge $nope}}
-									{{end}}
-								{{else}}
-									{{if $TH}}
-										{{$sent.Add "container" (sdict "components" (componentBuilder "text" (print $TH)))}}
-										{{sendMessage nil $sent}}
-									{{else}}
-										{{$sent.Merge $nope}}
-									{{end}}
-								{{end}}
-								{{$err = ""}}
-								{{break}}
-							{{end}}
-						{{end}}
+						{{$err := print $A2 $sub0 $A3}}
+						{{- range $k, $v := $keyMethods -}}
+							{{- if eq $k $sub0 -}}
+								{{- $sent := componentBuilder $An (sdict) $Aq (print "<@" $user ">'s (`" $user "`) " $v.name ":") -}}
+								{{- $TH := $collabUserData.Get $k -}}
+								{{- $nope := componentBuilder $Ap (sdict $Ar (componentBuilder $Aq "*empty*")) -}}
+								{{- if eq $v.type "thumb" -}}
+									{{- if $TH -}}
+										{{- $sent.Add $Ap (sdict $Ar (componentBuilder "gallery" (sdict "media" $TH))) -}}
+									{{- else -}}
+										{{- $sent.Merge $nope -}}
+									{{- end -}}
+								{{- else if eq $v.type "slice" -}}
+									{{- if $TH -}}
+										{{- $THI := cslice -}}
+										{{- range $TH -}}
+											{{- $THI = $THI.Append (sdict "media" .) -}}
+										{{- end -}}
+										{{- $sent.Add $Ap (sdict $Ar (componentBuilder "gallery" $THI)) -}}
+									{{- else -}}
+										{{- $sent.Merge $nope -}}
+									{{- end -}}
+								{{- else -}}
+									{{- if $TH -}}
+										{{- $sent.Add $Ap (sdict $Ar (componentBuilder $Aq (print $TH))) -}}
+									{{- else -}}
+										{{- $sent.Merge $nope -}}
+									{{- end -}}
+								{{- end -}}
+								{{- sendMessage nil $sent -}}
+								{{- $err = "" -}}
+								{{- break -}}
+							{{- end -}}
+						{{- end -}}
 						{{if $err}}
 							{{sendMessage nil $err}}
 						{{end}}
 					{{else}}
-						{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "file" (json $collabUserData true) "content" (print "Here is <@" $user ">'s (`" $user "`) collab user data, in a text file:"))}}
+						{{sendMessage nil (complexMessage $An (sdict) "file" (json $collabUserData true) $Ao (print "Here is <@" $user ">'s (`" $user "`) collab user data, in a text file:"))}}
 					{{end}}
-				{{else if eq $sub "wand"}}
-					{{$args0 = parseArgs 4 "" (carg "string" "subcommand") (carg "userid" "user ID") (carg "string" "set/remove") (carg "string" "key")}}
+				{{else if eq $sub $Ah}}
+					{{$args0 = parseArgs 4 "" (carg $Ai $Aj) (carg $Ak $Al) (carg $Ai "set/remove") (carg $Ai "key")}}
 					{{$RG := $args0.Get 2}}
 					{{$sub0 := $args0.Get 3}}
 					{{if eq $RG "remove"}}
-						{{$err = "No valid key provided, use `-ca wandterms` or `-ca wandlist`to see what keys are valid. **The keys are case sensitive**."}}
-						{{range $k, $v := $keyMethods}}
-							{{if eq $k $sub0}}
-								{{$collabUserData.Set $k ($collabConstants.collabUserData.Get $k)}}
-								{{$SK := execTemplate "SK" $SL}}
-								{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "Removed key `" $k "` from <@" $user ">."))}}
-								{{$err = false}}
-								{{break}}
-							{{end}}
+						{{$err = print "No valid key provided" $A3}}
+						{{- range $k, $v := $keyMethods -}}
+							{{- if eq $k $sub0 -}}
+								{{- if and $v.up (not $admin) -}}
+									{{- $err = print "Key `" $k $A4 -}}
+								{{- else -}}
+									{{- $collabUserData.Set $k ($collabConstants.collabUserData.Get $k) -}}
+									{{- if $collabUserData.tmID -}}{{- $SK := execTemplate "SK" $SL -}}{{- end -}}
+									{{- sendMessage nil (complexMessage $An (sdict) $Ao (print "Key `" $k "` from <@" $user "> has been reset.")) -}}
+									{{- $err = "" -}}
+								{{- end -}}
+								{{- break -}}
+							{{- end -}}
+						{{- end -}}
+						{{if $err}}
+							{{sendMessage nil $err}}
 						{{end}}
 					{{else if eq $RG "set"}}
-						{{$args0 = parseArgs 5 "" (carg "string" "subcommand") (carg "userid" "user ID") (carg "string" "set/remove") (carg "string" "key") (carg "string" "value")}}
+						{{$args0 = parseArgs 5 "" (carg $Ai $Aj) (carg $Ak $Al) (carg $Ai "set/remove") (carg $Ai "key") (carg $Ai "value")}}
 						{{$sub0 = $args0.Get 3}}
 						{{$sub1 := $args0.Get 4}}
-						{{$err = print "No key named `" $sub0 "`, use `-ca wandterms` or `-ca wandlist`to see what keys are valid. **The keys are case sensitive**."}}
-						{{range $k, $v := $keyMethods}}
-							{{if eq $k $sub0}}
-								{{if eq $v.type "int64"}}
-									{{$val := toInt64 $sub1}}
-									{{if $val}}
-										{{$collabUserData.Set $k $val}}
-										{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "`" $k "` from <@" $user "> has been set to `" $sub1 "`." ))}}
-										{{$SK := execTemplate "SK" $SL}}
-									{{else}}
-										{{sendMessage nil (print "`" $sub1 "` is not a valid int64 value.")}}
-									{{end}}
-								{{else if eq $v.type "string"}}
-									{{if $v.HasKey "choice"}}
-										{{$err = print "The term `" $sub1 "` is not a valid choice from the key `" $k "`. Accepted values:\n"}}
-										{{range $v.choice}}
-											{{if eq $sub1 .}}
-												{{$err = ""}}
-												{{$collabUserData.Set $k .}}
-												{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "`" $k "` from <@" $user "> has been set to `" $sub1 "`." ))}}
-												{{$SK := execTemplate "SK" $SL}}
-												{{break}}
-											{{end}}
-											{{$err = print $err "- `" . "`\n"}}
-										{{end}}
-										{{if $err}}
-											{{sendMessage nil $err}}
-										{{end}}
-									{{else if $v.HasKey "limit"}}
-										{{$err = ""}}
-										{{$val := $sub1}}
-										{{if gt (len $sub1) $v.limit}}
-											{{$val = slice $sub1 0 $v.limit}}
-											{{$err = " String truncated due to the length limit."}}
-										{{end}}
-										{{$collabUserData.Set $k $val}}
-										{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "`" $k "` from <@" $user "> has been set to `" $val "`." $err))}}
-									{{else}}
-										{{$collabUserData.Set $k $sub1}}
-										{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "`" $k "` from <@" $user "> has been set to `" $sub1 "`."))}}
-									{{end}}
-									{{$SK := execTemplate "SK" $SL}}
-								{{else if eq $v.type "tfb"}}
-									{{$n := ""}}
-									{{if eq $sub1 "true" "t" "yes" "y" "1"}}
-										{{$n = "true"}}
-										{{$collabUserData.Set $k $n}}
-									{{else if eq $sub1 "false" "f" "no" "n" "0"}}
-										{{$n = "false"}}
-										{{$collabUserData.Set $k $n}}
-									{{else if eq $sub1 "bypassed" "bypass" "b" "2"}}
-										{{$n = "bypassed"}}
-										{{$collabUserData.Set $k $n}}
-									{{else}}
-										{{sendMessage nil (print print "The term `" $sub1 "` is not a valid choice from the key `" $k "`. Accepted values:\n"
-									"- **true**: true, t, yes, y, 1\n"
-									"- **false**: false, f, no, n, 0\n"
-									"- **bypassed**: bypassed, bypass, b, 2")}}
-									{{return}}
-									{{end}}
-									{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "`" $k "` from <@" $user "> has been set to `" $n "`."))}}
-									{{$SK := execTemplate "SK" $SL}}
-								{{else if eq $v.type "bool"}}
-									{{$n := true}}
-									{{if eq $sub1 "true" "t" "yes" "y" "1"}}
-										{{$collabUserData.Set $k $n}}
-									{{else if eq $sub1 "false" "f" "no" "n" "0"}}
-										{{$n = false}}
-										{{$collabUserData.Set $k $n}}
-									{{else}}
-										{{sendMessage nil (print print "The term `" $sub1 "` is not a valid choice from the key `" $k "`. Accepted values:\n"
-									"- **true**: true, t, yes, y, 1\n"
-									"- **false**: false, f, no, n, 0\n")}}
-									{{return}}
-									{{end}}
-									{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "`" $k "` from <@" $user "> has been set to `" $n "`."))}}
-									{{$SK := execTemplate "SK" $SL}}
-								{{else if eq $v.type "thumb"}}
-									{{sendMessage nil "Coming soon!"}}
-								{{else if eq $v.type "array"}}
-									{{sendMessage nil "Coming soon!"}}
-								{{end}}
-								{{$err = ""}}
-								{{break}}
-							{{end}}
-						{{end}}
+						{{$err = print $A2 $sub0 $A3}}
+						{{$ins := 0}}
+						{{- range $k, $v := $keyMethods -}}
+							{{- if eq $k $sub0 -}}
+								{{- if and $v.up (not $admin) -}}
+									{{- $err = print "Key `" $k $A4 -}}
+								{{- else -}}
+									{{- $err = "" -}}
+									{{- $Q := print "The term `" $sub1 "` is not a valid choice from the key `" $k -}}
+									{{- if eq $v.type "int64" -}}
+										{{- $ins = toInt64 $sub1 -}}
+										{{- if not $ins -}}
+											{{- sendMessage nil (print "`" $sub1 "` is not a valid int64 value.") -}}
+											{{- return -}}
+										{{- end -}}
+									{{- else if eq $v.type $Ai -}}
+										{{- if $v.HasKey "choice" -}}
+											{{- $err = print $Q "`. Accepted values:\n" -}}
+											{{- range $v.choice -}}
+												{{- if eq $sub1 . -}}
+													{{- $ins = . -}}
+													{{- break -}}
+												{{- end -}}
+												{{- $err = print $err "- `" . "`\n" -}}
+											{{- end -}}
+											{{- if $err -}}
+												{{- sendMessage nil $err -}}
+												{{- return -}}
+											{{- end -}}
+										{{- else if $v.HasKey "limit" -}}
+											{{- $ins = $sub1 -}}
+											{{- if gt (len $ins) $v.limit -}}
+												{{- $ins = slice $ins 0 $v.limit -}}
+												{{- $err = " String truncated due to the length limit." -}}
+											{{- end -}}
+										{{- end -}}
+									{{- else if eq $v.type "tfb" -}}
+										{{- if eq $sub1 "true" "t" "yes" "y" "1" -}}
+											{{- $ins = "true" -}}
+										{{- else if eq $sub1 "false" "f" "no" "n" "0" -}}
+											{{- $ins = "false" -}}
+										{{- else if eq $sub1 "bypassed" "bypass" "b" "2" -}}
+											{{- $ins = "bypassed" -}}
+										{{- else -}}
+											{{- sendMessage nil (print $Q $A5 "- **bypassed**: bypassed, bypass, b, 2") -}}
+										{{- return -}}
+										{{- end -}}
+									{{- else if eq $v.type "bool" -}}
+										{{- if eq $sub1 "true" "t" "yes" "y" "1" -}}
+											{{- $ins = true -}}
+										{{- else if eq $sub1 "false" "f" "no" "n" "0" -}}
+											{{- $ins = false -}}
+										{{- else -}}
+											{{- sendMessage nil (print $Q $A5) -}}
+										{{- return -}}
+										{{- end -}}
+									{{- else if eq $v.type "thumb" "array" -}}
+										{{- addReactions "⏳" -}}
+										{{- execCC $collabConstants.schedCC nil 0 (sdict "act" "use" "message" .Message "links" (reFindAll .LinkRegex .Message.Content) "urlFirst" (inFold .Message.Content "--urlfirst")) -}}
+										{{- range 3 -}}
+											{{- sleep 2 -}}
+											{{- if $ins = (dbGet 0 "tempMedia") -}}
+												{{- break -}}
+											{{- end -}}
+										{{- end -}}
+										{{- if not $ins -}}
+											{{- sendMessage nil "Could not set media due to empty media, or CC is in use." -}}
+											{{- return -}}
+										{{- end -}}
+										{{- dbDel 0 "tempMedia" -}}
+										{{- if eq $v.type "thumb" -}}
+											{{- $ins = index $ins 0 -}}
+										{{- else if eq $v.type "array" -}}
+											{{- if gt (len $ins) 10 -}}
+												{{- $ins = slice $ins 0 10 -}}
+											{{- end -}}
+										{{- end -}}
+									{{- end -}}
+									{{- $collabUserData.Set $k $ins -}}
+									{{- if $collabUserData.tmID -}}{{- $SK := execTemplate "SK" $SL -}}{{- end -}}
+									{{- sendMessage nil (complexMessage $An (sdict) $Ao (print "`" $k "` from <@" $user "> has been changed. " $err)) -}}
+									{{- $err = "" -}}
+								{{- end -}}
+								{{- break -}}
+							{{- end -}}
+						{{- end -}}
 						{{if $err}}
 							{{sendMessage nil $err}}
 						{{end}}
 					{{else}}
 						{{sendMessage nil "Invalid command:\n- `-ca wand <@user> remove <key>`\n- `-ca wand <@user> set <key> <value/s>`"}}
 					{{end}}
-				{{else}}
-					{{sendMessage nil (print "Error, <@661882006719954953> needs attention: " $sub ", point to show/wand/wandclear if-else")}}
 				{{end}}
 			{{else}}
 				{{if $collabUserData.tID}}
-					{{if eq $sub "whitelist"}}
+					{{if eq $sub $Ab}}
 						{{if eq "true" $collabUserData.AMod $collabUserData.AMo2}}
 							{{if eq $collabUserData.AMod "true"}}
 								{{$collabUserData.Set "AMod" "bypassed"}}
@@ -202,53 +319,161 @@
 							{{if eq $collabUserData.AMo2 "true"}}
 								{{$collabUserData.Set "AMo2" "bypassed"}}
 							{{end}}
-							{{$SK := execTemplate "SK" $SL}}
-							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> is now AutoMod whitelisted."))}}
+							{{sendMessage nil (complexMessage $An (sdict) $Ao (print "<@" $user "> is now AutoMod whitelisted."))}}
 						{{else}}
-							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> is not blacklisted."))}}
+							{{sendMessage nil (complexMessage $An (sdict) $Ao (print "<@" $user "> is not blacklisted."))}}
+							{{return}}
 						{{end}}
-					{{else if eq $sub "cdoff"}}
+					{{else if eq $sub $Ac}}
 						{{$time := $collabUserData.time}}
 						{{$bumpTime := add $time (toInt64 $collabConstants.collabCD)}}
 						{{if and $collabUserData.fID (lt currentTime $bumpTime)}}
 							{{$collabUserData.Set "time" $bumpTime}}
-							{{$SK := execTemplate "SK" $SL}}
-							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> can now bump up their collab ad."))}}
+							{{sendMessage nil (complexMessage $An (sdict) $Ao (print "<@" $user "> can now bump up their collab ad."))}}
 						{{else}}
-							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> has not posted their collab ad yet, or they can bump up their collab ad just fine."))}}
+							{{sendMessage nil (complexMessage $An (sdict) $Ao (print "<@" $user "> has not posted their collab ad yet, or they can bump up their collab ad just fine."))}}
+							{{return}}
 						{{end}}
-					{{else if eq $sub "freeze"}}
-						{{$collabUserData.Set "flag" "freeze"}}
-						{{$SK := execTemplate "SK" $SL}}
-						{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user ">'s template is now frozen."))}}
-					{{else if eq $sub "unfreeze"}}
+					{{else if eq $sub $Ad}}
+						{{$collabUserData.Set "flag" $Ad}}
+						{{sendMessage nil (complexMessage  $An (sdict) $Ao (print "<@" $user ">'s template is now frozen."))}}
+					{{else if eq $sub $Ae}}
 						{{$collabUserData.Set "flag" "neutral"}}
-						{{$SK := execTemplate "SK" $SL}}
-						{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user ">'s template is now unfrozen."))}}
-					{{else if eq $sub "rempost"}}
+						{{sendMessage nil (complexMessage $An (sdict) $Ao (print "<@" $user ">'s template is now unfrozen."))}}
+					{{else if eq $sub $Af}}
 						{{$DL := $collabUserData.fID}}
 						{{if (getThread $DL)}}
 							{{$collabUserData.Set "fID" (toInt64 0)}}
 							{{$collabUserData.Set "fmID" (toInt64 0)}}
 							{{deleteForumPost $DL}}
-							{{$SK := execTemplate "SK" $SL}}
-							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user ">'s collab ad post has been deleted."))}}
+							{{sendMessage nil (complexMessage $An (sdict) $Ao (print "<@" $user ">'s collab ad post has been deleted."))}}
 						{{else}}
-							{{sendMessage nil (complexMessage "allowed_mentions" (sdict "users" (cslice)) "content" (print "<@" $user "> has not posted their collab ad yet."))}}
+							{{sendMessage nil (complexMessage $An (sdict) $Ao (print "<@" $user "> has not posted their collab ad yet."))}}
+							{{return}}
 						{{end}}
 					{{end}}
+					{{$SK := execTemplate "SK" $SL}}
 				{{else}}
 					{{sendMessage nil (print "Cannot use the command `-ca " $sub "` due to the absence of collab template from <@" $user "> (`" $user "`).")}}
 				{{end}}
 			{{end}}
 		{{else}}
-			{{sendMessage nil (complexMessage  "allowed_mentions" (sdict "users" (cslice)) "content" (print "No collab data found for <@" $user "> (`" $user "`)."))}}
+			{{sendMessage nil (complexMessage $An (sdict) $Ao (print "No collab data found for <@" $user "> (`" $user "`)."))}}
 		{{end}}
 	{{else if eq $sub "wandterms" "wandlist" "website" "automod"}}
 		{{if eq $sub "wandterms" "wandlist"}}
-			{{sendMessage nil (componentBuilder "container" (sdict "components" (componentBuilder "text" $collabConstants.helpK) ) )}}
+			{{sendMessage nil (componentBuilder $Ap (sdict $Ar (componentBuilder $Aq $collabConstants.helpK) ) )}}
+		{{else if eq $sub "automod"}}
+			{{$args0 := parseArgs 3 (carg $Ai $Aj) (carg $Ai "list/checkit/add/remove") (carg $Ai "arg")}}
+			{{$nonLatin := $collabConstants.filterNonLatin}}
+			{{$basic := $collabConstants.filterBasic}}
+			{{$websites := $collabConstants.filterWildcards}}
+			{{$sub0 := $args0.Get 1}}
+			{{$sub1 := $args0.Get 2}}
+			{{if eq $sub0 "list"}}
+				{{$p := sdict $Ao "List is provided in a text file:"}} 
+				{{if eq $sub1 "nonlatin"}}
+					{{$p.Set "file" (json $nonLatin true)}}
+				{{else if eq $sub1 "basic"}}
+					{{$p.Set "file" (json $basic true)}}
+				{{else if eq $sub1 "websites"}}
+					{{$p.Set "file" (json $websites true)}}
+				{{else}}
+					{{$p.Set $Ao "Incorrect arg, `-ca automod list` `nonlatin`/`basic`/`websites`"}}
+				{{end}}
+				{{sendMessage nil (complexMessage $p)}}
+			{{else if eq $sub0 "checkit"}}
+				{{$flagged := execTemplate "CH" (sdict "r" $sub1)}}
+				{{$p := "String not flagged for bad keywords."}}
+				{{if $flagged}}
+					{{$p = print "String flagged of: `" $flagged "`"}}
+				{{end}}
+				{{sendMessage nil $p}}
+			{{else if eq $sub0 "add" "remove"}}
+				{{if $admin}}
+					{{if eq $sub0 "add"}}
+						{{if (execTemplate "CH" (sdict "r" $r "s" $sub1))}}
+							{{sendMessage nil (print "`" $sub1 "` is already in AutoMod.")}}
+						{{else}}
+							{{$SW := sanitizeText $sub1}}
+							{{$ty := "basic"}}
+							{{$t := $sub1}}
+							{{if $SX := reFindAllSubmatches $r $sub1}}
+								{{$t = (print (index $SX 0 1) (index $SX 0 2))}}
+								{{$collabConstants.Set "filterWildcards" (sort ($websites.Append $t))}}
+								{{$ty = "website"}}
+							{{else if ne $sub1 $SW}}
+								{{$collabConstants.Set "filterNonLatin" (sort ($nonLatin.Append $sub1))}}
+								{{$ty = "nonlatin"}}
+							{{else}}
+								{{$t = $SW}}
+								{{$collabConstants.Set "filterBasic" (sort ($basic.Append $t))}}
+							{{end}}
+							{{sendMessage nil (print "`" $t "` is added under `" $ty "`.")}}
+						{{end}}
+					{{else}}
+						{{if $m := (execTemplate "CH" (sdict "r" $r "s" $sub1 "m" 1))}}
+							{{sendMessage nil (print "`" $m "` has been removed from AutoMod!")}}
+						{{else}}
+							{{sendMessage nil (print "No matches found for `" $sub1 "`, perform `add` instead if you want to add the keyword in AutoMod.")}}
+						{{end}}
+					{{end}}
+				{{else}}
+					{{sendMessage nil "This command is only available for head staff and admins."}}
+				{{end}}
+			{{else}}
+				{{sendMessage nil "Incorrect arg, `-ca automod` `list`/`checkit`/`add`*/`remove`* (`*` requires head staff or admin)"}}
+			{{end}}
+		{{else if eq $sub "website"}}
+			{{$site := $collabConstants.safeSites}}
+			{{$args0 := parseArgs 2 "" (carg $Ai $Aj) (carg $Ai "list/add/remove") (carg $Ai "arg")}}
+			{{$sub0 := $args0.Get 1}}
+			{{if eq $sub0 "list"}}
+				{{sendMessage nil (complexMessage $Ao "List is provided in a text file:" "file" (json $site true))}}
+			{{else if eq $sub0 "remove" "add"}}
+				{{$args0 = parseArgs 3 "" (carg $Ai $Aj) (carg $Ai "add/remove") (carg $Ai "website")}}
+				{{$v := reFindAllSubmatches $r ($args0.Get 3)}}
+				{{if not $v}}
+					{{sendMessage nil "Invalid URL."}}
+					{{return}}
+				{{end}}
+				{{$w := print (index $v 0 1) (index $v 0 2)}}
+				{{$x := ""}}
+				{{$y := cslice}}
+				{{- range $site -}}
+					{{- if eq $w . -}}
+						{{- if eq $sub0 "add" -}}
+							{{- $x = . -}}
+							{{- break -}}
+						{{- else -}}
+							{{- $x = "a" -}}
+							{{- continue -}}
+						{{- end -}}
+						{{- $y = $y.Append . -}}
+					{{- end -}}
+				{{- end -}}
+				{{if eq $sub0 "add"}}
+					{{if $x}}
+						{{sendMessage nil "Domain is already listed."}}
+					{{else}}
+						{{$collabConstants.Set "safeSites" ($site.Append $w)}}
+						{{dbSet 0 "collabConstants" $collabConstants}}
+						{{sendMessage nil (print "`" $x "` is now listed as a website whitelist for masked links.")}}
+					{{end}}
+				{{else}}
+					{{if $x}}
+						{{$collabConstants.Set "safeSites" $y}}
+						{{dbSet 0 "collabConstants" $collabConstants}}
+						{{sendMessage nil (print "`" $sub0 "` has been removed from the website whitelist for masked links.")}}
+					{{else}}
+						{{sendMessage nil (print "`" $sub0 "` is not listed in the wesbite whitelist for masked links.")}}
+					{{end}}
+				{{end}}
+			{{else}}
+				{{sendMessage nil "Incorrect arg, `-ca website` `list`/`add`/`remove`"}}
+			{{end}}
 		{{end}}
 	{{else}}
-		{{sendMessage nil (componentBuilder "text" (print "No command named `" $sub "`.") "container" (sdict "components" (componentBuilder "text" $collabConstants.helpP)))}}
+		{{sendMessage nil $A1}}
 	{{end}}
 {{end}}

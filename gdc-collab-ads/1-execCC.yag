@@ -1,291 +1,292 @@
-{{$ED := .ExecData}}
+	{{$ED := .ExecData}}
 
-{{$collabConstants := (dbGet 0 "collabConstants").Value}}
-{{$user := .User.ID}}
-{{$collabUserData := or (dbGet $user "collabUserData").Value $collabConstants.collabUserData }}
-{{if $ED.HasKey "fireupdate"}}
-	{{$collabUserData = (dbGet $ED.fireupdate "collabUserData").Value}}
-	{{$user = $ED.fireupdate}}
-{{end}}
-
-{{if eq (toString $ED.edit) "manageMedia" "manageThumbnail" "deleteCollab"}}
-	{{scheduleUniqueCC $collabConstants.schedCC nil 60 "SK" "a"}}
-{{end}}
-
-{{$flag := $collabUserData.flag}}
-{{$dbTimer := $collabConstants.dbTimer}}
-{{$fID := $collabUserData.fID}}
-{{$tID := $collabUserData.tID}}
-{{$logSuccess := $collabConstants.logSuccess}}
-{{$logCH := $collabConstants.logChannel}}
-{{$logDel := $collabConstants.logDelete}}
-{{$fmID := $collabUserData.fmID}}
-
-
-{{$t := $ED.t}} {{/* token or message id*/}}
-{{$m := $ED.m}} {{/* message */}}
-{{$a := $collabConstants.a}} {{/*users*/}}
-{{$b := $collabConstants.b}} {{/* / 3 ] Details Filled*/}}
-{{$c := $collabConstants.c}} {{/*interactive_components*/}}
-{{$o := $collabConstants.d}} {{/*container*/}}
-{{$p := $collabConstants.e}} {{/*separator*/}}
-{{$q := $collabConstants.f}} {{/*components*/}}
-{{$r := $collabConstants.g}} {{/*allowed_mentions*/}}
-{{$s := $collabConstants.h}} {{/*text*/}}
-{{$z := $collabConstants.i}} {{/*placeholder*/}}
-{{$e := "emoji"}}
-
-
-{{$forumChannel := 0}}
-{{if or $collabUserData.staff $collabUserData.boost $collabUserData.L20UP}}
-	{{$forumChannel = $collabConstants.priorityCH}}
-{{else}}
-	{{$forumChannel = $collabConstants.regularCH}}
-{{end}}
-
-{{$emptyText := `*empty*`}}
-{{$tempTitle := or $collabUserData.CT $emptyText}}
-{{$tempDetails := print `- **Host:** ` (or $collabUserData.CH $emptyText)
-$collabConstants.t0 (or $collabUserData.LS $emptyText)
-$collabConstants.t1 (or $collabUserData.CZ $emptyText)
-$collabConstants.t2 (or $collabUserData.CN $emptyText)
-$collabConstants.t3 (or $collabUserData.LD $emptyText)
-$collabConstants.t4 (or $collabUserData.LT $emptyText)
-$collabConstants.t5 (or $collabUserData.CS $emptyText)
-$collabConstants.t6 (or $collabUserData.CI $emptyText)
-$collabConstants.t7 (or $collabUserData.CC $emptyText)
-$collabConstants.t8 (or $collabUserData.LM $emptyText) }}
-{{$tempDesc := or $collabUserData.CP $emptyText }}
-{{$tempThumb := $collabUserData.CF}}
-{{$tempMedia := cslice }} {{range $collabUserData.CM}} {{$tempMedia = $tempMedia.Append (sdict "media" . )}} {{end}}
-{{$tempDescTL := $tempDesc}}
-{{if gt (len $tempDesc) 2000 }}
-	{{$tempDescTL = print (slice $tempDescTL 0 2000) " ••• (abridged)"}}
-{{end}}
-
-{{$thumbTitle := $collabConstants.n7}}
-{{$thumbPost := "'"}}
-{{$contThumbs := componentBuilder $s $thumbTitle $p true}}
-{{if and $tempThumb $collabUserData.no4WF}}
-	{{$thumbTitle = print $thumbTitle $collabConstants.n0 .Guild.ID "/" $tID "/" $collabUserData.no4WF $collabConstants.n1}}
-{{end}}
-{{if $tempThumb}}
-	{{$contThumbs.Add "gallery" (sdict "media" $tempThumb)}}
-	{{$thumbPost = print "['](" $tempThumb ")" }}
-{{else}}
-	{{$contThumbs.Add $s $emptyText}}
-{{end}}
-
-
-{{$megaMsg := componentBuilder $r (sdict $a (cslice))
-$s (print .User.Mention "'s template")}}
-{{$miniMsg := componentBuilder $r (sdict $a (cslice))}}
-{{$holdMsg := componentBuilder $p true $s (print "### Title: " $tempTitle)
-$o (sdict "color" 0x1cade4 $q $contThumbs)
-$o (sdict $q (componentBuilder $s $collabConstants.n3 $p true
-$s $tempDetails ))
-}}
-{{$postForumMsg := sdict "content" (print .User.Mention $thumbPost " s collab ad details:\n" $tempDetails) "buttons" (cslice (cbutton $collabConstants.recall) (cbutton $collabConstants.report))}}
-{{$tags := cslice $collabUserData.CZ $collabUserData.LS $collabUserData.LD $collabUserData.LT $collabUserData.CS}}
-
-{{$maskWarn := ""}}
-{{if $collabUserData.msk}}
-	{{$maskWarn = $collabConstants.maskWarn}}
-{{end}}
-{{$tempTempDesc := componentBuilder $o (sdict $q (componentBuilder $s (print $collabConstants.n8 $maskWarn) $p true $s $tempDescTL))}}
-{{$tempPostDesc := componentBuilder $o (sdict $q (componentBuilder $s $collabConstants.n8 $p true $s $tempDesc))}}
-
-{{$galleryTitle := $collabConstants.n9}}
-{{$postGallery := $collabConstants.n9}}
-{{if and $collabUserData.no4WM $tempMedia}}
-	{{$galleryTitle = print $galleryTitle $collabConstants.n0 .Guild.ID "/" $tID "/" $collabUserData.no4WM $collabConstants.n2 }}
-{{end}}
-{{$contTempMedia := componentBuilder $s $galleryTitle $p true}}
-{{$contForumMedia := componentBuilder $s $postGallery $p true}}
-{{if $tempMedia}}
-	{{$contTempMedia.Add "gallery" $tempMedia}}
-	{{$contForumMedia.Add "gallery" $tempMedia}}
-{{else}}
-	{{$contTempMedia.Add $s $emptyText}}
-	{{$contForumMedia.Add $s $emptyText}}
-{{end}}
-
-{{$reqC := 0}}
-{{$et := ""}}
-{{$opts1 := $collabConstants.opts1}}
-{{$opts2 := $collabConstants.opts2}}
-{{$opts3 := $collabConstants.opts3}}
-{{$edit := $collabConstants.edit}}
-{{$editNo := $collabConstants.editNo}}
-{{if $collabUserData.LM}}
-	{{$reqC = add $reqC 1}}
-	{{$opts1.Set $e (sdict "id" $collabConstants.e0)}}
-	{{if eq $collabUserData.AMo2 "true"}}
-		{{$opts1.Set $e (sdict "id" $collabConstants.e1)}}
-		{{$et = " <❗❗❗>"}}
+	{{$collabConstants := (dbGet 0 "collabConstants").Value}}
+	{{$user := .User.ID}}
+	{{$collabUserData := or (dbGet $user "collabUserData").Value $collabConstants.collabUserData }}
+	{{if $ED.HasKey "fireupdate"}}
+		{{$collabUserData = (dbGet $ED.fireupdate "collabUserData").Value}}
+		{{$user = $ED.fireupdate}}
 	{{end}}
-{{end}}
-{{if $collabUserData.CN}}
-	{{$reqC = add $reqC 1}}
-	{{$opts2.Set $e (sdict "id" $collabConstants.e0)}}
-{{end}}
-{{if $collabUserData.CT}}
-	{{$reqC = add $reqC 1}}
-	{{$opts3.Set $e (sdict "id" $collabConstants.e0)}}
-	{{if eq $collabUserData.AMod "true"}}
-		{{$opts3.Set $e (sdict "id" $collabConstants.e1)}}
-		{{$et = " <❗❗❗>"}}
-	{{end}}
-{{end}}
-{{$tempStatus := print $collabConstants.n4 $reqC $collabConstants.n5}}
-{{if eq $flag "manageMedia"}}
-	{{$tempStatus = $collabConstants.TSMedia}}
-{{else if eq $flag "manageThumbnail"}}
-	{{$tempStatus = $collabConstants.TSThumbs}}
-{{else if eq $flag "deleteCollab"}}
-	{{$tempStatus = $collabConstants.TSDel}}
-{{else if eq $flag "freeze"}}
-	{{$tempStatus = $collabConstants.TSFreeze}}
-{{else if $fID}}
-	{{$tempStatus = $collabConstants.TSUploaded}}
-{{end}}
 
-{{$panels := cslice}}
-{{if eq $flag "neutral"}}
-	{{$edit.Set $z (print "[ " $reqC $b $et)}}
-	{{$edit.Set "options" (cslice $opts1 $opts2 $opts3)}}
-	{{$panels = $panels.Append (cmenu $edit)}}
-	{{if $fID}}
-		{{if eq "true" $collabUserData.AMod $collabUserData.AMo2}}
+	{{if eq (toString $ED.edit) "manageMedia" "manageThumbnail" "deleteCollab"}}
+		{{scheduleUniqueCC $collabConstants.schedCC nil 60 .User.ID (sdict "act" "return")}}
+	{{end}}
+
+	{{$flag := $collabUserData.flag}}
+	{{$dbTimer := $collabConstants.dbTimer}}
+	{{$fID := $collabUserData.fID}}
+	{{$tID := $collabUserData.tID}}
+	{{$logSuccess := $collabConstants.logSuccess}}
+	{{$logCH := $collabConstants.logChannel}}
+	{{$logDel := $collabConstants.logDelete}}
+	{{$fmID := $collabUserData.fmID}}
+
+
+	{{$t := $ED.t}} {{/* token or message id*/}}
+	{{$m := $ED.m}} {{/* message */}}
+	{{$a := $collabConstants.a}} {{/*users*/}}
+	{{$b := $collabConstants.b}} {{/* / 3 ] Details Filled*/}}
+	{{$c := $collabConstants.c}} {{/*interactive_components*/}}
+	{{$o := $collabConstants.d}} {{/*container*/}}
+	{{$p := $collabConstants.e}} {{/*separator*/}}
+	{{$q := $collabConstants.f}} {{/*components*/}}
+	{{$r := $collabConstants.g}} {{/*allowed_mentions*/}}
+	{{$s := $collabConstants.h}} {{/*text*/}}
+	{{$z := $collabConstants.i}} {{/*placeholder*/}}
+	{{$e := "emoji"}}
+
+
+	{{$forumChannel := 0}}
+	{{if or $collabUserData.staff $collabUserData.boost $collabUserData.L20UP}}
+		{{$forumChannel = $collabConstants.priorityCH}}
+	{{else}}
+		{{$forumChannel = $collabConstants.regularCH}}
+	{{end}}
+
+	{{$emptyText := `*empty*`}}
+	{{$tempTitle := or $collabUserData.CT $emptyText}}
+	{{$tempDetails := print `- **Host:** ` (or $collabUserData.CH $emptyText)
+	$collabConstants.t0 (or $collabUserData.LS $emptyText)
+	$collabConstants.t1 (or $collabUserData.CZ $emptyText)
+	$collabConstants.t2 (or $collabUserData.CN $emptyText)
+	$collabConstants.t3 (or $collabUserData.LD $emptyText)
+	$collabConstants.t4 (or $collabUserData.LT $emptyText)
+	$collabConstants.t5 (or $collabUserData.CS $emptyText)
+	$collabConstants.t6 (or $collabUserData.CI $emptyText)
+	$collabConstants.t7 (or $collabUserData.CC $emptyText)
+	$collabConstants.t8 (or $collabUserData.LM $emptyText) }}
+	{{$tempDesc := or $collabUserData.CP $emptyText }}
+	{{$tempThumb := $collabUserData.CF}}
+	{{$tempMedia := cslice }} {{range $collabUserData.CM}} {{$tempMedia = $tempMedia.Append (sdict "media" . )}} {{end}}
+	{{$tempDescTL := $tempDesc}}
+	{{if gt (len $tempDesc) 2000 }}
+		{{$tempDescTL = print (slice $tempDescTL 0 2000) " ••• (abridged)"}}
+	{{end}}
+
+	{{$thumbTitle := $collabConstants.n7}}
+	{{$thumbPost := "'"}}
+	{{$contThumbs := componentBuilder $s $thumbTitle $p true}}
+	{{if and $tempThumb $collabUserData.no4WF}}
+		{{$thumbTitle = print $thumbTitle $collabConstants.n0 .Guild.ID "/" $tID "/" $collabUserData.no4WF $collabConstants.n1}}
+	{{end}}
+	{{if $tempThumb}}
+		{{$contThumbs.Add "gallery" (sdict "media" $tempThumb)}}
+		{{$thumbPost = print "['](" $tempThumb ")" }}
+	{{else}}
+		{{$contThumbs.Add $s $emptyText}}
+	{{end}}
+
+
+	{{$megaMsg := componentBuilder $r (sdict $a (cslice))
+	$s (print .User.Mention "'s template")}}
+	{{$miniMsg := componentBuilder $r (sdict $a (cslice))}}
+	{{$holdMsg := componentBuilder $p true $s (print "### Title: " $tempTitle)
+	$o (sdict "color" 0x1cade4 $q $contThumbs)
+	$o (sdict $q (componentBuilder $s $collabConstants.n3 $p true
+	$s $tempDetails ))
+	}}
+	{{$postForumMsg := sdict "content" (print .User.Mention $thumbPost " s collab ad details:\n" $tempDetails) "buttons" (cslice (cbutton $collabConstants.recall) (cbutton $collabConstants.report))}}
+	{{$tags := cslice $collabUserData.CZ $collabUserData.LS $collabUserData.LD $collabUserData.LT $collabUserData.CS}}
+
+	{{$maskWarn := ""}}
+	{{if $collabUserData.msk}}
+		{{$maskWarn = $collabConstants.maskWarn}}
+	{{end}}
+	{{$tempTempDesc := componentBuilder $o (sdict $q (componentBuilder $s (print $collabConstants.n8 $maskWarn) $p true $s $tempDescTL))}}
+	{{$tempPostDesc := componentBuilder $o (sdict $q (componentBuilder $s $collabConstants.n8 $p true $s $tempDesc))}}
+
+	{{$galleryTitle := $collabConstants.n9}}
+	{{$postGallery := $collabConstants.n9}}
+	{{if and $collabUserData.no4WM $tempMedia}}
+		{{$galleryTitle = print $galleryTitle $collabConstants.n0 .Guild.ID "/" $tID "/" $collabUserData.no4WM $collabConstants.n2 }}
+	{{end}}
+	{{$contTempMedia := componentBuilder $s $galleryTitle $p true}}
+	{{$contForumMedia := componentBuilder $s $postGallery $p true}}
+	{{if $tempMedia}}
+		{{$contTempMedia.Add "gallery" $tempMedia}}
+		{{$contForumMedia.Add "gallery" $tempMedia}}
+	{{else}}
+		{{$contTempMedia.Add $s $emptyText}}
+		{{$contForumMedia.Add $s $emptyText}}
+	{{end}}
+
+	{{$reqC := 0}}
+	{{$et := ""}}
+	{{$opts1 := $collabConstants.opts1}}
+	{{$opts2 := $collabConstants.opts2}}
+	{{$opts3 := $collabConstants.opts3}}
+	{{$edit := $collabConstants.edit}}
+	{{$editNo := $collabConstants.editNo}}
+	{{if $collabUserData.LM}}
+		{{$reqC = add $reqC 1}}
+		{{$opts1.Set $e (sdict "id" $collabConstants.e0)}}
+		{{if eq $collabUserData.AMo2 "true"}}
+			{{$opts1.Set $e (sdict "id" $collabConstants.e1)}}
+			{{$et = " <❗❗❗>"}}
+		{{end}}
+	{{end}}
+	{{if $collabUserData.CN}}
+		{{$reqC = add $reqC 1}}
+		{{$opts2.Set $e (sdict "id" $collabConstants.e0)}}
+	{{end}}
+	{{if $collabUserData.CT}}
+		{{$reqC = add $reqC 1}}
+		{{$opts3.Set $e (sdict "id" $collabConstants.e0)}}
+		{{if eq $collabUserData.AMod "true"}}
+			{{$opts3.Set $e (sdict "id" $collabConstants.e1)}}
+			{{$et = " <❗❗❗>"}}
+		{{end}}
+	{{end}}
+	{{$tempStatus := print $collabConstants.n4 $reqC $collabConstants.n5}}
+	{{if eq $flag "manageMedia"}}
+		{{$tempStatus = $collabConstants.TSMedia}}
+	{{else if eq $flag "manageThumbnail"}}
+		{{$tempStatus = $collabConstants.TSThumbs}}
+	{{else if eq $flag "deleteCollab"}}
+		{{$tempStatus = $collabConstants.TSDel}}
+	{{else if eq $flag "freeze"}}
+		{{$tempStatus = $collabConstants.TSFreeze}}
+	{{else if $fID}}
+		{{$tempStatus = $collabConstants.TSUploaded}}
+	{{end}}
+
+	{{$panels := cslice}}
+	{{if eq $flag "neutral"}}
+		{{$edit.Set $z (print "[ " $reqC $b $et)}}
+		{{$edit.Set "options" (cslice $opts1 $opts2 $opts3)}}
+		{{$panels = $panels.Append (cmenu $edit)}}
+		{{if $fID}}
+			{{if eq "true" $collabUserData.AMod $collabUserData.AMo2}}
+				{{$panels = $panels.Append (cbutton $collabConstants.bumpUpNo)}}
+			{{else}}
+				{{$panels = $panels.Append (cbutton $collabConstants.bumpUp)}}
+			{{end}}
+		{{else}}
+			{{if or (eq "true" $collabUserData.AMod $collabUserData.AMo2) (lt $reqC 3)}}
+				{{$panels = $panels.Append (cbutton $collabConstants.postNo)}}
+			{{else}}
+				{{$panels = $panels.Append (cbutton $collabConstants.post)}}
+			{{end}}
+		{{end}}
+		{{$panels = $panels.AppendSlice (cslice (cbutton $collabConstants.media) (cbutton $collabConstants.thumbs) (cbutton $collabConstants.del))}}
+	{{else}}
+		{{$editNo.Set $z (print "[ " $reqC $b $et)}}
+		{{$editNo.Set "options" (cslice $opts1 $opts2 $opts3)}}
+		{{$panels = $panels.Append (cmenu $editNo)}}
+		{{if $fID}}
 			{{$panels = $panels.Append (cbutton $collabConstants.bumpUpNo)}}
 		{{else}}
-			{{$panels = $panels.Append (cbutton $collabConstants.bumpUp)}}
-		{{end}}
-	{{else}}
-		{{if or (eq "true" $collabUserData.AMod $collabUserData.AMo2) (lt $reqC 3)}}
 			{{$panels = $panels.Append (cbutton $collabConstants.postNo)}}
-		{{else}}
-			{{$panels = $panels.Append (cbutton $collabConstants.post)}}
 		{{end}}
+		{{$panels = $panels.AppendSlice (cslice (cbutton $collabConstants.mediaNo) (cbutton $collabConstants.thumbsNo) (cbutton $collabConstants.delNo))}}
 	{{end}}
-	{{$panels = $panels.AppendSlice (cslice (cbutton $collabConstants.media) (cbutton $collabConstants.thumbs) (cbutton $collabConstants.del))}}
-{{else}}
-	{{$editNo.Set $z (print "[ " $reqC $b $et)}}
-	{{$editNo.Set "options" (cslice $opts1 $opts2 $opts3)}}
-	{{$panels = $panels.Append (cmenu $editNo)}}
-	{{if $fID}}
-		{{$panels = $panels.Append (cbutton $collabConstants.bumpUpNo)}}
-	{{else}}
-		{{$panels = $panels.Append (cbutton $collabConstants.postNo)}}
-	{{end}}
-	{{$panels = $panels.AppendSlice (cslice (cbutton $collabConstants.mediaNo) (cbutton $collabConstants.thumbsNo) (cbutton $collabConstants.delNo))}}
-{{end}}
-{{$tempPanel := sdict "color" 0xff69b4 $q (componentBuilder $s $tempStatus $c $panels)}}
+	{{$tempPanel := sdict "color" 0xff69b4 $q (componentBuilder $s $tempStatus $c $panels)}}
 
-{{$megaMsg.Merge $holdMsg}}
-{{$megaMsg.Merge $tempTempDesc}}
-{{$megaMsg.Add $o (sdict $q $contTempMedia)}}
+	{{$megaMsg.Merge $holdMsg}}
+	{{$megaMsg.Merge $tempTempDesc}}
+	{{$megaMsg.Add $o (sdict $q $contTempMedia)}}
 
-{{if or ($ED.HasKey "firstSend") ($ED.HasKey "edit")}}
-	{{$megaMsg.Add $o $tempPanel}}
-	{{if $ED.HasKey "firstSend"}}
-		{{$msgID := sendMessageRetID $tID $megaMsg}}
-		{{$collabUserData.Set "tmID" $msgID}}
-		{{editResponse $t nil $m}}
-	{{else if $ED.HasKey "edit"}}
-		{{editMessage $tID $collabUserData.tmID $megaMsg}}
+	{{if or ($ED.HasKey "firstSend") ($ED.HasKey "edit")}}
+		{{$megaMsg.Add $o $tempPanel}}
+		{{if $ED.HasKey "firstSend"}}
+			{{$msgID := sendMessageRetID $tID $megaMsg}}
+			{{$collabUserData.Set "tmID" $msgID}}
+			{{editResponse $t nil $m}}
+		{{else if $ED.HasKey "edit"}}
+			{{editThread $collabUserData.tID (sdict "auto_archive_duration" 60)}} {{/* TEMPORARY */}}
+			{{editMessage $tID $collabUserData.tmID $megaMsg}}
+			{{if $tempMedia}}
+				{{$tempPostDesc.Add $o (sdict $q $contForumMedia)}}
+			{{end}}
+			{{if or (and $fID (eq $collabUserData.AMod "false" "bypassed") (eq $collabUserData.AMo2 "false" "bypassed") (ne $ED.edit "manageMedia" "manageThumbnail" "deleteCollab" "abort")) (and $fID ($ED.HasKey "fireupdate"))}}
+				{{if $ED.HasKey "fireupdate"}}
+					{{$miniMsg.Add $s (print "<@" $ED.staff "> edited <@" $ED.fireupdate ">'s collab ad template:" ) }}
+				{{else}}
+					{{$miniMsg.Add $s (print .User.Mention " edited their collab:") }}
+				{{end}}
+				{{$miniMsg.Merge $holdMsg}}
+				{{try}} {{openThread $fID}} {{catch}} {{end}}
+				{{editThread $fID "tags" $tags}}
+				{{editMessage $fID $fID (complexMessageEdit $postForumMsg)}}
+				{{editMessage $fID $fmID $tempPostDesc}}
+				{{$k := add $collabUserData.CTTM 600}}
+				{{if gt currentTime.Unix $k}}
+					{{$threadName := (getThread $fID).Name}}
+					{{if ne $threadName $tempTitle}}
+						{{editChannelName $fID $tempTitle}}
+						{{$collabUserData.Set "CTTM" currentTime.Unix}}
+					{{end}}
+				{{else}}
+					{{$m = print $m $collabConstants.rc $k ":T>."}}
+				{{end}}
+				{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
+				{{sendMessage $logSuccess $miniMsg}}
+				{{sendMessage $logSuccess $tempPostDesc}}
+			{{end}}
+			{{if eq $ED.edit "editMedia"}}
+				{{editMessage $collabUserData.tID $ED.t $m}}
+			{{else if eq $ED.edit "mod"}}
+				{{$miniMsg.Add $s (print .User.Mention $collabConstants.j $collabUserData.term "`:") }}
+				{{$miniMsg.Merge $holdMsg}}
+				{{try}} {{openThread $logCH}} {{catch}} {{end}}
+				{{sendMessage $logCH $miniMsg}}
+				{{sendMessage $logCH $tempPostDesc}}
+				{{editResponse $t nil $m}}
+			{{else}}
+				{{if not ($ED.HasKey "fireupdate")}}
+					{{try}} {{editResponse $t nil $m}} {{catch}} {{end}}
+				{{end}}
+			{{end}}
+		{{end}}
+	{{else if or ($ED.HasKey "post") ($ED.HasKey "bumpUp")}}
 		{{if $tempMedia}}
 			{{$tempPostDesc.Add $o (sdict $q $contForumMedia)}}
 		{{end}}
-		{{if or (and $fID (eq $collabUserData.AMod "false" "bypassed") (eq $collabUserData.AMo2 "false" "bypassed") (ne $ED.edit "manageMedia" "manageThumbnail" "deleteCollab" "abort")) (and $fID ($ED.HasKey "fireupdate"))}}
-			{{if $ED.HasKey "fireupdate"}}
-				{{$miniMsg.Add $s (print "<@" $ED.staff "> edited <@" $ED.fireupdate ">'s collab ad template:" ) }}
-			{{else}}
-				{{$miniMsg.Add $s (print .User.Mention " edited their collab:") }}
-			{{end}}
-			{{$miniMsg.Merge $holdMsg}}
-			{{try}} {{openThread $fID}} {{catch}} {{end}}
-			{{editThread $fID "tags" $tags}}
-			{{editMessage $fID $fID (complexMessageEdit $postForumMsg)}}
-			{{editMessage $fID $fmID $tempPostDesc}}
-			{{$k := add $collabUserData.CTTM 600}}
-			{{if gt currentTime.Unix $k}}
-				{{$threadName := (getThread $fID).Name}}
-				{{if ne $threadName $tempTitle}}
-					{{editChannelName $fID $tempTitle}}
-					{{$collabUserData.Set "CTTM" currentTime.Unix}}
-				{{end}}
-			{{else}}
-				{{$m = print $m $collabConstants.rc $k ":T>."}}
-			{{end}}
-			{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
-			{{sendMessage $logSuccess $miniMsg}}
-			{{sendMessage $logSuccess $tempPostDesc}}
+		{{$edit.Set $z (print "[ " $reqC $b $et)}}
+		{{$edit.Set "options" (cslice $opts1 $opts2 $opts3)}}
+		{{$panels = cslice (cmenu $edit) (cbutton $collabConstants.bumpUp) (cbutton $collabConstants.media) (cbutton $collabConstants.thumbs) (cbutton $collabConstants.del)}}
+		{{$megaMsg.Add $o (sdict "color" 0xff69b4 $q (componentBuilder $s $collabConstants.TSUploaded $c $panels))}}
+
+		{{$forumPost := createForumPost $forumChannel $tempTitle (complexMessage $postForumMsg) "tags" $tags}}
+		{{$forumID := $forumPost.ID}}
+		{{$forumExt := sendMessageRetID $forumID $tempPostDesc}}
+		{{$act := ""}}
+		{{if $ED.HasKey "post"}}
+			{{editMessage $tID $collabUserData.tmID $megaMsg}}
+			{{$miniMsg.Add $s (print .User.Mention "posted their collab:") }}
+			{{$act = "posted"}}
+		{{else if $ED.HasKey "bumpUp"}}
+			{{deleteForumPost $collabUserData.fID}}
+			{{$miniMsg.Add $s (print .User.Mention "bumped up their collab `" $collabUserData.CT "`:") }}
+			{{$act = "bumped up"}}
 		{{end}}
-		{{if eq $ED.edit "editMedia"}}
-			{{editMessage $collabUserData.tID $ED.t $m}}
-		{{else if eq $ED.edit "mod"}}
-			{{$miniMsg.Add $s (print .User.Mention $collabConstants.j $collabUserData.term "`:") }}
-			{{$miniMsg.Merge $holdMsg}}
-			{{try}} {{openThread $logCH}} {{catch}} {{end}}
-			{{sendMessage $logCH $miniMsg}}
-			{{sendMessage $logCH $tempPostDesc}}
-			{{editResponse $t nil $m}}
-		{{else}}
-			{{if not ($ED.HasKey "fireupdate")}}
-				{{try}} {{editResponse $t nil $m}} {{catch}} {{end}}
-			{{end}}
+		{{$collabUserData.Set "fID" $forumID}}
+		{{$collabUserData.Set "fmID" $forumExt}}
+		{{$collabUserData.Set "time" currentTime.Unix}}
+		{{try}} {{deleteMessage nil $collabUserData.nID 0}} {{catch}} {{end}}
+		{{$miniMsg.Merge $holdMsg}}
+		{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
+		{{sendMessage $logSuccess $miniMsg}}
+		{{sendMessage $logSuccess $tempPostDesc}}
+		{{try}} {{editResponse $t nil (print "Your collab ad is now " $act " in <#" $forumID ">.")}} {{catch}} {{end}}
+	{{else if $ED.HasKey "destruct"}}
+		{{$miniMsg.Add $s (print .User.Mention " deleted their collab:") }}
+		{{$miniMsg.Merge $holdMsg}}
+		{{if $tempMedia}}
+			{{$tempPostDesc.Add $o (sdict $q $contForumMedia)}}
 		{{end}}
+		{{try}} {{openThread $collabConstants.logDelete}} {{catch}} {{end}}
+		{{sendMessage $logDel $miniMsg}}
+		{{sendMessage $logDel $tempPostDesc}}
+		{{$newData := $collabConstants.collabUserData}}
+		{{$newData.Set "time" $collabUserData.time}}
+		{{dbSetExpire $user "collabUserData" $newData $collabConstants.collabCD}}
+		{{deleteThread $tID}}
+		
 	{{end}}
-{{else if or ($ED.HasKey "post") ($ED.HasKey "bumpUp")}}
-	{{if $tempMedia}}
-		{{$tempPostDesc.Add $o (sdict $q $contForumMedia)}}
-	{{end}}
-	{{$edit.Set $z (print "[ " $reqC $b $et)}}
-	{{$edit.Set "options" (cslice $opts1 $opts2 $opts3)}}
-	{{$panels = cslice (cmenu $edit) (cbutton $collabConstants.bumpUp) (cbutton $collabConstants.media) (cbutton $collabConstants.thumbs) (cbutton $collabConstants.del)}}
-	{{$megaMsg.Add $o (sdict "color" 0xff69b4 $q (componentBuilder $s $collabConstants.TSUploaded $c $panels))}}
 
-	{{$forumPost := createForumPost $forumChannel $tempTitle (complexMessage $postForumMsg) "tags" $tags}}
-	{{$forumID := $forumPost.ID}}
-	{{$forumExt := sendMessageRetID $forumID $tempPostDesc}}
-	{{$act := ""}}
-	{{if $ED.HasKey "post"}}
-		{{editMessage $tID $collabUserData.tmID $megaMsg}}
-		{{$miniMsg.Add $s (print .User.Mention "posted their collab:") }}
-		{{$act = "posted"}}
-	{{else if $ED.HasKey "bumpUp"}}
-		{{deleteForumPost $collabUserData.fID}}
-		{{$miniMsg.Add $s (print .User.Mention "bumped up their collab `" $collabUserData.CT "`:") }}
-		{{$act = "bumped up"}}
+	{{if not ($ED.HasKey "destruct")}}
+		{{dbSetExpire $user "collabUserData" $collabUserData $dbTimer}}
 	{{end}}
-	{{$collabUserData.Set "fID" $forumID}}
-	{{$collabUserData.Set "fmID" $forumExt}}
-	{{$collabUserData.Set "time" currentTime.Unix}}
-	{{try}} {{deleteMessage nil $collabUserData.nID 0}} {{catch}} {{end}}
-	{{$miniMsg.Merge $holdMsg}}
-	{{try}} {{openThread $logSuccess}} {{catch}} {{end}}
-	{{sendMessage $logSuccess $miniMsg}}
-	{{sendMessage $logSuccess $tempPostDesc}}
-	{{try}} {{editResponse $t nil (print "Your collab ad is now " $act " in <#" $forumID ">.")}} {{catch}} {{end}}
-{{else if $ED.HasKey "destruct"}}
-	{{$miniMsg.Add $s (print .User.Mention " deleted their collab:") }}
-	{{$miniMsg.Merge $holdMsg}}
-	{{if $tempMedia}}
-		{{$tempPostDesc.Add $o (sdict $q $contForumMedia)}}
-	{{end}}
-	{{try}} {{openThread $collabConstants.logDelete}} {{catch}} {{end}}
-	{{sendMessage $logDel $miniMsg}}
-	{{sendMessage $logDel $tempPostDesc}}
-	{{$newData := $collabConstants.collabUserData}}
-	{{$newData.Set "time" $collabUserData.time}}
-	{{dbSetExpire $user "collabUserData" $newData $collabConstants.collabCD}}
-	{{deleteThread $tID}}
-	
-{{end}}
 
-{{if not ($ED.HasKey "destruct")}}
-	{{dbSetExpire $user "collabUserData" $collabUserData $dbTimer}}
-{{end}}
-
-{{dbSet 0 "execCCID" (add (dbGet 0 "execCCID").Value 1)}}
+	{{dbSet 0 "execCCID" (add (dbGet 0 "execCCID").Value 1)}}
