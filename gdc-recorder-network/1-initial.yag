@@ -1,0 +1,241 @@
+{{/*
+
+{{$restricted := cslice 1458474144269336666}}
+{{$council := cslice 1458474009074339891}}
+
+{{$recordCH := 1540956484500717568}} 
+{{$recordLBCH := 1469188015376175227}}
+{{$recFinCH := 1540956549013569546}} 
+{{$logCH := 1540956808250916895}} 
+
+{{$recTemp := 1540956808250916895}}
+
+{{$noticeCC := 19}}
+
+*/}}
+
+{{$restricted := cslice 1235737941800910858 643105838483111936 882643861393010739}}
+{{/*						Automuted			Muted		Recording Restriction */}}
+{{$council := cslice 862159023914876978 1379802796441862235 1245871625748877444 856869462569254912 1343014642309529620 643101579016273941 859731598706475010 870432686064414750}}
+{{/*						++					+-					+			Administrator			Head Staff			Staff			Trial Staff		Footage Member*/}}
+
+{{/* Following must be regular text channels */}}
+{{$recordCH := 1164904187298054195}} {{/* recording requests and submissions (via threads) */}}
+{{$recordLBCH := 871010598316548177}} {{/* recording leaderboards */}}
+{{$recFinCH := 67}} {{/* channel for finished recordings */}}
+{{$logCH := 1476450948321906794}} {{/* logging channel */}}
+{{$recTemp := 1477587530433171486}} {{/* temporary channel for grabbing embed data from GDColon's website as well as forwards, must be a thread from the text channel :P */}}
+{{$topOne := 1}}
+{{$topTwo := 2}}
+{{$topThree := 3}}
+
+{{$deadline := 2592000}} {{/* 2592000 seconds = 30 days */}}
+{{$noticeCC := 69}}
+
+{{$formats := cslice "webm" "mp4" "mov"}}
+
+{{$TILvlID := sdict "custom_id" "lvlID" "placeholder" "i.e., 104187415" "required" true "max_length" 9 "min_length" 1 "style" 1}} {{/* clabel */}}
+{{$LLvlID := sdict "label" "Level ID" "description" "Only one level is allowed per request."}} {{/* ctextInput */}}
+
+{{$LLen := sdict  "label" "Level Length Completion" "description" "How long to complete the level?"}} {{/* clabel */}}
+{{$MLen := sdict "custom_id" "lvlLen" "type" "text" "placeholder" "Select one here" "required" true}} {{/* cmenu */}}
+{{$OLen := cslice (sdict "label" "Tiny (0 - 10 seconds)" "value" "Tiny (0 - 10 seconds)")
+(sdict "label" "Short (10 - 30 seconds)" "value" "Short (10 - 30 seconds)")
+(sdict "label" "Medium (30 - 60 seconds)" "value" "Medium (30 - 60 seconds)")
+(sdict "label" "Long (1 - 2 minutes)" "value" "Long (1 - 2 minutes)")
+(sdict "label" "Extra Long (2 - 5 minutes)" "value" "Extra Long (2 - 5 minutes)")
+(sdict "label" "XL+ (5 - 15 minutes)" "value" "XL+ (5 - 15 minutes)")
+(sdict "label" "XL+++ (longer than 15 minutes)" "value" "XL+++ (longer than 15 minutes)")}} {{/* "options" */}}
+
+
+{{$LDiff := sdict  "label" "Level Difficulty" "description" "Select the level difficulty"}} {{/* clabel */}}
+{{$MDiff := sdict "custom_id" "lvlDiff" "type" "text" "placeholder" "Select one here" "required" true}} {{/* cmenu */}}
+{{$ODiff := cslice (sdict "emoji" (sdict "id" "1198512511188738058") "label" "Auto" "value" "Auto")
+(sdict "emoji" (sdict "id" "1198512542008483860") "label" "Easy" "value" "Easy")
+(sdict "emoji" (sdict "id" "1173796642168770610") "label" "Normal" "value" "Normal")
+(sdict "emoji" (sdict "id" "1198512568449380392") "label" "Hard" "value" "Hard")
+(sdict "emoji" (sdict "id" "1198512605426368513") "label" "Harder" "value" "Harder")
+(sdict "emoji" (sdict "id" "1198512625659678730") "label" "Insane" "value" "Insane")
+(sdict "emoji" (sdict "id" "1146327594342559795") "label" "Easy Demon" "value" "Easy Demon")
+(sdict "emoji" (sdict "id" "1198512651706302484") "label" "Medium Demon" "value" "Medium Demon")
+(sdict "emoji" (sdict "id" "1146327635937480785") "label" "Hard Demon" "value" "Hard Demon")
+(sdict "emoji" (sdict "id" "1198512672585547917") "label" "Insane Demon" "value" "Insane Demon")
+(sdict "emoji" (sdict "id" "1146327674965467266") "label" "Extreme Demon" "value" "Extreme Demon")
+(sdict "emoji" (sdict "id" "1198512479467220992") "label" "Impossible" "value" "Impossible")}} {{/* "options" */}}
+
+{{$LLM := sdict "label" "Level Music (NONGs)" "description" "Separate multiple song links with space. Leave this blank if the song is included the level."}} {{/* clabel */}}
+{{$TILM := sdict "custom_id" "lvlSong" "style" 2 "required" false "placeholder" "https://www.youtube.com/watch?v=dQw4w9WgXcQ" "max_length" 200}} {{/* ctextInput */}}
+
+{{$LNote := sdict "label" "Additional Notes" "description" "Additional requests for recording (for example, no coin collection)"}} {{/* clabel */}}
+{{$TINote := sdict "custom_id" "notes" "placeholder" "i.e., no coins" "required" false "max_length" 200 "min_length" 1 "style" 2}} {{/* ctextInput */}}
+
+{{$desc01 := "## Welcome to <#1164904187298054195>!"}}
+{{$desc02 :=  `### Recording Request Guidelines
+1. The level requested must be your work, or a level you are part of in a level collaboration.
+2. The level must be uploaded in the game publicly. This will be checked automatically.
+3. Only one level and recording request per user is allowed at any given time.
+4. The level should be substantial enough to warrant a recording. At the same time, levels that are unreasonably hard to make a recording of is subject to deletion.
+5. Recording requests are **not verification requests**.
+6. If the level uses a "not on Newgrounds" (NONG) song and requires offset, mention it in additional notes.
+7. Any requests older than 30 days that does not have submissions will be deleted automatically.`}}
+{{$desc03 := `## To make or edit your recording request,`}}
+{{$reqBtn := sdict "label" "Click Me!" "style" "grey" "style" "success" "custom_id" "record-Request"}}
+{{$desc04 := "To fulfill a recording request, scroll up, or click the button on the side to scroll to the top of the channel."}}
+
+{{$respLvlInv := "## Your level seems to be unlisted (and only visible to your friends).\n-# If your level uses Geometrize2GD or any other image translation software, your level will be forced to be unlisted. To solve this, upload (and NOT update) your level again without the image in the level. If that does not rectify the issue or was not the reason for the level unlisting, contact an <:eldermodbadge:660512537162416180> Elder Moderator."}}
+{{$subBtn1 := sdict "emoji" (sdict "id" "1028500141000380436") "style" "success" "label" "Approve"}}
+{{$subBtn2 := sdict "emoji" (sdict "id" "868539464883007498") "style" "danger" "label" "Delete Submission"}}
+{{$subBtn3 := sdict "emoji" (sdict "id" "1105592427554803782" ) "style" "grey" "label" "Edit Details" "custom_id" "record-Request"}}
+{{$subBtn4 := sdict "emoji" (sdict "id" "868539464883007498" ) "style" "danger" "label" "Delete Request" "custom_id" "record-requestDelete"}}
+
+{{$navFirst := sdict "label" "First Page" "style" "grey" "custom_id" "record-lbNav 1"}}
+{{$navPrev := sdict "emoji" (sdict "id" "1423564533347258418") "style" "grey" "custom_id" "record-lbNavPrev"}}
+{{$navJump := sdict "emoji" (sdict "id" "1423564539974258740") "style" "grey" "custom_id" "record-lbNavJump"}}
+{{$navNext := sdict "emoji" (sdict "id" "1423564530016977098") "style" "grey" "custom_id" "record-lbNavNext"}}
+{{$navLast := sdict "label" "Last Page" "style" "grey" "custom_id" "record-lbNavLast"}}
+
+{{$recConst := sdict
+"restricted"		$restricted
+"council"			$council
+"recordCH"			$recordCH
+"recordLBCH"		$recordLBCH
+"recFinCH"			$recFinCH
+"logCH"				$logCH
+"recTemp"			$recTemp
+"formats"			$formats
+"noticeCC"			$noticeCC
+"topOne"			$topOne
+"topTwo"			$topTwo
+"topThree"			$topThree
+"deadline"			$deadline
+
+"userReq"			(dict)
+"userMesID"			(dict)
+
+"desc01"			$desc01
+"desc02"			$desc02
+"desc03"			$desc03
+"reqBtn"			$reqBtn
+"desc04"			$desc04
+
+"respLvlInv"		$respLvlInv
+"subBtn1"			$subBtn1
+"subBtn2"			$subBtn2
+"subBtn3"			$subBtn3
+"subBtn4"			$subBtn4
+
+"navFirst"			$navFirst
+"navPrev"			$navPrev
+"navJump"			$navJump
+"navNext"			$navNext
+"navLast"			$navLast
+
+"TILvlID"			$TILvlID
+"LLvlID"			$LLvlID
+"OLen"				$OLen
+"MLen"				$MLen
+"LLen"				$LLen
+"ODiff"				$ODiff
+"MDiff"				$MDiff
+"LDiff"				$LDiff
+"TILM"				$TILM
+"LLM"				$LLM
+"TINote"			$TINote
+"LNote"				$LNote
+
+"dbName"			(print "monthRecord-" (formatTime currentTime "1"))
+"posterMonthName"	(print (formatTime currentTime "January 2006"))
+}}
+{{/* "scrollTop" $top
+"lastMonth" $month key-value exists but it's at the end of the code */}}
+
+
+
+{{if $grab := (dbGet 0 "recConst").Value}}
+	{{range $k, $v := $recConst}}
+		{{$grab.Set $k $v}}
+	{{end}}
+	{{dbSet 0 "recConst" $grab}}
+	{{sendMessage nil "Set!"}}
+{{else}}
+	{{$a := sendMessageRetID nil "## You are at the top of this channel!"}}
+	{{$top := sdict "label" "Scroll to Top" "style" "link" "url" (print "https://discord.com/channels/" .Guild.ID "/" .Channel.ID "/" $a )}}
+	{{$recConst.Set "scrollTop" $top}}
+	{{$b := sendMessageRetID nil (componentBuilder "container" (sdict "components" (componentBuilder "text" $desc01 "separator" true "text" $desc02 "separator" true "section" (sdict "text" $desc03 "button" (cbutton $reqBtn)) "separator" true "section" (sdict "text" $desc04 "button" (cbutton $top)))))}}
+	{{$recConst.Set "lastID" $b}}
+	{{dbSet 0 "recConst" $recConst}}
+{{end}}
+
+
+{{/* Data structure:
+
+recConst					Persistent data (user id 0, sdict)
+-	restricted				array of roles not allowed to interact with recording system
+-	council					array of roles that act as "moderators" of the system
+-	recordCH				text channel ID of recording system, the interface
+-	recordLBCH				leaderboard channel of recording system
+-	logCH					logs for leaderboard system
+-	recTemp					channel for grabbing level data from GDBrowser embed
+-	formats					formats allowed if attachments
+-	userReq					User data for recording requests, dict (user ID) : sdict (data)
+-	recMoLB					Monthly leaderboards for recordings made by other people
+===== ===== Rotating Data ===== =====
+#	----					recording data (sdict)
+-	lastID					last message ID
+-	dbName					name of database used for temporarily setting monthly leaderboards
+-	deadline				in seconds, defines how long a recording exists before it gets deleted; default is 30 days, or 
+-	userOne
+-	userTwo
+-	userThree				user IDs who have top 1-3 in monthly recordings
+
+#	userReq					User data for recording requests, dict (user ID) : sdict (data), description as follows:
+-	#	key:				message ID of the request
+-	-	rID					requester's user ID
+-	-	date				message timestamp
+-	-	lvlID				level ID
+-	-	lvlLen				level length completion
+-	-	lvlDiff				level difficulty
+-	-	lvlSong				optional, URL of songs
+-	-	notes				optional, notes for the level
+-	-	lvlName				level name
+-	-	lvlCreator			name of the level creator
+-	-	lvlDL				number of level downloads
+-	-	submissions			dicts of submissions, with the following structure:
+-	-	#	key:			user ID who submitted the media
+-	-	-	msgID			message ID of media
+-	-	-	submissions		URL of submitted media
+-	-	-	display			URL of displayable media
+
+#	recMoLB					Monthly leaderboards for recording made (i hate how i have to write this as a dict because fuck storing this)
+-	#	key:				user ID
+-	-	value:				number of recordings
+===== ===== Permanent Data ===== =====
+recordings					Permanent statistics of how much someone fulfilled someone's request
+
+========== Pending ==========
+-	limit			limits how many recording requests are allowed
+
+-	level file		if level ID = 0, URL of level file from Discord
+-	levelName		level name
+-	username		username in-game
+-	IGstars
+-	IGdifficulty	in-game
+-	IGdownloads
+-	IGlikes
+-	IGlength		in-game
+-	IGsong			in-game
+
+Features:
+Recording request form
+Private threads for storing user data and jazz -- oops no longer needed
+Leaderboards for every month
+
+*/}}
+
+
+
+{{/* Dead
+{{$CTILvlName := sdict "custom_id" "levelName" "placeholder" "How to platformer" "required" true "max_length" 20 "min_length" 1 "style" 1}}
+{{$CLLvlName := sdict "label" "Level Name"}}
+*/}}
+

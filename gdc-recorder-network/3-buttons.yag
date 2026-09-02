@@ -1,0 +1,144 @@
+{{/* Component: record- */}}
+
+{{$recConst := (dbGet 0 "recConst").Value}}
+{{$userReq := $recConst.userReq}}
+{{$userMesID := $recConst.userMesID}}
+
+{{/* $CCID := 67 */}}
+{{$council := false}}
+
+{{range $recConst.council}}
+	{{if hasRoleID .}}
+		{{$council = true}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{range $recConst.restricted}}
+	{{if and (hasRoleID .) (not $council)}}
+		{{sendResponse nil (complexMessage "ephemeral" true "content" (print "You are not allowed to perform this action due to presence of <@&" . ">."))}}
+		{{return}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{if .Channel.IsThread}}
+	{{$data := $userReq.Get .Channel.ID}}
+	{{if in .CustomID "record-videoApprove"}}
+		{{if $council}}
+			{{sendResponse nil (complexMessage "content" "Press \"Yes\" to confirm approving footage." "buttons" (cbutton "style" "success" "label" "Yes" "custom_id" (print "record-confirmVideoApprove " (reFind `\d{17,19}$` .CustomID))) "ephemeral" true)}}
+		{{else}}
+			{{sendResponse nil (complexMessage "content" "Only <@&870432686064414750> and <@&643101579016273941> can approve footage submissions." "ephemeral" true)}}
+		{{end}}
+	{{else if in .CustomID "record-confirmVideoApprove"}}
+		{{updateMessage "In process of approving..."}}
+		{{$submitter := toInt64 (reFind `\d{17,19}$` .CustomID)}}
+		{{$subData := $data.submissions.Get $submitter}}
+		{{deleteMessage $recConst.recordCH .Channel.ID}}
+		{{deleteThread .Channel.ID}}
+		{{$Z := componentBuilder "text" (print "<@" $data.rID ">'s request was fulfilled by <@" $submitter ">.")}}
+		{{if $subData.display}}
+			{{$Z.Merge (componentBuilder "gallery" (sdict "media" $subData.display) "buttons" (cslice (cbutton "style" "link" "label" "Video Link" "url" $subData.submissions) (cbutton "style" "link" "label" "Download Video" "url" $subData.display)))}}
+		{{else}}
+			{{$Z.Add "section" (sdict "text" (print "Link: `" $subData.submissions "`") "button" (cbutton "style" "link" "label" "Download Video" "url" $subData.submissions))}}
+		{{end}}
+		{{sendMessage $recConst.recFinCH (componentBuilder "allowed_mentions" (sdict "users" (cslice $data.rID $submitter)) "container" (sdict "components" $Z))}}
+
+		{{$recMoLB := $recConst.recMoLB}}
+		{{$recMoLB.Set $submitter (or (add 1 ($recMoLB.Get $submitter)) 1)}}
+		{{$userReq.Del .Channel.ID}}
+		{{$userMesID.Del $data.rID}}
+
+		{{$recConst.Set "userMesID" $userMesID}}
+		{{$recConst.Set "recMoLB" $recMoLB}}
+		{{$recConst.Set "userReq" $userReq}}
+		{{dbSet 0 "recConst" $recConst}}
+		{{$P := dbIncr .User.ID "recordings" 1}}
+		{{$P = 0}}
+	{{else if in .CustomID "record-videoDelete"}}
+		{{$submitter := toInt64 (reFind `\d{17,19}$` .CustomID)}}
+		{{if eq $submitter .User.ID}}
+			{{sendResponse nil (complexMessage "content" "Press \"Yes\" to confirm your footage deletion." "buttons" (cbutton "style" "danger" "label" "Yes" "custom_id" (print "record-confirmVideoDelete " $submitter)) "ephemeral" true)}}
+		{{else if $council}}
+			{{sendModal (modalBuilder (print "record-noticeVideo " $submitter) "Delete With Optional Notice"
+			(clabel "label" "Reason" "description" "Leave this blank if you only want to delete the submission and manually issue a notice."
+			"component" (ctextInput "custom_id" "reason" "required" false "max_length" 2000 "style" 2)))}}
+		{{else}}
+			{{sendResponse nil (complexMessage "content" (print "Only <@&870432686064414750>, <@&643101579016273941>, and <@" $submitter "> can delete this footage submission.") "ephemeral" true)}}
+		{{end}}
+	{{else if in .CustomID "record-confirmVideoDelete"}}
+		{{$submitter := toInt64 (reFind `\d{17,19}$` .CustomID)}}
+		{{deleteMessage .Channel.ID $submitter.msgID 0}}
+		{{$data.submissions.Del $submitter}}
+		{{$userReq.Set .Channel.ID $data}}
+		{{$recConst.data.Set "userReq" $userReq}}
+		{{dbSet 0 "recConst" $recConst}}
+		{{updateMessage (complexMessage "content" "Your submission has been deleted." "ephemeral" true)}}
+	{{end}}
+{{else}}
+	{{$msgID := $userMesID.Get .User.ID}}
+	{{$data := $userReq.Get $msgID}}
+	{{if eq .CustomID "record-Request"}}
+		{{$CTI := cslice $recConst.TILvlID $recConst.TILM $recConst.TINote}}
+		{{$CL1 := cslice $recConst.LLvlID $recConst.LLM $recConst.LNote}}
+		{{$Opts := cslice $recConst.OLen $recConst.ODiff}}
+		{{$CM := cslice $recConst.MLen $recConst.MDiff}}
+		{{$CL2 := cslice $recConst.LLen $recConst.LDiff}}
+		{{$A1 := cslice}}
+		{{$A2 := cslice}}
+		{{$MT := "Recording Request Form"}}
+		{{if $data}}
+			{{$A1 = cslice $data.lvlID $data.lvlSong $data.notes}}
+			{{$A2 = cslice $data.lvlLen $data.lvlDiff}}
+			{{$MT = "Editing Your Request"}}
+		{{end}}
+		{{range 3}}
+			{{$k := .}}
+			{{$i := index $CTI $k}}
+			{{try}}
+				{{$j := index $A1 $k}}
+				{{$i.Set "value" $j}}
+			{{catch}}
+			{{end}}
+			{{(index $CL1 $k).Set "component" (ctextInput $i)}}
+		{{end}}
+		{{range 2}}
+			{{$i := .}}
+			{{$j := index $Opts $i}}
+			{{$k := index $CM $i}}
+			{{range $j}}
+				{{$m := ""}}
+				{{try}} {{$m = index $A2 $i}} {{catch}} {{end}}
+				{{if eq .value $m}}
+					{{.Set "default" true}}
+					{{break}}
+				{{end}}
+			{{end}}
+			{{$k.Set "options" $j}}
+			{{(index $CL2 $i).Set "component" (cmenu $k)}}
+		{{end}}
+		{{sendModal (modalBuilder "record-requestSubmit" $MT (clabel (index $CL1 0)) (clabel (index $CL2 1)) (clabel (index $CL2 0)) (clabel (index $CL1 1)) (clabel (index $CL1 2)) )}} {{/*level id, difficulty, level length, level music, notes */}}
+	{{else if eq .CustomID "record-requestDelete"}}
+		{{if eq .User.ID $data.rID}}
+			{{$btn0 := cbutton "style" "danger" "label" "Yes" "custom_id" "record-confirmRequestDelete"}}
+			{{if $data.submissions}}
+				{{sendResponse nil (complexMessage "content" "## There is at least one submission in your request. Maliciously deleting then requesting another can result in <@&882643861393010739>. If you only want to edit your request, press \"Edit Details\".\nOnly delete your request if you are fully sure. Press \"Yes\" to confirm." "buttons" $btn0 "ephemeral" true)}}
+			{{else}}
+				{{sendResponse nil (complexMessage "content" "## If you only want to edit your request, press \"Edit Details\".\nPress \"Yes\" to confirm your request deletion." "buttons" $btn0 "ephemeral" true)}}
+			{{end}}
+		{{else if $council}}
+			{{sendModal (modalBuilder (print "record-noticeRequest " $userReq.rID) "Delete With Optional Notice"
+			(clabel "label" "Reason" "description" "Leave this blank if you only want to delete the request and manually issue a notice."
+			"component" (ctextInput "custom_id" "reason" "required" false "max_length" 2000 "style" 2)))}}
+		{{else}}
+			{{sendResponse nil (complexMessage "content" (print "Only <@&870432686064414750>, <@&643101579016273941>, and <@" $userReq.rID "> can delete this request.") "ephemeral" true)}}
+		{{end}}
+	{{else if eq .CustomID "record-confirmRequestDelete"}}
+		{{deleteMessage .Channel.ID $msgID 0}}
+		{{deleteThread $msgID}}
+		{{$recConst.userReq.Del $msgID}}
+		{{$recConst.userMesID.Del .User.ID}}
+		{{dbSet 0 "recConst" $recConst}}
+		{{updateMessage (complexMessage "content" "Your submission has been deleted." "ephemeral" true)}}
+	{{end}}
+{{end}}

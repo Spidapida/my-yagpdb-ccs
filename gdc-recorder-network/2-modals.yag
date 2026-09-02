@@ -1,0 +1,169 @@
+{{/* Modal: record-
+
+PLS SANITIZE EVERY TEXTS TO AVOID THE BIG HOOPLA HOPLA HOOP OF PEOPLE BREAKING THE TEXT, try printf %q :3
+
+*/}}
+
+{{$recConst := (dbGet 0 "recConst").Value}}
+{{$userReq := $recConst.userReq}}
+{{$userMesID := $recConst.userMesID}}
+{{$council := false}}
+{{$IT := .Interaction.Token}}
+
+{{range $recConst.council}}
+	{{if hasRoleID .}}
+		{{$council = true}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{range $recConst.restricted}}
+	{{if and (hasRoleID .) (not $council)}}
+		{{sendResponse nil (complexMessage "ephemeral" true "content" (print "You are not allowed to perform this action due to presence of <@&" . ">."))}}
+		{{return}}
+		{{break}}
+	{{end}}
+{{end}}
+
+{{if eq .CustomID "record-requestSubmit"}}
+	{{sendResponse nil (complexMessage "content" "Processing your request..." "ephemeral" true)}}
+	{{$lvlID := reFind `\d{2,9}` .ModalValues.lvlID.value}}
+	{{if not $lvlID}}
+		{{sendMessage nil "Invalid level ID."}}
+		{{return}}
+	{{end}}
+
+	{{$fetch := sendMessageRetID $recConst.recTemp (print "https://gdbrowser.com/" $lvlID)}}
+	{{$regex := `(?i) by [ a-z0-9\-]+$`}}
+	{{$embed := sdict}}
+	{{range 5}}
+		{{sleep 1}}
+		{{$info := getMessage $recConst.recTemp $fetch}}
+		{{if $info.Embeds}}
+			{{$embed = index $info.Embeds 0}}
+			{{break}}
+		{{end}}
+	{{end}}
+	{{$msg := $recConst.data.lastID}}
+	{{$Z := 0}}
+	{{$lvlName := ""}}
+	{{$creator := ""}}
+	{{$star := ""}}
+	{{$inDiff := ""}}
+	{{$inLen := ""}}
+	{{$kind := "Classic"}}
+	{{$inSong := ""}}
+	{{$download := ""}}
+	{{$notes := "*empty*"}}
+	{{if $NT := .ModalValues.notes.value}}
+		{{$notes = reReplace `[\*_~\x60\|\n]` $NT " "}}
+	{{end}}
+
+	{{if $embed}}
+		{{if eq $embed.Title "Level Search"}}
+			{{editResponse $IT nil $recConst.respLvlInv}}
+			{{return}}
+		{{else}}
+			{{$lvlName = reReplace $regex $embed.Title ""}}
+			{{$creator = slice (reFind $regex $embed.Title) 4}}
+			{{$LS := split $embed.Description " | "}}
+			{{$star = slice (index $LS 1) 7}}
+			{{$inDiff = slice (index $LS 2) 12}}
+			{{if eq $star "0"}}
+				{{$inDiff = index .ModalValues.lvlDiff.value 0}}
+			{{end}}
+			{{$inLen = slice (index $LS 5) 8}}
+			{{if eq $inLen "Plat"}}
+				{{$kind = "Platformer"}}
+			{{end}}
+			{{/* {{$likes := slice (index $LS 4) 7}} */}}
+			{{$inLen = index .ModalValues.lvlLen.value 0}}
+			{{$inSong = slice (index $LS 6) 6}}
+			{{$download = slice (index $LS 3) 11}}
+			{{$str0 := ":** "}}
+			{{$songDisp := ""}}
+			{{if $indS := reFind .LinkRegex .ModalValues.lvlSong.value}}
+				{{$inSong = $indS}}
+				{{$str0 = " (NONG):** "}}
+			{{else}}
+				{{$eo := reFind `\(\w{1,}\)$` $inSong}}
+				{{$re := reFind `\d{1,7}` $eo}}
+				{{if (in $eo "Level")}}
+				{{else if (reFind `\d{8,}` $eo)}}
+				{{else if $re}}
+					{{$songDisp = print "[" $inSong "](https://www.newgrounds.com/audio/listen/" $re ")"}}
+				{{end}}
+			{{end}}
+			{{$Z = componentBuilder "allowed_mentions" (sdict "users" (cslice .User.ID)) "container" (sdict "components" (componentBuilder "text" (print "### " .User.Mention "'s request") "separator" true "text" (print
+			"### Level Info:"
+			"\n- **Level Name:** " $lvlName
+			"\n- **Creator:** " $creator
+			"\n- **Level ID:** `" $lvlID
+			"`\n- **Downloads:** " $download
+			"\n- **Level Type:** " $kind) "separator" true "text" (print
+			"### Recording Info:"
+			"\n- **Level Difficulty:** " (index .ModalValues.lvlDiff.value 0)
+			"\n- **Level Length Completion:** " (index .ModalValues.lvlLen.value 0)
+			"\n- **Level Music" $str0 (or $songDisp $inSong)
+			"\n- **Additional Notes:** " $notes )))}}
+		{{end}}
+	{{else}}
+		{{$Z = componentBuilder "allowed_mentions" (sdict "users" (cslice .User.ID)) "container" (sdict "components" (componentBuilder "text" (print "### " .User.Mention "'s request") "separator" true "text" (print
+		"### Could not fetch level data, please verify the info of the level manually using <@1439081767574311055> (via </level:1454737867514314793> in <#643104805707055130>)."
+		"\n\n- **Level ID:** " $lvlID
+		"\n- **Level Difficulty:** " (index .ModalValues.lvlDiff.value 0)
+		"\n- **Level Length Completion:** " (index .ModalValues.lvlLen.value 0)
+		"\n- **Level Music:** " (or .ModalValues.lvlSong.value "*included in the level*")
+		"\n- **Additional Notes:** " $notes)))}}
+	{{end}}
+	{{$V := sdict "rID" .User.ID "date" currentTime.Unix "lvlID" $lvlID "lvlLen" $inLen "lvlDiff" $inDiff "lvlSong" $inSong "notes" $notes "lvlName" $lvlName "lvlCreator" $creator "lvlDL" $download "kind" $kind "submissions" (dict)}}
+	{{$Z.Merge (componentBuilder "container" (sdict "components" (componentBuilder "buttons" (cslice (cbutton $recConst.subBtn3) (cbutton $recConst.subBtn4)))))}}
+	{{$msgID := or ($userMesID.Get .User.ID) 1}}
+	{{$data := $userReq.Get $msgID}}
+	{{if $data}}
+		{{editMessage nil $msgID $Z}}
+		{{$V.Set "submissions" $data.submissions}}
+		{{$userReq.Set $msgID $V}}
+		{{editResponse $IT nil "Your request has been edited."}}
+	{{else}}
+		{{editMessage nil $msg $Z}}
+		{{$msg = (createThread nil $msg (print .User.Username "'s request submissions")).ID}}
+		{{editThread $msg (sdict "slowmode" 60)}}
+		{{$new := sendMessageRetID nil (componentBuilder "container" (sdict "components" (componentBuilder "text" $recConst.desc01 "separator" true "text" $recConst.desc02 "separator" true "section" (sdict "text" $recConst.desc03 "button" (cbutton $recConst.reqBtn)) "separator" true "section" (sdict "text" $recConst.desc04 "button" (cbutton $recConst.scrollTop)))))}}
+		{{$recConst.data.Set "lastID" $new}}
+		{{editResponse $IT nil "Your request has been submitted."}}
+		{{$userReq.Set $msg $V}}
+		{{$userMesID.Set .User.ID $msg}}
+	{{end}}
+	{{$recConst.Set "userReq" $userReq}}
+	{{$recConst.Set "userMesID" $userMesID}}
+	{{dbSet 0 "recConst" $recConst}}
+{{else if inFold .CustomID "record-noticeRequest"}}
+	{{$IDs := toInt64 (reFind `\d{17,19}` .CustomID)}}
+	{{if $reason := .ModalValues.reason.value}}
+		{{sendResponse nil (complexMessage "ephemeral" true "content" "Deleted + sent a notice!")}}
+		{{execCC $recConst.noticeCC nil 1 (sdict "passed" (cslice $IDs) "reason" $reason)}}
+	{{else}}
+		{{sendResponse nil (complexMessage "ephemeral" true "content" "Deleted!")}}
+	{{end}}
+	{{$key := .Message.ID}}
+	{{deleteThread $key}}
+	{{deleteMessage .Channel.ID $key}}
+	{{$recConst.userReq.Del $key}}
+	{{$recConst.userMesID.Del $IDs}}
+	{{dbSet 0 "recConst" $recConst}}
+{{else if inFold .CustomID "record-noticeVideo"}}
+	{{$IDs := toInt64 (reFind `\d{17,19}` .CustomID)}}
+	{{if $reason := .ModalValues.reason.value}}
+		{{sendResponse nil (complexMessage "ephemeral" true "content" "Deleted + sent a notice!")}}
+		{{execCC $recConst.noticeCC nil 1 (sdict "passed" (cslice $IDs) "reason" $reason)}}
+	{{else}}
+		{{sendResponse nil (complexMessage "ephemeral" true "content" "Deleted!")}}
+	{{end}}
+	{{$req := $recConst.userReq.Get .Channel.ID}}
+	{{$key := $req.submissions.Get $IDs}}
+	{{deleteMessage .Channel.ID $key}}
+	{{$req.submissions.Del $key}}
+	{{$recConst.Set "userReq" $req}}
+	{{dbSet 0 "recConst" $recConst}}
+{{end}}

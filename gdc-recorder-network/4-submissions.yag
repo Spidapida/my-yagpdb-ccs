@@ -1,0 +1,111 @@
+{{$recConst := (dbGet 0 "recConst").Value}}
+{{if .Channel.IsThread}}
+	{{$CH_dump := $recConst.recTemp}}
+	{{$data := $recConst.userReq.Get .Channel.ID}}
+	
+	{{if $M := or ($recConst.userMesID.Get .User.ID) 0}}
+		{{if eq $M .Channel.ID}}
+			{{$QQ := sendMessageRetID nil (print .User.Mention ", why are you submitting in your own request? <:suspension:1426576678011928726>")}}
+			{{deleteMessage nil $QQ 20}}
+			{{deleteTrigger 0}}
+			{{return}}
+		{{end}}
+	{{end}}
+	{{if $k := $data.submissions.Get .User.ID}}
+		{{$QQ := sendMessageRetID nil (print $.User.Mention ", you already submitted a footage! If you want to replace it, please delete [your previous submission](https://discord.com/channels/643089441463992340/" .Channel.ID "/" $k.msgID ") before sending another one.")}}
+		{{deleteTrigger 0}}
+		{{deleteMessage nil $QQ 20}}
+		{{return}}
+	{{end}}
+
+	{{$msg := sendMessageRetID nil "Please wait for your submission to be checked..."}}
+	{{$hand := ""}}
+	{{$vidCon := ""}}
+	{{$Hdim := 0}}
+	{{$Wdim := 0}}
+	{{if $ZZ := .Message.Attachments}}
+		{{range $ZZ}}
+			{{$vid := false}}
+			{{if gt .Width 0}}
+				{{$ext := reFind `\.([0-9A-Za-z]+)$` .Filename}}
+				{{range cslice ".mp4" ".mov" ".webm"}}
+					{{if eq $ext .}}
+						{{try}} {{openThread $CH_dump}} {{catch}} {{end}}
+						{{$msgID := 0}}
+						{{try}}
+							{{$msgID = sendMessageRetID $CH_dump (complexMessage "forward" (sdict "channel" $.Channel.ID "message" $.Message.ID ))}}
+						{{catch}}
+							{{sendMessage nil (print "Attachment could not be forwarded, please take a look <@661882006719954953>: " .Error)}}
+							{{return}}
+							{{break}}
+						{{end}}
+						{{$z := index ((index (getMessage $CH_dump $msgID).MessageSnapshots 0).Message.Attachments) 0}}
+						{{$vid = true}}
+						{{$Hdim = $z.Height}}
+						{{$Wdim = $z.Width}}
+						{{$hand = print $z.URL}}
+						{{$vidCon = $hand}}
+						{{break}}
+					{{end}}
+				{{end}}
+			{{end}}
+			{{if $vid}} {{break}} {{end}}
+		{{end}}
+	{{else if $link := reFind .LinkRegex .Message.Content}}
+		{{$msgId := sendMessageRetID $CH_dump $link}}
+		{{$emb := 0}}
+		{{range 5}}
+			{{sleep 1}}
+			{{$emb = getMessage $CH_dump $msgId}}
+			{{if $emb.Embeds}}
+				{{$emb = index $emb 0}}
+				{{$hand = $link}}
+				{{if eq $emb.Type "video"}}
+					{{$y := ""}}
+					{{if $emb.Video}}
+						{{$y = .Video.ProxyURL}}
+					{{end}}
+					{{if and $emb.Provider $y}}
+						{{$vidCon = $emb.Video.URL}}
+					{{else}}
+						{{$vidCon = .URL}}
+					{{end}}
+					{{$Hdim = $emb.Video.Height}}
+					{{$Wdim = $emb.Video.Width}}
+				{{else if eq $emb.Type "rich"}}
+					{{if $emb.Thumbnail}}
+						{{$vidCon = .Video.URL}}
+						{{$Hdim = $emb.Video.Height}}
+						{{$Wdim = $emb.Video.Width}}
+					{{end}}
+				{{end}}
+				{{break}}
+			{{else}}
+				{{$hand = $link}}
+			{{end}}
+		{{end}}
+	{{end}}
+	{{if $hand}}
+		{{$btn1 := $recConst.subBtn1}}
+		{{$btn2 := $recConst.subBtn2}}
+		{{$btn1.Set "custom_id" (print "record-videoApprove " .User.ID)}}
+		{{$btn2.Set "custom_id" (print "record-videoDelete " .User.ID)}}
+		{{$buttons := cslice (cbutton $btn1) (cbutton $btn2)}}
+		{{if $vidCon}}
+			{{editMessage nil $msg (componentBuilder "allowed_mentions" (sdict "users" (cslice .User.ID)) "text" (print "### " .User.Mention "'s submission: `" $hand "`\nVideo Dimensions: " $Wdim " * " $Hdim) "gallery" (cslice (sdict "media" $vidCon)) "buttons" $buttons)}}
+		{{else}}
+			{{editMessage nil $msg (complexMessage "allowed_mentions" (sdict "users" (cslice .User.ID)) "content" (print "### " .User.Mention "'s submission\n" "[Link](" $hand "): `" $hand "`") "buttons" $buttons)}}
+		{{end}}
+		{{$data.submissions.Set .User.ID (sdict "msgID" $msg "submissions" $hand "display" $vidCon)}}
+		{{$recConst.userReq.Set .Channel.ID $data}}
+		{{dbSet 0 "recConst" $recConst}}
+	{{else}}
+		{{editMessage nil $msg (print .User.Mention "'s submission has been denied due to no presence of a video file or link.")}}
+		{{deleteMessage nil $msg 20}}
+	{{end}}
+	{{deleteTrigger 0}}
+{{else}}
+	{{if eq .Message.Type 18}}
+		{{deleteTrigger 0}}
+	{{end}}
+{{end}}
